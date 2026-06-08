@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в админку - Ассоциация молодых педагогов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin_dashboard.css' %}">
+    <style>
+        /* Единые переменные */
+        :root {
+            --admin-primary: #032D43;
+            --admin-primary-light: rgba(3, 45, 67, 0.08);
+            --admin-primary-dark: #021F2E;
+            --admin-text-dark: #1A1A1A;
+            --admin-text-gray: #6B7280;
+            --admin-text-light: #9CA3AF;
+            --admin-bg-white: #FFFFFF;
+            --admin-bg-light: #F9FAFB;
+            --admin-border: rgba(3, 45, 67, 0.1);
+            --admin-shadow-sm: 0 1px 2px rgba(3, 45, 67, 0.05);
+            --admin-shadow-md: 0 2px 4px rgba(3, 45, 67, 0.1);
+            --admin-shadow-lg: 0 4px 8px rgba(3, 45, 67, 0.1);
+            --admin-radius-sm: 8px;
+            --admin-radius-md: 12px;
+            --admin-radius-lg: 16px;
+
+            /* Типографика - единые размеры */
+            --font-xs: 12px;
+            --font-sm: 13px;
+            --font-base: 14px;
+            --font-md: 15px;
+            --font-lg: 16px;
+            --font-xl: 18px;
+            --font-2xl: 20px;
+            --font-3xl: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--admin-bg-light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--admin-text-dark);
+        }
+
+        /* Карточка входа */
+        .login-card {
+            background: var(--admin-bg-white);
+            border-radius: var(--admin-radius-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--admin-shadow-lg);
+            border: 1px solid var(--admin-border);
+        }
+
+        /* Заголовок */
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            background: var(--admin-primary-light);
+            border-radius: var(--admin-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .login-logo i {
+            font-size: 28px;
+            color: var(--admin-primary);
+        }
+
+        .login-title {
+            font-size: var(--font-2xl);
+            font-weight: 700;
+            color: var(--admin-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .login-subtitle {
+            font-size: var(--font-sm);
+            color: var(--admin-text-gray);
+            font-weight: 400;
+        }
+
+        /* Успешное сообщение */
+        .form-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10B981;
+            padding: 12px 16px;
+            border-radius: var(--admin-radius-sm);
+            font-size: var(--font-sm);
+            font-weight: 500;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-success i {
+            font-size: var(--font-base);
+        }
+
+        /* Форма */
+        .login-form {
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: var(--font-sm);
+            font-weight: 600;
+            color: var(--admin-text-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-label.required::after {
+            content: "*";
+            color: #EF4444;
+            margin-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--admin-text-light);
+            font-size: var(--font-base);
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            border: 1px solid var(--admin-border);
+            border-radius: var(--admin-radius-sm);
+            font-family: 'Manrope', sans-serif;
+            font-size: var(--font-base);
+            color: var(--admin-text-dark);
+            transition: all 0.2s ease;
+            background: var(--admin-bg-white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+            box-shadow: 0 0 0 3px var(--admin-primary-light);
+        }
+
+        .form-control::placeholder {
+            color: var(--admin-text-light);
+        }
+
+        /* Стили для ошибок под полями */
+        .field-error {
+            color: #EF4444;
+            font-size: var(--font-xs);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-error i {
+            font-size: 12px;
+        }
+
+        .form-group.has-error .form-control {
+            border-color: #EF4444;
+            background-color: rgba(239, 68, 68, 0.02);
+        }
+
+        .form-group.has-error .form-control:focus {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        /* Кнопки */
+        .btn {
+            padding: 12px 20px;
+            border-radius: var(--admin-radius-sm);
+            font-size: var(--font-base);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            font-family: 'Manrope', sans-serif;
+            width: 100%;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--admin-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--admin-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--admin-shadow-md);
+        }
+
+        .btn-primary i {
+            font-size: var(--font-base);
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 1px solid var(--admin-border);
+            color: var(--admin-text-dark);
+            margin-top: 12px;
+        }
+
+        .btn-back:hover {
+            background: var(--admin-primary-light);
+            border-color: var(--admin-primary);
+            color: var(--admin-primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-back i {
+            color: var(--admin-primary);
+            font-size: var(--font-sm);
+        }
+
+        /* Подсказка */
+        .form-hint {
+            padding: 16px;
+            background: var(--admin-bg-light);
+            border-radius: var(--admin-radius-sm);
+            border: 1px solid var(--admin-border);
+            font-size: var(--font-xs);
+            color: var(--admin-text-gray);
+            line-height: 1.6;
+        }
+
+        .form-hint p {
+            margin: 0;
+        }
+
+        .form-hint strong {
+            color: var(--admin-primary);
+            font-weight: 600;
+        }
+
+        .form-hint .demo-password {
+            font-family: 'Manrope', monospace;
+            background: var(--admin-bg-white);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--admin-border);
+            color: var(--admin-primary);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 20px;
+            }
+
+            .login-title {
+                font-size: var(--font-xl);
+            }
+
+            .login-logo {
+                width: 56px;
+                height: 56px;
+            }
+
+            .login-logo i {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="login-title">Админ панель</h1>
+            <p class="login-subtitle">Ассоциация молодых педагогов</p>
+        </div>
+
+        {% if success %}
+        <div class="form-success">
+            <i class="fas fa-check-circle"></i>
+            {{ success }}
+        </div>
+        {% endif %}
+
+        <form method="post" class="login-form" id="loginForm">
+            {% csrf_token %}
+
+            <div class="form-group" id="emailGroup">
+                <label class="form-label required">Email (логин)</label>
+                <div class="input-wrapper">
+                    <input type="email"
+                           name="email"
+                           id="emailInput"
+                           class="form-control"
+                           placeholder="Введите email"
+                           value="{{ email|default:'' }}"
+                           required>
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="field-error" id="emailError" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="form-group" id="passwordGroup">
+                <label class="form-label required">Пароль</label>
+                <div class="input-wrapper">
+                    <input type="password"
+                           name="password"
+                           id="passwordInput"
+                           class="form-control"
+                           placeholder="Введите пароль"
+                           required>
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="field-error" id="passwordError" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Войти в панель</span>
+            </button>
+        </form>
+
+        <!-- Кнопка возврата на основной сайт -->
+        <a href="/" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i>
+            <span>Вернуться на сайт</span>
+        </a>
+    </div>
+
+    <script>
+        // Функция для отображения ошибки под конкретным полем
+        function showFieldError(fieldId, errorMessage) {
+            const group = document.getElementById(fieldId + 'Group');
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            const errorSpan = errorDiv.querySelector('span');
+
+            if (errorMessage) {
+                errorSpan.textContent = errorMessage;
+                errorDiv.style.display = 'flex';
+                group.classList.add('has-error');
+            } else {
+                errorDiv.style.display = 'none';
+                group.classList.remove('has-error');
+            }
+        }
+
+        // Функция для очистки всех ошибок
+        function clearAllErrors() {
+            showFieldError('email', '');
+            showFieldError('password', '');
+        }
+
+        // Обработка отправки формы
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            clearAllErrors();
+
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            let hasError = false;
+
+            if (!email) {
+                showFieldError('email', 'Введите email');
+                hasError = true;
+            } else if (!isValidEmail(email)) {
+                showFieldError('email', 'Введите корректный email (пример: name@mail.ru)');
+                hasError = true;
+            }
+
+            if (!password) {
+                showFieldError('password', 'Введите пароль');
+                hasError = true;
+            }
+
+            if (hasError) {
+                e.preventDefault();
+            }
+        });
+
+        // Проверка валидности email
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Очистка ошибки при вводе
+        document.getElementById('emailInput').addEventListener('input', function() {
+            showFieldError('email', '');
+        });
+
+        document.getElementById('passwordInput').addEventListener('input', function() {
+            showFieldError('password', '');
+        });
+
+        // Отображение ошибок от сервера (если они пришли)
+        {% if error %}
+            // Определяем тип ошибки и показываем под соответствующим полем
+            const errorMsg = "{{ error|escapejs }}";
+            if (errorMsg.includes('email') || errorMsg.includes('не найден')) {
+                showFieldError('email', errorMsg);
+            } else if (errorMsg.includes('пароль') || errorMsg.includes('Пароль')) {
+                showFieldError('password', errorMsg);
+            } else {
+                // Если ошибка общая, показываем под паролем
+                showFieldError('password', errorMsg);
+            }
+        {% endif %}
+
+        // Отображение ошибки неверного пароля от сервера
+        {% if error_password %}
+        showFieldError('password', '{{ error_password|escapejs }}');
+        {% endif %}
+
+        {% if error_email %}
+        showFieldError('email', '{{ error_email|escapejs }}');
+        {% endif %}
+    </script>
+</body>
+</html>

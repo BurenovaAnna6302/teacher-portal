@@ -1,0 +1,241 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Опросники - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'surveys/css/surveys.css' %}?v=3.7">
+<div class="surveys-page">
+
+    <!-- Breadcrumbs -->
+    <div class="surveys-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="{% url 'about:about' %}" class="breadcrumb-link">Ассоциация</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Опросы</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="surveys-header-section">
+        <div class="container">
+            <div class="surveys-header-content">
+                <h1 class="surveys-main-title">Опросы</h1>
+                <p class="surveys-header-description">
+                    Анкеты и опросы для сбора обратной связи и оценки потребностей молодых педагогов. Ваше мнение важно для нас!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Section -->
+    <section class="surveys-info-section">
+        <div class="container">
+            <div class="surveys-info-content">
+                <h3 class="surveys-info-title">Почему важно участвовать в опросах?</h3>
+                <p class="surveys-info-description">
+                    Ваши ответы помогают нам лучше понимать потребности молодых педагогов и создавать
+                    более полезные и актуальные программы, материалы и мероприятия. Каждое мнение важно!
+                </p>
+                <div class="surveys-info-grid">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-user-secret"></i>
+                        </div>
+                        <h5 class="info-card-title">Анонимность</h5>
+                        <p class="info-card-text">Все опросы проводятся анонимно</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="far fa-clock"></i>
+                        </div>
+                        <h5 class="info-card-title">Быстро</h5>
+                        <p class="info-card-text">Большинство опросов занимают 5-15 минут</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h5 class="info-card-title">Влияние</h5>
+                        <p class="info-card-text">Ваше мнение влияет на развитие ассоциации</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="surveys-main-section">
+        <div class="container">
+            <div class="surveys-content-grid">
+                <!-- Filters Sidebar -->
+                <aside class="surveys-filters-sidebar">
+                    <div class="filters-card">
+                        <div class="filters-header">
+                            <h3 class="filters-title">Фильтры</h3>
+                            <button class="btn-clear-all" id="clearAllFilters">
+                                Сбросить все
+                            </button>
+                        </div>
+
+                        <div class="filters-list">
+                            <!-- Category Filter - с цветом -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По категории</h4>
+                                <div class="filter-options">
+                                    {% for category in categories %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="category" value="{{ category.id }}">
+                                        <!-- ИСПРАВЛЕНО: добавлен инлайн-стиль с цветом -->
+                                        <span class="filter-color-indicator" style="background-color: {{ category.bg_color }}; display: inline-block;"></span>
+                                        <span class="filter-option-text">{{ category.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Duration Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По длительности</h4>
+                                <div class="filter-options">
+                                    {% for duration in durations %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="duration" value="{{ duration.id }}">
+                                        <!-- ИСПРАВЛЕНО: пустой индикатор -->
+                                        <span class="filter-color-indicator" style="display: none;"></span>
+                                        <span class="filter-option-text">{{ duration.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Status Filter - без цвета -->
+
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Surveys Grid -->
+                <div class="surveys-grid-container">
+                    <!-- Surveys Grid -->
+                    <div class="surveys-grid" id="surveysGrid">
+                        {% for item in surveys %}
+                        <a href="{% url 'surveys:survey_detail' item.id %}" class="surveys-card-link" style="text-decoration: none; color: inherit; display: block;">
+                            <article class="surveys-card" data-id="{{ item.id }}">
+                                <div class="surveys-card-header">
+                                    <div class="survey-icon">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <!-- ИСПРАВЛЕНО: бейдж категории с цветом из данных -->
+                                    <div class="category-badge" style="background-color: {{ item.category.bg_color }}; color: {{ item.category.text_color }};">
+                                        {{ item.category.name }}
+                                    </div>
+                                </div>
+
+                                <div class="surveys-card-content">
+                                    <h3 class="surveys-title" title="{{ item.title }}">{{ item.title }}</h3>
+                                    <p class="surveys-description" title="{{ item.description }}">{{ item.description|truncatechars:120 }}</p>
+
+                                    <div class="surveys-description-spacing"></div>
+
+                                    <div class="surveys-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-clipboard-list"></i>
+                                            <span class="detail-text">{{ item.questions_count }} вопросов</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="far fa-clock"></i>
+                                            <span class="detail-text">{{ item.duration }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="far fa-calendar"></i>
+                                            <span class="detail-text">Опубликовано {{ item.created_date|date:"d.m.Y" }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="surveys-meta">
+                                        <div class="status-badge {% if item.status_code == 'active' %}active{% else %}completed{% endif %}">
+                                            {{ item.status_display }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
+                        {% empty %}
+                        <div class="no-surveys-message">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>Опросы не найдены</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="surveys-pagination">
+                        <button class="pagination-btn pagination-prev" id="prevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="pagination-pages" id="paginationPages">
+                            <button class="pagination-page active" data-page="1">1</button>
+                            {% if total_pages > 1 %}
+                            <button class="pagination-page" data-page="2">2</button>
+                            {% endif %}
+                        </div>
+
+                        <button class="pagination-btn pagination-next" id="nextPage" {% if total_pages <= 1 %}disabled{% endif %}>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile Filters Modal -->
+    <div class="mobile-filters-modal" id="mobileFiltersModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Фильтры</h3>
+                <button class="modal-close" id="closeFiltersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-filters">
+                <!-- Фильтры будут скопированы через JS -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-apply-filters" id="applyMobileFilters">Применить</button>
+                <button class="btn-reset-modal" id="resetMobileFilters">Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Button -->
+    <button class="mobile-filters-btn" id="openFiltersModal">
+        <i class="fas fa-filter"></i> Фильтры
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'surveys/js/surveys.js' %}?v=3.2"></script>
+<script>
+    // Передача данных из Django
+    const surveysAppConfig = {
+        surveys: {{ surveys_json|safe }},
+        categories: {{ categories_json|safe }},
+        durations: {{ durations_json|safe }},
+        statuses: {{ statuses_json|safe }},
+        itemsPerPage: 12,
+        currentPage: {{ current_page }},
+        totalPages: {{ total_pages }}
+    };
+</script>
+{% endblock %}

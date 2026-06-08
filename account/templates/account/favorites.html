@@ -1,0 +1,217 @@
+{% extends 'account/base_profile.html' %}
+{% load static %}
+
+{% block title %}Избранное - Личный кабинет{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="profile-breadcrumbs">
+    <div class="container">
+        <div class="breadcrumbs-content">
+            <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="{% url 'account:profile' %}" class="breadcrumb-link">Личный кабинет</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Избранное</span>
+        </div>
+    </div>
+</div>
+
+<!-- Сообщение об успехе (как в профиле) -->
+<div class="profile-success-message" id="favoritesSuccessMessage" style="display: none;">
+    <i class="fas fa-check-circle"></i>
+    <span>Материал удален из избранного</span>
+</div>
+
+<!-- Header Section -->
+<section class="profile-header-section">
+    <div class="container">
+        <div class="profile-header-content">
+            <h1 class="profile-main-title">Избранное</h1>
+            <p class="profile-header-description">
+                Ваши сохраненные материалы
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="profile-main-section">
+    <div class="container">
+        {% if favorites %}
+        <!-- Materials Grid -->
+        <div class="favorites-grid" id="favoritesGrid">
+            {% for item in favorites %}
+            <article class="favorite-card" data-id="{{ item.id }}" data-material-id="{{ item.material_id }}">
+                <div class="favorite-card-inner">
+                    <!-- Header with type badge and remove button -->
+                    <div class="favorite-header">
+                        <span class="material-type-badge" style="background-color: rgba(3, 45, 67, 0.1); color: #032D43;">
+                            <i class="fas fa-book"></i>
+                            Методический материал
+                        </span>
+                        <button type="button" class="favorite-remove-btn" data-id="{{ item.id }}" title="Удалить из избранного">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="favorite-content">
+                        <h3 class="favorite-title" title="{{ item.title }}">
+                            {{ item.title }}
+                        </h3>
+
+                        <p class="favorite-description" title="{{ item.description }}">
+                            {{ item.description|default:"Описание отсутствует"|truncatechars:120 }}
+                        </p>
+
+                        <!-- Vertical badges with icons (как в методических материалах) -->
+                        <div class="material-badges-vertical">
+                            {% if item.subject %}
+                            <div class="badge-item">
+                                <i class="fas fa-book" style="color: #4f46e5;"></i>
+                                <span>{{ item.subject }}</span>
+                            </div>
+                            {% endif %}
+
+                            {% if item.grade %}
+                            <div class="badge-item">
+                                <i class="fas fa-graduation-cap" style="color: #10b981;"></i>
+                                <span>{{ item.grade }}</span>
+                            </div>
+                            {% endif %}
+
+                            {% if item.difficulty %}
+                            <div class="badge-item">
+                                <i class="fas fa-chart-line" style="color: #f59e0b;"></i>
+                                <span>{{ item.difficulty }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Meta info - только кнопка Подробнее, без даты -->
+                        <div class="favorite-meta">
+                            <button class="expand-btn" data-id="{{ item.material_id }}">
+                                <i class="fas fa-expand-alt"></i>
+                                Подробнее
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <!-- Clear all button -->
+        <div class="favorites-actions">
+            <button type="button" class="btn-clear-all-favorites" id="clearAllFavorites">
+                <i class="fas fa-trash-alt"></i>
+                <span>Очистить все</span>
+            </button>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div class="empty-favorites">
+            <div class="empty-icon">
+                <i class="far fa-heart"></i>
+            </div>
+            <h3>В избранном пока пусто</h3>
+            <p>Сохраняйте понравившиеся материалы, чтобы вернуться к ним позже</p>
+            <div class="empty-actions">
+                <a href="{% url 'materials:materials' %}" class="btn-explore-materials">
+                    <i class="fas fa-book-open"></i>
+                    <span>Перейти к материалам</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Modal for Material Details (как в методических материалах) -->
+<div class="material-modal" id="materialModal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Подробная информация</h3>
+            <button class="modal-close" id="closeMaterialModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Content will be loaded here by JavaScript -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'account/css/favorites.css' %}?v=4.1">
+<style>
+    /* Стили для уведомления (как в профиле - справа, белый фон, зеленая полоска) */
+    .profile-success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        left: auto;
+        background: white;
+        border-left: 4px solid #10b981;
+        color: #065f46;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 10002;
+        font-family: 'Manrope', sans-serif;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        max-width: 350px;
+    }
+
+    .profile-success-message.error {
+        border-left-color: #ef4444;
+        color: #991b1b;
+    }
+
+    .profile-success-message.error i {
+        color: #ef4444;
+    }
+
+    .profile-success-message i {
+        color: #10b981;
+        font-size: 16px;
+    }
+
+    .profile-success-message.show {
+        opacity: 1;
+    }
+
+    @media (max-width: 480px) {
+        .profile-success-message {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'account/js/favorites.js' %}?v=4.2"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Favorites page loaded');
+
+        // Передаем данные в JavaScript
+        window.favoritesData = {
+            count: {{ favorites_count|default:0 }},
+            items: {{ favorites|safe }}
+        };
+    });
+</script>
+{% endblock %}

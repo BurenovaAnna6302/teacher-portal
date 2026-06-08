@@ -1,0 +1,315 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Методические материалы - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'materials/css/materials.css' %}?v=2.3">
+<div class="materials-page">
+
+    <!-- Breadcrumbs -->
+    <div class="materials-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="#" class="breadcrumb-link">База знаний</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Методические материалы</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="materials-header-section">
+        <div class="container">
+            <div class="materials-header-content">
+                <h1 class="materials-main-title">Методические материалы</h1>
+                <p class="materials-header-description">
+                    Методические разработки, конспекты уроков и дидактические материалы от молодых педагогов
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="materials-main-section">
+        <div class="container">
+            <!-- Sort Dropdown -->
+            <div class="sorting-controls">
+                <div class="sort-container">
+    <select class="sort-select" id="sortSelect">
+        <option value="none">Все материалы</option>
+        <option value="date-desc">Новые сначала</option>
+        <option value="date-asc">Старые сначала</option>
+        <option value="title-asc">По названию (А-Я)</option>
+        <option value="title-desc">По названию (Я-А)</option>
+    </select>
+</div>
+            </div>
+
+            <div class="materials-content-grid">
+                <!-- Filters Sidebar -->
+                <aside class="materials-filters-sidebar">
+                    <div class="filters-card">
+                        <div class="filters-header">
+                            <h3 class="filters-title">Фильтры</h3>
+                            <button class="btn-clear-all" id="clearAllFilters">
+                                Сбросить все
+                            </button>
+                        </div>
+
+                        <div class="filters-list">
+                            <!-- Subjects Filter - с цветом -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По предметным областям</h4>
+                                <div class="filter-options">
+                                    {% for subject in subjects %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="subject" value="{{ subject.id }}">
+                                        <span class="filter-color-indicator" style="background-color: {{ subject.bg_color }};"></span>
+                                        <span class="filter-option-text">{{ subject.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Types Filter - с цветом -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По типу материалов</h4>
+                                <div class="filter-options">
+                                    {% for type in types %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="type" value="{{ type.id }}">
+                                        <span class="filter-color-indicator" style="background-color: {{ type.bg_color }};"></span>
+                                        <span class="filter-option-text">{{ type.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Difficulty Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По уровню сложности</h4>
+                                <div class="filter-options">
+                                    {% for diff in difficulty %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="difficulty" value="{{ diff.id }}">
+                                        <span class="filter-option-text">{{ diff.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Grades Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По классам/возрастным группам</h4>
+                                <div class="filter-options">
+                                    {% for grade in grades %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="grade" value="{{ grade.id }}">
+                                        <span class="filter-option-text">{{ grade.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Formats Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По форматам работы</h4>
+                                <div class="filter-options">
+                                    {% for format in formats %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="{{ format.id }}">
+                                        <span class="filter-option-text">{{ format.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Assessment Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По системе оценки</h4>
+                                <div class="filter-options">
+                                    {% for assess in assessment %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="assessment" value="{{ assess.id }}">
+                                        <span class="filter-option-text">{{ assess.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Additional Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">Дополнительные категории</h4>
+                                <div class="filter-options">
+                                    {% for add in additional %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="additional" value="{{ add.id }}">
+                                        <span class="filter-option-text">{{ add.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Materials Grid -->
+                <div class="materials-grid-container">
+                    <!-- Materials Grid -->
+                    <div class="materials-grid" id="materialsGrid">
+                        {% for item in materials %}
+                        <article class="material-card" data-id="{{ item.id }}">
+                            <div class="material-card-inner">
+                                <!-- Material Header -->
+                                <div class="material-header">
+                                    <span class="material-type-badge" style="background-color: {{ item.material_type.bg_color }}; color: {{ item.material_type.text_color }};">
+                                        {{ item.material_type.name }}
+                                    </span>
+                                    <button class="favorite-btn" data-id="{{ item.id }}">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Material Content -->
+                                <div class="material-content">
+                                    <h3 class="material-title" title="{{ item.title }}">{{ item.title }}</h3>
+                                    <p class="material-description" title="{{ item.description }}">{{ item.description|truncatechars:120 }}</p>
+
+                                    <!-- Material Badges - вертикально с иконками -->
+                                    <div class="material-badges-vertical">
+                                        <div class="badge-item">
+                                            <i class="fas fa-book" style="color: {{ item.subject.bg_color }};"></i>
+                                            <span>{{ item.subject.name }}</span>
+                                        </div>
+                                        <div class="badge-item">
+                                            <i class="fas fa-graduation-cap" style="color: {{ item.material_type.bg_color }};"></i>
+                                            <span>{{ item.grade.name }}</span>
+                                        </div>
+                                        <div class="badge-item">
+                                            <i class="fas fa-chart-line" style="color: #6B7280;"></i>
+                                            <span>{{ item.difficulty.name }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Material Meta -->
+                                    <div class="material-meta">
+                                        <span class="date-added">
+                                            <i class="far fa-calendar"></i>
+                                            {{ item.date_added }}
+                                        </span>
+                                        <button class="expand-btn" data-id="{{ item.id }}">
+                                            <i class="fas fa-expand-alt"></i>
+                                            Подробнее
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        {% empty %}
+                        <div class="no-materials-message">
+                            <i class="fas fa-book-open"></i>
+                            <p>Материалы не найдены</p>
+                            <p class="empty-state-description">
+                                Попробуйте изменить параметры фильтрации
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="materials-pagination">
+                        <button class="pagination-btn pagination-prev" id="prevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="pagination-pages" id="paginationPages">
+                            <button class="pagination-page active" data-page="1">1</button>
+                            {% if total_pages > 1 %}
+                            <button class="pagination-page" data-page="2">2</button>
+                            {% endif %}
+                        </div>
+
+                        <button class="pagination-btn pagination-next" id="nextPage" {% if total_pages <= 1 %}disabled{% endif %}>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for Material Details -->
+    <div class="material-modal" id="materialModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Подробная информация</h3>
+                <button class="modal-close" id="closeMaterialModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Modal -->
+    <div class="mobile-filters-modal" id="mobileFiltersModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Фильтры</h3>
+                <button class="modal-close" id="closeFiltersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-filters">
+                <!-- Фильтры будут скопированы через JS -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-apply-filters" id="applyMobileFilters">Применить</button>
+                <button class="btn-reset-modal" id="resetMobileFilters">Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Button -->
+    <button class="mobile-filters-btn" id="openFiltersModal">
+        <i class="fas fa-filter"></i> Фильтры
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'materials/js/materials.js' %}?v=2.6"></script>
+<script>
+    const materialsAppConfig = {
+        materials: {{ materials_json|safe }},
+        subjects: {{ subjects_json|safe }},
+        types: {{ types_json|safe }},
+        difficulty: {{ difficulty_json|safe }},
+        grades: {{ grades_json|safe }},
+        formats: {{ formats_json|safe }},
+        assessment: {{ assessment_json|safe }},
+        additional: {{ additional_json|safe }},
+        itemsPerPage: 12,
+        currentPage: {{ current_page }},
+        totalPages: {{ total_pages }}
+    };
+
+    window.userAuthenticated = {% if request.session.user_id %}true{% else %}false{% endif %};
+    window.loginUrl = '{% url "auth:login" %}';
+    window.registerUrl = '{% url "auth:register" %}'; // Добавьте эту строку
+</script>
+{% endblock %}

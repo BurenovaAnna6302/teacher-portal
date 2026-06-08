@@ -1,0 +1,107 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ news.title }} - Новости{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'news/css/news_detail.css' %}?v=2.0">
+<div class="news-detail-page">
+
+    <!-- Breadcrumbs -->
+    <div class="news-detail-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="{% url 'news:news' %}" class="breadcrumb-link">Новости</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">{{ news.title|truncatechars:50 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="news-detail-main-section">
+        <div class="container">
+            <!-- Кнопка назад наверх -->
+            <div class="news-detail-back-top">
+                <a href="{% url 'news:news' %}" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Назад к списку новостей
+                </a>
+            </div>
+
+            <!-- Заголовок -->
+            <h1 class="news-detail-title">{{ news.title }}</h1>
+
+            <!-- Статус и дата в одной строке -->
+            <div class="news-detail-meta-line">
+                <span class="status-badge" style="background-color: {{ status_color }}; color: {{ status_text_color }};">
+                    {{ news.info_status.name }}
+                </span>
+                <span class="news-detail-date">
+                    <i class="far fa-calendar-alt"></i> {{ formatted_date }}
+                </span>
+            </div>
+
+            <!-- Компактная информация в одну строку -->
+            <div class="news-detail-info-compact">
+                <!-- Целевая аудитория -->
+                <span class="info-compact-item">
+                    <i class="fas fa-users"></i>
+                    <span>{{ news.target_audience.name }}</span>
+                </span>
+
+                <span class="info-compact-divider">•</span>
+
+                <!-- Тип контента -->
+                <span class="info-compact-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span>{{ news.content_type.name }}</span>
+                </span>
+            </div>
+
+            <!-- Краткое описание -->
+            <p class="news-detail-short">{{ news.short_description }}</p>
+
+            <!-- Подробное описание -->
+            <div class="news-detail-description">
+                <h3>Подробности</h3>
+                {% for paragraph in description_paragraphs %}
+                    <p>{{ paragraph }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Фотогалерея (под текстом, максимум 3 фото в ряд) -->
+            {% if photos %}
+            <div class="news-detail-gallery-section">
+                <h3 class="gallery-title">Фотографии</h3>
+                <div class="news-detail-photos-grid" data-photos-count="{{ photos_count }}">
+                    {% for photo in photos %}
+                    <div class="photo-grid-item" onclick="openGalleryModal('{{ photo.photo.url }}')">
+                        <img src="{{ photo.photo.url }}"
+                             alt="{{ news.title }} - фото {{ forloop.counter }}"
+                             onerror="this.onerror=null; this.src='{% static 'news/images/default-news.png' %}';">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Модальное окно для просмотра фото (исправленное) -->
+    <div class="gallery-modal" id="galleryModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="closeGalleryModal" aria-label="Закрыть">
+                <i class="fas fa-times"></i>
+            </button>
+            <img src="" alt="" id="modalImage">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'news/js/news_detail.js' %}?v=2.0"></script>
+{% endblock %}

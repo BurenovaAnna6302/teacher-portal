@@ -1,0 +1,592 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-wrapper">
+    <section class="section-hero">
+        <div class="hero-background">
+            <img src="{% static 'main/images/hero.png' %}"
+                 alt="Молодые педагоги на мероприятии"
+                 class="hero-image">
+        </div>
+        <div class="hero-gradient-overlay"></div>
+
+        <div class="container hero-container">
+            <div class="hero-content">
+                <h1 class="hero-main-title">
+                    Ассоциация молодых педагогов
+                </h1>
+                <p class="hero-description">
+                    Профессиональное сообщество для развития и поддержки молодых педагогов.
+                    Обмен опытом, обучение и вдохновение для успешной карьеры в образовании.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{% url 'auth:register' %}" class="btn-primary-hero">
+                        Присоединиться
+                    </a>
+                    <a href="{% url 'about:about' %}" class="btn-secondary-hero">
+                        Узнать больше
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-database feature-icon"></i>
+                    </div>
+                    <h3 class="feature-title">Библиотека материалов</h3>
+                    <p class="feature-text">Проверенные методические материалы, уроки и задания для всех предметов</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-bolt feature-icon"></i>
+                    </div>
+                    <h3 class="feature-title">Гибкий формат</h3>
+                    <p class="feature-text">Онлайн и офлайн мероприятия, адаптированные под ваш график и потребности</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-search feature-icon"></i>
+                    </div>
+                    <h3 class="feature-title">Умный поиск</h3>
+                    <p class="feature-text">Быстрый поиск материалов по предмету, классу и типу с интеллектуальными фильтрами</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-shield-alt feature-icon"></i>
+                    </div>
+                    <h3 class="feature-title">Безопасность данных</h3>
+                    <p class="feature-text">Все данные защищены, конфиденциальность гарантирована современными технологиями</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-events">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Ближайшие мероприятия</h2>
+                <p class="section-subtitle">Не пропустите важные события</p>
+            </div>
+
+            <div class="events-grid">
+                {% for event in latest_events %}
+                <a href="{% url 'events:event_detail' event.id %}" style="text-decoration: none; color: inherit; display: block;">
+                    <article class="event-card">
+                        <div class="event-image-container">
+                            {% with first_photo=event.photos.first %}
+                                {% if first_photo and first_photo.photo %}
+                                    <img src="{{ first_photo.photo.url }}"
+                                         alt="{{ event.title }}"
+                                         class="event-image">
+                                {% else %}
+                                    <img src="{% static 'events/images/default-event.png' %}"
+                                         alt="{{ event.title }}"
+                                         class="event-image">
+                                {% endif %}
+                            {% endwith %}
+                            <span class="event-badge" style="background-color: {{ event.activity_type.color }}; color: {{ event.activity_type.text_color }};">
+                                {{ event.activity_type.name }}
+                            </span>
+                        </div>
+                        <div class="event-content">
+                            <h3 class="event-title">{{ event.title }}</h3>
+                            <p class="event-description">{{ event.short_description|truncatechars:120 }}</p>
+
+                            <div class="event-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-users"></i>
+                                    <div class="detail-text">
+                                        <strong>Целевая аудитория:</strong> {{ event.target_audience.name }}
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-laptop"></i>
+                                    <div class="detail-text">
+                                        <strong>Формат проведения:</strong> {{ event.format.name }}
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <div class="detail-text">
+                                        <strong>Предметная область:</strong> {{ event.subject.name }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="event-meta">
+                                <div class="meta-item">
+                                    <i class="far fa-calendar-alt"></i>
+                                    <span>{{ event.date|date:"d.m.Y" }} • {{ event.time|time:"H:i" }}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>{{ event.location }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </a>
+                {% empty %}
+                <div class="no-events-message">
+                    <i class="far fa-calendar-alt"></i>
+                    <p>Мероприятия не найдены</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center">
+                <a href="{% url 'events:events' %}" class="btn-outline">
+                    Все мероприятия
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-news">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Последние новости</h2>
+                <p class="section-subtitle">Будьте в курсе событий</p>
+            </div>
+
+            <div class="news-grid">
+                {% for news in latest_news %}
+                <a href="{% url 'news:news_detail' news.id %}" style="text-decoration: none; color: inherit; display: block;">
+                    <article class="news-card">
+                        <div class="news-image-container">
+                            {% with first_photo=news.photos.first %}
+                                {% if first_photo and first_photo.photo %}
+                                    <img src="{{ first_photo.photo.url }}"
+                                         alt="{{ news.title }}"
+                                         class="news-image">
+                                {% else %}
+                                    <img src="{% static 'news/images/default-news.png' %}"
+                                         alt="{{ news.title }}"
+                                         class="news-image">
+                                {% endif %}
+                            {% endwith %}
+                            <span class="news-category" style="background-color: {{ news.info_status.color }}; color: {{ news.info_status.text_color }};">
+                                {{ news.info_status.name }}
+                            </span>
+                        </div>
+                        <div class="news-content">
+                            <h3 class="news-title">{{ news.title }}</h3>
+                            <p class="news-description">{{ news.short_description|truncatechars:120 }}</p>
+
+                            <div class="news-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-users"></i>
+                                    <div class="detail-text">
+                                        <strong>Целевая аудитория:</strong> {{ news.target_audience.name }}
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-bullseye"></i>
+                                    <div class="detail-text">
+                                        <strong>Направленность:</strong> {{ news.content_type.name }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="news-meta">
+                                <div class="meta-item">
+                                    <i class="far fa-calendar"></i>
+                                    <span>{{ news.publication_date|date:"d.m.Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </a>
+                {% empty %}
+                <div class="no-news-message">
+                    <i class="far fa-newspaper"></i>
+                    <p>Новости не найдены</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center">
+                <a href="{% url 'news:news' %}" class="btn-outline">
+                    Все новости
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-gallery bg-white">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2 class="section-title">Жизнь ассоциации</h2>
+                <p class="section-subtitle">Яркие моменты наших встреч, семинаров и мероприятий</p>
+            </div>
+
+            <div class="gallery-mobile">
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/seminar.jpg' %}"
+                         alt="Семинары и воркшопы"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Семинары и воркшопы</h4>
+                        <p class="gallery-description-mobile">Регулярные встречи для обмена опытом и профессионального роста</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/training.jpg' %}"
+                         alt="Обучающие программы"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Обучающие программы</h4>
+                        <p class="gallery-description-mobile">Практические занятия и курсы повышения квалификации</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/conference.jpg' %}"
+                         alt="Конференции и форумы"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Конференции и форумы</h4>
+                        <p class="gallery-description-mobile">Масштабные мероприятия с ведущими экспертами отрасли</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/teamwork.jpg' %}"
+                         alt="Командная работа"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Командная работа</h4>
+                        <p class="gallery-description-mobile">Совместные проекты и дискуссии по актуальным темам</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/roundtable.jpg' %}"
+                         alt="Круглые столы"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Круглые столы</h4>
+                        <p class="gallery-description-mobile">Обсуждение актуальных вопросов в образовании</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/masterclass.jpg' %}"
+                         alt="Мастер-классы"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Мастер-классы</h4>
+                        <p class="gallery-description-mobile">Практические занятия от опытных педагогов-наставников</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/networking.jpg' %}"
+                         alt="Нетворкинг"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Нетворкинг</h4>
+                        <p class="gallery-description-mobile">Налаживание профессиональных связей и знакомства</p>
+                    </div>
+                </div>
+
+                <div class="gallery-item-mobile">
+                    <img src="{% static 'main/images/gallery/courses.jpg' %}"
+                         alt="Тренинги и курсы"
+                         class="gallery-image-mobile"
+                         onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                    <div class="gallery-overlay-mobile">
+                        <h4 class="gallery-title-mobile">Тренинги и курсы</h4>
+                        <p class="gallery-description-mobile">Интенсивные программы для быстрого развития навыков</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery-desktop">
+                <div class="gallery-row">
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/seminar.jpg' %}"
+                             alt="Семинары и воркшопы"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Семинары и воркшопы</h4>
+                            <p class="gallery-description-desktop">Регулярные встречи для обмена опытом</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/training.jpg' %}"
+                             alt="Обучающие программы"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Обучающие программы</h4>
+                            <p class="gallery-description-desktop">Курсы повышения квалификации</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/conference.jpg' %}"
+                             alt="Конференции и форумы"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Конференции и форумы</h4>
+                            <p class="gallery-description-desktop">Масштабные мероприятия</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/teamwork.jpg' %}"
+                             alt="Командная работа"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Командная работа</h4>
+                            <p class="gallery-description-desktop">Совместные проекты</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+                </div>
+
+                <div class="gallery-row">
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/roundtable.jpg' %}"
+                             alt="Круглые столы"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Круглые столы</h4>
+                            <p class="gallery-description-desktop">Обсуждение актуальных вопросов</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/masterclass.jpg' %}"
+                             alt="Мастер-классы"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Мастер-классы</h4>
+                            <p class="gallery-description-desktop">Практические занятия от наставников</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/networking.jpg' %}"
+                             alt="Нетворкинг"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Нетворкинг</h4>
+                            <p class="gallery-description-desktop">Профессиональные связи</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+
+                    <div class="gallery-item-desktop">
+                        <img src="{% static 'main/images/gallery/courses.jpg' %}"
+                             alt="Тренинги и курсы"
+                             class="gallery-image-desktop"
+                             onerror="this.src='{% static 'main/images/placeholder.jpg' %}'">
+                        <div class="gallery-overlay-desktop">
+                            <h4 class="gallery-title-desktop">Тренинги и курсы</h4>
+                            <p class="gallery-description-desktop">Интенсивные программы развития</p>
+                        </div>
+                        <div class="gallery-dark-overlay"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-benefits">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2 class="section-title">Наши преимущества</h2>
+                <p class="section-subtitle">Что вы получите, став частью сообщества молодых педагогов</p>
+            </div>
+
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon-wrapper">
+                        <i class="fas fa-award benefit-icon"></i>
+                    </div>
+                    <h3 class="benefit-title">Профессиональный рост</h3>
+                    <p class="benefit-text">Доступ к современным методикам преподавания</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon-wrapper">
+                        <i class="fas fa-users benefit-icon"></i>
+                    </div>
+                    <h3 class="benefit-title">Сообщество единомышленников</h3>
+                    <p class="benefit-text">Общение, обмен опытом и взаимная поддержка</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon-wrapper">
+                        <i class="fas fa-chart-line benefit-icon"></i>
+                    </div>
+                    <h3 class="benefit-title">Карьерное развитие</h3>
+                    <p class="benefit-text">Возможности для роста и квалификации</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon-wrapper">
+                        <i class="fas fa-heart benefit-icon"></i>
+                    </div>
+                    <h3 class="benefit-title">Постоянная поддержка</h3>
+                    <p class="benefit-text">Помощь наставников и актива ассоциации</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-contact bg-white">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info-card">
+                    <h2 class="contact-title">Свяжитесь с нами</h2>
+                    <p class="contact-description">
+                        Остались вопросы? Мы всегда рады помочь и ответить на ваши вопросы о работе ассоциации
+                    </p>
+
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <div class="contact-icon-box">
+                                <i class="fas fa-envelope contact-icon"></i>
+                            </div>
+                            <div>
+                                <h3 class="contact-item-title">Email</h3>
+                                <p class="contact-item-text">APOO.POO@yandex.ru</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon-box">
+                                <i class="fas fa-phone contact-icon"></i>
+                            </div>
+                            <div>
+                                <h3 class="contact-item-title">Телефон</h3>
+                                <p class="contact-item-text">+7 (846) 356-20-86</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon-box">
+                                <i class="fas fa-map-marker-alt contact-icon"></i>
+                            </div>
+                            <div>
+                                <h3 class="contact-item-title">Адрес</h3>
+                                <p class="contact-item-text">"Поволжский Дом Учителя" ул. Суворова, 20</p>
+                                <p class="contact-item-text">каб.303</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form-card">
+                    <h3 class="form-title">Напишите нам</h3>
+                    <form id="contactForm" class="contact-form" novalidate>
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="name" class="form-input" placeholder="Ваше имя *" required>
+                            <div class="error-message" id="name-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" name="email" class="form-input" placeholder="Email *" required>
+                            <div class="error-message" id="email-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="subject" class="form-input" placeholder="Тема обращения *" required>
+                            <div class="error-message" id="subject-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" class="form-textarea" placeholder="Ваше сообщение *" rows="5" required></textarea>
+                            <div class="error-message" id="message-error"></div>
+                        </div>
+
+                        <button type="submit" class="btn-form-submit" id="submit-btn">
+                            <span id="btn-text">Отправить сообщение</span>
+                            <span id="btn-spinner" style="display: none;">
+                                <div class="spinner"></div>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="successModal" class="modal-overlay" style="display: none;">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <div class="modal-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3 class="modal-title">Сообщение отправлено!</h3>
+                            <button class="modal-close" onclick="closeModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Ваше сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn" onclick="closeModal()">Понятно</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorModal" class="modal-overlay" style="display: none;">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <div class="modal-icon error">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <h3 class="modal-title">Ошибка отправки</h3>
+                            <button class="modal-close" onclick="closeModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn error-btn" onclick="closeModal()">Понятно</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+function closeModal() {
+    document.getElementById('successModal').style.display = 'none';
+    document.getElementById('errorModal').style.display = 'none';
+}
+</script>
+{% endblock %}

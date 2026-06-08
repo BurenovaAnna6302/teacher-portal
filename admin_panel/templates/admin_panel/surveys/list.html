@@ -1,0 +1,1194 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Опросы - Админ панель{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* ===== Заголовок и кнопка добавления ===== */
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-title h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--admin-primary);
+        margin: 0 0 5px 0;
+    }
+
+    .header-title p {
+        color: var(--admin-text-gray);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* Кнопка создания в общем стиле */
+    .btn-create {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: var(--admin-primary);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(3, 45, 67, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-create:hover {
+        background: var(--admin-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(3, 45, 67, 0.3);
+    }
+
+    .btn-create i {
+        font-size: 18px;
+    }
+
+    /* ===== Секция фильтров ===== */
+    .filter-section {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid var(--admin-border);
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .filter-section h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-section h3 i {
+        font-size: 16px;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 180px;
+    }
+
+    .filter-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--admin-text-dark);
+        margin-bottom: 8px;
+    }
+
+    /* Кнопки фильтров снизу */
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding-top: 10px;
+        border-top: 1px solid var(--admin-border);
+    }
+
+    .filter-actions .btn {
+        min-width: 140px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: var(--admin-primary);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--admin-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(3, 45, 67, 0.2);
+    }
+
+    .btn-secondary {
+        background: white;
+        border: 1px solid var(--admin-border);
+        color: var(--admin-text-dark);
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--admin-danger);
+        color: var(--admin-danger);
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    /* ===== Контейнер для таблицы ===== */
+    .table-container {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        overflow-x: auto;
+        box-shadow: var(--admin-shadow-sm);
+        margin-bottom: 25px;
+    }
+
+    /* ===== Улучшенная таблица ===== */
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 900px;
+    }
+
+    .admin-table thead {
+        background: var(--admin-primary-light);
+        border-bottom: 2px solid var(--admin-primary);
+    }
+
+    .admin-table th {
+        padding: 16px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--admin-primary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .admin-table td {
+        padding: 16px 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--admin-border);
+    }
+
+    .admin-table tbody tr:hover {
+        background: var(--admin-primary-light);
+        transition: background 0.2s;
+    }
+
+    .admin-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Фиксированная ширина колонок */
+    .admin-table th:nth-child(1) { width: 35%; }  /* Название */
+    .admin-table th:nth-child(2) { width: 15%; }  /* Категория */
+    .admin-table th:nth-child(3) { width: 10%; }  /* Вопросы */
+    .admin-table th:nth-child(4) { width: 12%; }  /* Статус */
+    .admin-table th:nth-child(5) { width: 12%; }  /* Время */
+    .admin-table th:nth-child(6) { width: 16%; }  /* Действия */
+
+    /* ===== Контент ячеек ===== */
+    .title-cell {
+        max-width: 350px;
+    }
+
+    .title-text {
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 14px;
+    }
+
+    .description-preview {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ===== Бейджи в едином стиле ===== */
+    .survey-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: var(--admin-bg-light);
+        color: var(--admin-text-gray);
+        border: 1px solid var(--admin-border);
+    }
+
+    /* ===== Статусы с цветом ===== */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        border: 1px solid transparent;
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #0d9668;
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status-completed {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .status-badge i {
+        font-size: 8px;
+    }
+
+    /* ===== Счетчики ===== */
+    .question-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: var(--admin-bg-light);
+        color: var(--admin-text-gray);
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        border: 1px solid var(--admin-border);
+    }
+
+    .question-count i {
+        color: var(--admin-primary);
+        font-size: 10px;
+    }
+
+    .time-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: var(--admin-bg-light);
+        color: var(--admin-text-gray);
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        border: 1px solid var(--admin-border);
+    }
+
+    .time-badge i {
+        color: var(--admin-warning);
+        font-size: 10px;
+    }
+
+    /* ===== Ячейка с действиями ===== */
+    .actions-cell {
+        white-space: nowrap;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background: rgba(3, 45, 67, 0.1);
+        color: var(--admin-primary);
+        border: 1px solid var(--admin-border);
+    }
+
+    .btn-edit:hover {
+        background: var(--admin-primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(3, 45, 67, 0.2);
+    }
+
+    .btn-activate {
+        background: rgba(16, 185, 129, 0.1);
+        color: #0d9668;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-activate:hover {
+        background: #10b981;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-complete {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-complete:hover {
+        background: #3b82f6;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-delete:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    /* ===== МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ ===== */
+    .delete-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-modal.active {
+        display: flex;
+    }
+
+    .delete-modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .delete-modal-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 32px;
+        color: #dc2626;
+    }
+
+    .delete-modal-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--admin-text-dark);
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .delete-modal-message {
+        font-size: 15px;
+        color: var(--admin-text-gray);
+        text-align: center;
+        margin-bottom: 25px;
+        line-height: 1.5;
+    }
+
+    .delete-modal-message strong {
+        color: var(--admin-primary);
+        font-weight: 600;
+    }
+
+    .delete-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .delete-modal-btn {
+        flex: 1;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-align: center;
+    }
+
+    .delete-modal-btn.cancel {
+        background: #f3f4f6;
+        color: var(--admin-text-dark);
+        border: 1px solid var(--admin-border);
+    }
+
+    .delete-modal-btn.cancel:hover {
+        background: #e5e7eb;
+        transform: translateY(-2px);
+    }
+
+    .delete-modal-btn.confirm {
+        background: #dc2626;
+        color: white;
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+    }
+
+    .delete-modal-btn.confirm:hover {
+        background: #b91c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(220, 38, 38, 0.4);
+    }
+
+    /* ===== Модальное окно для смены статуса ===== */
+    .status-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .status-modal.active {
+        display: flex;
+    }
+
+    .status-modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    .status-modal-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 32px;
+    }
+
+    .status-modal-icon.activate {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .status-modal-icon.complete {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .status-modal-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--admin-text-dark);
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .status-modal-message {
+        font-size: 15px;
+        color: var(--admin-text-gray);
+        text-align: center;
+        margin-bottom: 25px;
+        line-height: 1.5;
+    }
+
+    .status-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .status-modal-btn {
+        flex: 1;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .status-modal-btn.cancel {
+        background: #f3f4f6;
+        color: var(--admin-text-dark);
+        border: 1px solid var(--admin-border);
+    }
+
+    .status-modal-btn.cancel:hover {
+        background: #e5e7eb;
+        transform: translateY(-2px);
+    }
+
+    .status-modal-btn.confirm-activate {
+        background: #10b981;
+        color: white;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .status-modal-btn.confirm-activate:hover {
+        background: #0d9668;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .status-modal-btn.confirm-complete {
+        background: #3b82f6;
+        color: white;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    }
+
+    .status-modal-btn.confirm-complete:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    /* ===== Пустое состояние ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-surveys-icon {
+        font-size: 64px;
+        color: var(--admin-border);
+        margin-bottom: 20px;
+    }
+
+    .empty-surveys-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--admin-text-dark);
+        margin-bottom: 10px;
+    }
+
+    .empty-surveys-description {
+        font-size: 15px;
+        color: var(--admin-text-gray);
+        margin-bottom: 30px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    .btn-primary-large {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: var(--admin-primary);
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-primary-large:hover {
+        background: var(--admin-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(3, 45, 67, 0.3);
+    }
+
+    /* ===== Пагинация ===== */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid var(--admin-border);
+    }
+
+    .pagination {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .pagination-item {
+        min-width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: white;
+        border: 1px solid var(--admin-border);
+        color: var(--admin-text-dark);
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .pagination-item:hover:not(.disabled):not(.active) {
+        background: var(--admin-primary-light);
+        border-color: var(--admin-primary);
+        color: var(--admin-primary);
+        transform: translateY(-2px);
+    }
+
+    .pagination-item.active {
+        background: var(--admin-primary);
+        border-color: var(--admin-primary);
+        color: white;
+    }
+
+    .pagination-item.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        background: #f3f4f6;
+    }
+
+    .page-info {
+        text-align: center;
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--admin-text-gray);
+    }
+
+    /* ===== Адаптивность ===== */
+    @media (max-width: 1200px) {
+        .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .table-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn-create {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .pagination {
+            gap: 4px;
+        }
+
+        .pagination-item {
+            min-width: 34px;
+            height: 34px;
+            font-size: 12px;
+        }
+
+        .delete-modal-content,
+        .status-modal-content {
+            padding: 20px;
+        }
+
+        .delete-modal-icon,
+        .status-modal-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+        }
+
+        .delete-modal-title,
+        .status-modal-title {
+            font-size: 20px;
+        }
+
+        .delete-modal-message,
+        .status-modal-message {
+            font-size: 14px;
+        }
+
+        .delete-modal-actions,
+        .status-modal-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="table-section">
+    <!-- Заголовок с кнопкой создания -->
+    <div class="table-header">
+        <div class="header-title">
+            <h1>Опросы</h1>
+            <p>Управление опросами для педагогов</p>
+        </div>
+        <a href="{% url 'admin_panel:survey_create' %}" class="btn-create">
+            <i class="fas fa-plus-circle"></i>
+            Создать опрос
+        </a>
+    </div>
+
+    <!-- Фильтры (кнопки снизу) -->
+    <div class="filter-section">
+        <h3>
+            <i class="fas fa-filter"></i>
+            Фильтры
+        </h3>
+        <form method="get" id="filterForm">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">Категория</label>
+                    <select class="form-control" name="category" id="categoryFilter">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" {% if current_filters.category == category.name %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Статус</label>
+                    <select class="form-control" name="status" id="statusFilter">
+                        <option value="">Все статусы</option>
+                        <option value="active" {% if current_filters.status == 'active' %}selected{% endif %}>Активные</option>
+                        <option value="completed" {% if current_filters.status == 'completed' %}selected{% endif %}>Завершенные</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Длительность</label>
+                    <select class="form-control" name="duration" id="durationFilter">
+                        <option value="">Все</option>
+                        <option value="short" {% if current_filters.duration == 'short' %}selected{% endif %}>До 10 мин</option>
+                        <option value="medium" {% if current_filters.duration == 'medium' %}selected{% endif %}>10-15 мин</option>
+                        <option value="long" {% if current_filters.duration == 'long' %}selected{% endif %}>Более 15 мин</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Кнопки под всеми фильтрами -->
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                    Применить фильтры
+                </button>
+                <a href="{% url 'admin_panel:surveys_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Сбросить фильтры
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Таблица опросов -->
+    <div class="table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Название опроса</th>
+                    <th>Категория</th>
+                    <th>Вопросы</th>
+                    <th>Статус</th>
+                    <th>Время</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if surveys %}
+                    {% for survey in surveys %}
+                    <tr>
+                        <td class="title-cell">
+                            <div class="title-text" title="{{ survey.title }}">{{ survey.title }}</div>
+                            <div class="description-preview" title="{{ survey.short_description }}">
+                                {{ survey.short_description|truncatechars:60 }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="survey-badge" title="{{ survey.category_name }}">
+                                {{ survey.category_name }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="question-count">
+                                <i class="fas fa-question-circle"></i>
+                                {{ survey.questions_count }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {% if survey.status == 'active' %}
+                            <span class="status-badge status-active">
+                                <i class="fas fa-circle"></i>
+                                {{ survey.status_display }}
+                            </span>
+                            {% else %}
+                            <span class="status-badge status-completed">
+                                <i class="fas fa-circle"></i>
+                                {{ survey.status_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="time-badge">
+                                <i class="fas fa-clock"></i>
+                                {{ survey.duration_display }}
+                            </span>
+                        </td>
+
+                        <td class="actions-cell">
+                            <div class="table-actions">
+                                <!-- Кнопка редактирования (всегда) -->
+                                <a href="{% url 'admin_panel:survey_edit' survey.id %}"
+                                   class="btn-icon btn-edit"
+                                   title="Редактировать опрос">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <!-- Кнопка активации (для завершенных) -->
+                                {% if survey.status == 'completed' %}
+                                <button type="button"
+                                        class="btn-icon btn-activate"
+                                        title="Активировать опрос"
+                                        onclick="openStatusModal('activate', {{ survey.id }}, '{{ survey.title|escapejs }}')">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                {% endif %}
+
+                                <!-- Кнопка завершения (для активных) -->
+                                {% if survey.status == 'active' %}
+                                <button type="button"
+                                        class="btn-icon btn-complete"
+                                        title="Завершить опрос"
+                                        onclick="openStatusModal('complete', {{ survey.id }}, '{{ survey.title|escapejs }}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+
+                                <!-- Кнопка удаления (всегда) -->
+                                <button type="button"
+                                        class="btn-icon btn-delete"
+                                        title="Удалить опрос"
+                                        onclick="openDeleteModal({{ survey.id }}, '{{ survey.title|escapejs }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-surveys">
+                                <div class="empty-surveys-icon">
+                                    <i class="far fa-poll"></i>
+                                </div>
+                                <div class="empty-surveys-title">Опросов пока нет</div>
+                                <div class="empty-surveys-description">
+                                    Создайте опросы для сбора обратной связи, оценки мероприятий и выявления потребностей педагогов
+                                </div>
+                                <a href="{% url 'admin_panel:survey_create' %}" class="btn-primary-large">
+                                    <i class="fas fa-plus"></i>
+                                    Создать первый опрос
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Пагинация -->
+    {% if paginator.num_pages > 1 %}
+    <div class="pagination-container">
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}{% if current_filters.duration %}&duration={{ current_filters.duration }}{% endif %}"
+               class="pagination-item" title="Первая">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}{% if current_filters.duration %}&duration={{ current_filters.duration }}{% endif %}"
+               class="pagination-item" title="Предыдущая">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% else %}
+            <span class="pagination-item disabled">
+                <i class="fas fa-angle-double-left"></i>
+            </span>
+            <span class="pagination-item disabled">
+                <i class="fas fa-angle-left"></i>
+            </span>
+            {% endif %}
+
+            {% for num in paginator.page_range %}
+                {% if num == page_obj.number %}
+                <span class="pagination-item active">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}{% if current_filters.duration %}&duration={{ current_filters.duration }}{% endif %}"
+                   class="pagination-item">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}{% if current_filters.duration %}&duration={{ current_filters.duration }}{% endif %}"
+               class="pagination-item" title="Следующая">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ paginator.num_pages }}{% if current_filters.category %}&category={{ current_filters.category }}{% endif %}{% if current_filters.status %}&status={{ current_filters.status }}{% endif %}{% if current_filters.duration %}&duration={{ current_filters.duration }}{% endif %}"
+               class="pagination-item" title="Последняя">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% else %}
+            <span class="pagination-item disabled">
+                <i class="fas fa-angle-right"></i>
+            </span>
+            <span class="pagination-item disabled">
+                <i class="fas fa-angle-double-right"></i>
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="page-info">
+        Страница {{ page_obj.number }} из {{ paginator.num_pages }} • Всего опросов: {{ paginator.count }}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="delete-modal" id="deleteModal">
+    <div class="delete-modal-content">
+        <div class="delete-modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="delete-modal-title">Подтверждение удаления</h3>
+        <div class="delete-modal-message">
+            Вы уверены, что хотите удалить опрос<br>
+            <strong id="deleteSurveyTitle"></strong>?
+        </div>
+        <div class="delete-modal-actions">
+            <button class="delete-modal-btn cancel" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+                Отмена
+            </button>
+            <form method="post" id="deleteForm" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="delete-modal-btn confirm">
+                    <i class="fas fa-trash"></i>
+                    Удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для смены статуса -->
+<div class="status-modal" id="statusModal">
+    <div class="status-modal-content">
+        <div class="status-modal-icon" id="statusModalIcon">
+            <i class="fas fa-play"></i>
+        </div>
+        <h3 class="status-modal-title" id="statusModalTitle">Изменить статус</h3>
+        <div class="status-modal-message" id="statusModalMessage">
+            Вы уверены, что хотите изменить статус опроса<br>
+            <strong id="statusSurveyTitle"></strong>?
+        </div>
+        <div class="status-modal-actions">
+            <button class="status-modal-btn cancel" onclick="closeStatusModal()">
+                <i class="fas fa-times"></i>
+                Отмена
+            </button>
+            <a href="#" id="statusConfirmLink" class="status-modal-btn" style="text-decoration: none;">
+                Подтвердить
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Двойной клик для редактирования
+        const rows = document.querySelectorAll('.admin-table tbody tr');
+        rows.forEach(row => {
+            if (row.querySelector('td[colspan]')) return;
+
+            row.addEventListener('dblclick', function(e) {
+                if (!e.target.closest('.table-actions') && !e.target.closest('button') && !e.target.closest('a')) {
+                    const editLink = this.querySelector('a[title="Редактировать опрос"]');
+                    if (editLink) {
+                        window.location.href = editLink.href;
+                    }
+                }
+            });
+        });
+    });
+
+    // Функции для модального окна удаления
+    function openDeleteModal(surveyId, surveyTitle) {
+        const modal = document.getElementById('deleteModal');
+        const titleSpan = document.getElementById('deleteSurveyTitle');
+        const deleteForm = document.getElementById('deleteForm');
+
+        titleSpan.textContent = surveyTitle;
+        deleteForm.action = "{% url 'admin_panel:survey_delete' 0 %}".replace('0', surveyId);
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Функции для модального окна смены статуса
+    function openStatusModal(action, surveyId, surveyTitle) {
+        const modal = document.getElementById('statusModal');
+        const icon = document.getElementById('statusModalIcon');
+        const title = document.getElementById('statusModalTitle');
+        const message = document.getElementById('statusModalMessage');
+        const surveyNameSpan = document.getElementById('statusSurveyTitle');
+        const confirmLink = document.getElementById('statusConfirmLink');
+
+        surveyNameSpan.textContent = surveyTitle;
+
+        if (action === 'activate') {
+            icon.className = 'status-modal-icon activate';
+            icon.innerHTML = '<i class="fas fa-play"></i>';
+            title.textContent = 'Активировать опрос';
+            message.innerHTML = 'Вы уверены, что хотите активировать опрос<br><strong>' + surveyTitle + '</strong>?';
+            confirmLink.className = 'status-modal-btn confirm-activate';
+            confirmLink.innerHTML = '<i class="fas fa-play"></i> Активировать';
+            confirmLink.href = "{% url 'admin_panel:change_survey_status' 0 'active' %}".replace('0', surveyId);
+        } else {
+            icon.className = 'status-modal-icon complete';
+            icon.innerHTML = '<i class="fas fa-check"></i>';
+            title.textContent = 'Завершить опрос';
+            message.innerHTML = 'Вы уверены, что хотите завершить опрос<br><strong>' + surveyTitle + '</strong>?';
+            confirmLink.className = 'status-modal-btn confirm-complete';
+            confirmLink.innerHTML = '<i class="fas fa-check"></i> Завершить';
+            confirmLink.href = "{% url 'admin_panel:change_survey_status' 0 'completed' %}".replace('0', surveyId);
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeStatusModal() {
+        const modal = document.getElementById('statusModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Закрытие по клику вне модальных окон
+    document.addEventListener('click', function(e) {
+        const deleteModal = document.getElementById('deleteModal');
+        const statusModal = document.getElementById('statusModal');
+
+        if (e.target === deleteModal) {
+            closeDeleteModal();
+        }
+        if (e.target === statusModal) {
+            closeStatusModal();
+        }
+    });
+
+    // Закрытие по Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteModal();
+            closeStatusModal();
+        }
+    });
+</script>
+{% endblock %}

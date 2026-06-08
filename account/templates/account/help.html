@@ -1,0 +1,190 @@
+{% extends 'account/base_profile.html' %}
+{% load static %}
+
+{% block title %}Помощь и поддержка - Личный кабинет{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'account/css/help.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="help-breadcrumbs">
+    <div class="container">
+        <div class="breadcrumbs-content">
+            <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="{% url 'account:profile' %}" class="breadcrumb-link">Личный кабинет</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Помощь и поддержка</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header Section -->
+<section class="help-header-section">
+    <div class="container">
+        <div class="help-header-content">
+            <h1 class="help-main-title">Помощь и поддержка</h1>
+            <p class="help-header-subtitle">Что вас интересует?</p>
+            <p class="help-header-description">
+                Здесь вы найдёте ответы на частые вопросы и инструкции по работе с платформой.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Help Categories Section -->
+<section class="help-categories-section">
+    <div class="container">
+        <div class="help-categories-grid">
+
+            <!-- Категория 1: Работа с личным кабинетом -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="1">
+                    <div class="category-icon">
+                        <i class="fas fa-user-cog"></i>
+                    </div>
+                    <h3 class="category-title">Работа с личным кабинетом</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent1">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="1">
+                            <span>Как изменить личные данные?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел «Личный кабинет» → «Профиль». Нажмите на нужное поле, отредактируйте его и нажмите кнопку «Сохранить изменения».</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="2">
+                            <span>Как загрузить или удалить фото?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В профиле нажмите на кнопку «Загрузить фото», выберите изображение (JPG, PNG до 5MB). Для удаления нажмите «Удалить фото».</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="3">
+                            <span>Как просмотреть избранные материалы?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В боковом меню выберите раздел «Избранное». Там отображаются все материалы, которые вы добавили в избранное.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 2: Методические материалы -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="2">
+                    <div class="category-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3 class="category-title">Методические материалы</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent2">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="4">
+                            <span>Как найти нужный материал?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В разделе «Методические материалы» используйте фильтры по предмету, типу материала, классу или поиск по названию.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="5">
+                            <span>Как скачать материал?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Откройте карточку материала, нажмите кнопку «Скачать». Файл сохранится на ваше устройство.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="6">
+                            <span>Как добавить материал в избранное?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>На карточке материала нажмите на значок сердечка. Материал сохранится в разделе «Избранное».</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 3: Мероприятия -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="3">
+                    <div class="category-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="category-title">Мероприятия</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent3">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="7">
+                            <span>Как записаться на мероприятие?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Сообщите организатору о желании участвовать через форму обратной связи в разделе «Контакты» или напишите на почту ассоциации.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 4: Опросы и анкетирование -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="4">
+                    <div class="category-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3 class="category-title">Опросы и анкетирование</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent4">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="8">
+                            <span>Как участвовать в опросе?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В разделе «Опросы» выберите активный опрос, ответьте на вопросы и нажмите «Отправить». Участие анонимно.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="9">
+                            <span>Где видны результаты?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Общие результаты опросов видны только администраторам платформы для анализа и улучшения работы ассоциации.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="10">
+                            <span>Анонимны ли мои ответы?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Да, все опросы проводятся анонимно. Ваши личные данные не связываются с ответами.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'account/js/help.js' %}?v=1.0"></script>
+{% endblock %}

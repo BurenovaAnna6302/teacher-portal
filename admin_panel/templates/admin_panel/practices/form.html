@@ -1,0 +1,662 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if practice %}Редактирование практики{% else %}Создание практики{% endif %} - Админ панель
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .form-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--admin-primary);
+        margin: 0 0 5px 0;
+    }
+
+    .form-header p {
+        color: var(--admin-text-gray);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid var(--admin-border);
+        border-radius: 8px;
+        color: var(--admin-text-dark);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        background: var(--admin-primary-light);
+        border-color: var(--admin-primary);
+        color: var(--admin-primary);
+    }
+
+    .form-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 992px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-main {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        padding: 30px;
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--admin-text-dark);
+        margin-bottom: 8px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: var(--admin-danger);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        font-size: 14px;
+        font-family: 'Manrope', sans-serif;
+        color: var(--admin-text-dark);
+        background: white;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:hover {
+        border-color: var(--admin-text-gray);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--admin-primary);
+        box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.6;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+    }
+
+    .char-counter {
+        text-align: right;
+        font-size: 12px;
+        color: var(--admin-text-light);
+        margin-top: 5px;
+    }
+
+    .form-sidebar {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        padding: 25px;
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .sidebar-section {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--admin-border);
+    }
+
+    .sidebar-section:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .sidebar-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-title i {
+        color: var(--admin-primary);
+        background: var(--admin-primary-light);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        padding: 25px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 15px;
+        background: var(--admin-bg-light);
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--admin-primary);
+        background: var(--admin-primary-light);
+    }
+
+    .file-upload-icon {
+        font-size: 40px;
+        color: var(--admin-primary);
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .file-upload-area:hover .file-upload-icon {
+        opacity: 1;
+    }
+
+    .upload-text {
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 5px;
+    }
+
+    .upload-hint {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+    }
+
+    .file-info {
+        padding: 15px;
+        background: var(--admin-bg-light);
+        border-radius: var(--admin-radius-sm);
+        border: 1px solid var(--admin-border);
+        margin-top: 15px;
+    }
+
+    .file-info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .file-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--admin-text-dark);
+        word-break: break-word;
+    }
+
+    .file-size {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+        margin-top: 4px;
+    }
+
+    .btn-remove-file {
+        color: var(--admin-danger);
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.1);
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .btn-remove-file:hover {
+        background: var(--admin-danger);
+        color: white;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--admin-border);
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: var(--admin-text-gray);
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--admin-text-dark);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        padding-top: 20px;
+        border-top: 1px solid var(--admin-border);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--admin-primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(3, 45, 67, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: var(--admin-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(3, 45, 67, 0.3);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--admin-text-dark);
+        border: 1px solid var(--admin-border);
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--admin-danger);
+        color: var(--admin-danger);
+        background: rgba(239, 68, 68, 0.05);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-header">
+        <div>
+            <h1>
+                {% if practice %}
+                    Редактирование практики
+                {% else %}
+                    Создание успешной практики
+                {% endif %}
+            </h1>
+            <p>
+                {% if practice %}
+                    Внесите изменения в информацию о педагогической практике
+                {% else %}
+                    Заполните форму для добавления новой успешной практики
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'admin_panel:practices_list' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i>
+            Назад к списку
+        </a>
+    </div>
+
+    <form method="post" id="practiceForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-columns">
+            <div class="form-main">
+                <div class="form-group">
+                    <label for="title" class="form-label required">Название практики</label>
+                    <input type="text"
+                           class="form-control"
+                           id="title"
+                           name="title"
+                           value="{{ practice.title|default:'' }}"
+                           placeholder="Например: Использование интерактивной доски на уроках математики"
+                           required
+                           maxlength="200">
+                    <div class="char-counter">
+                        <span id="titleCounter">{{ practice.title|length|default:0 }}</span>/200
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="short_description" class="form-label required">Краткое описание</label>
+                    <textarea class="form-control"
+                              id="short_description"
+                              name="short_description"
+                              rows="3"
+                              placeholder="Краткое описание практики для карточки"
+                              required
+                              maxlength="250">{{ practice.short_description|default:'' }}</textarea>
+                    <div class="char-counter">
+                        <span id="shortDescCounter">{{ practice.short_description|length|default:0 }}</span>/250
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="full_description" class="form-label">Полное описание</label>
+                    <textarea class="form-control"
+                              id="full_description"
+                              name="full_description"
+                              rows="6"
+                              placeholder="Подробное описание практики, методики внедрения, результаты...">{{ practice.full_description|default:'' }}</textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category" class="form-label required">Категория</label>
+                        <select class="form-control" id="category" name="category" required>
+                            <option value="">Выберите категорию</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}"
+                                    {% if practice.category_id == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="audience" class="form-label required">Целевая аудитория</label>
+                        <select class="form-control" id="audience" name="audience" required>
+                            <option value="">Выберите аудиторию</option>
+                            <option value="young" {% if practice.audience == 'young' %}selected{% endif %}>Молодые педагоги (до 3 лет)</option>
+                            <option value="experienced" {% if practice.audience == 'experienced' %}selected{% endif %}>Опытные педагоги</option>
+                            <option value="all" {% if practice.audience == 'all' %}selected{% endif %}>Все категории</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="format_type" class="form-label required">Формат практики</label>
+                        <select class="form-control" id="format_type" name="format_type" required>
+                            <option value="">Выберите формат</option>
+                            <option value="single" {% if practice.format_type == 'single' %}selected{% endif %}>Опыт одного педагога</option>
+                            <option value="methodological" {% if practice.format_type == 'methodological' %}selected{% endif %}>Опыт методического объединения</option>
+                            <option value="school" {% if practice.format_type == 'school' %}selected{% endif %}>Школьный проект</option>
+                            <option value="municipal" {% if practice.format_type == 'municipal' %}selected{% endif %}>Муниципальный опыт</option>
+                            <option value="regional" {% if practice.format_type == 'regional' %}selected{% endif %}>Региональный опыт</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="difficulty" class="form-label required">Уровень сложности</label>
+                        <select class="form-control" id="difficulty" name="difficulty" required>
+                            <option value="">Выберите уровень</option>
+                            <option value="easy" {% if practice.difficulty == 'easy' %}selected{% endif %}>Лёгкий</option>
+                            <option value="medium" {% if practice.difficulty == 'medium' %}selected{% endif %}>Средний</option>
+                            <option value="hard" {% if practice.difficulty == 'hard' %}selected{% endif %}>Сложный</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-file-upload"></i>
+                        Файл практики
+                    </h3>
+
+                    <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="file-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Нажмите для загрузки</div>
+                        <div class="upload-hint">PDF, DOC, DOCX, PPT, PPTX до 50 МБ</div>
+                        <input type="file"
+                               id="fileInput"
+                               name="file"
+                               style="display: none;"
+                               accept=".pdf,.doc,.docx,.ppt,.pptx"
+                               onchange="handleFileSelect(this)">
+                    </div>
+
+                    <div id="fileInfo">
+                        {% if practice.file_name %}
+                        <div class="file-info">
+                            <div class="file-info-header">
+                                <div>
+                                    <div class="file-name">{{ practice.file_name }}</div>
+                                    <div class="file-size">{{ practice.file_size|filesizeformat }}</div>
+                                </div>
+                                <span class="btn-remove-file" onclick="removeFile()">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-info-circle"></i>
+                        Информация
+                    </h3>
+                    <div class="info-item">
+                        <span class="info-label">Дата создания:</span>
+                        <span class="info-value">
+                            {% if practice %}
+                                {{ practice.created_at }}
+                            {% else %}
+                                {% now "d.m.Y H:i" %}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'admin_panel:practices_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Отмена
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                {% if practice %}Сохранить изменения{% else %}Создать практику{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateCharCounter(textareaId, counterId, maxLength) {
+        const textarea = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+
+        function update() {
+            const length = textarea.value.length;
+            counter.textContent = length;
+        }
+
+        textarea.addEventListener('input', update);
+        update();
+    }
+
+    function handleFileSelect(input) {
+        const fileInfo = document.getElementById('fileInfo');
+
+        if (input.files.length > 0) {
+            const file = input.files[0];
+            const fileSizeKB = file.size / 1024;
+
+            if (fileSizeKB > 51200) {
+                alert('Файл слишком большой. Максимальный размер: 50 МБ');
+                input.value = '';
+                return;
+            }
+
+            let sizeText = '';
+            if (fileSizeKB < 1024) {
+                sizeText = Math.round(fileSizeKB) + ' КБ';
+            } else {
+                sizeText = (fileSizeKB / 1024).toFixed(1) + ' МБ';
+            }
+
+            fileInfo.innerHTML = `
+                <div class="file-info">
+                    <div class="file-info-header">
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${sizeText}</div>
+                        </div>
+                        <span class="btn-remove-file" onclick="removeFile()">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function removeFile() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.value = '';
+        document.getElementById('fileInfo').innerHTML = '';
+
+        const removeField = document.getElementById('removeFileField');
+        if (!removeField) {
+            const form = document.getElementById('practiceForm');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'remove_file';
+            input.id = 'removeFileField';
+            input.value = 'true';
+            form.appendChild(input);
+        } else {
+            removeField.value = 'true';
+        }
+    }
+
+    function validateForm() {
+        const title = document.getElementById('title').value.trim();
+        const shortDesc = document.getElementById('short_description').value.trim();
+        const category = document.getElementById('category').value;
+        const audience = document.getElementById('audience').value;
+        const formatType = document.getElementById('format_type').value;
+        const difficulty = document.getElementById('difficulty').value;
+
+        if (!title) {
+            alert('Название практики обязательно');
+            return false;
+        }
+        if (!shortDesc) {
+            alert('Краткое описание обязательно');
+            return false;
+        }
+        if (!category) {
+            alert('Выберите категорию практики');
+            return false;
+        }
+        if (!audience) {
+            alert('Выберите целевую аудиторию');
+            return false;
+        }
+        if (!formatType) {
+            alert('Выберите формат практики');
+            return false;
+        }
+        if (!difficulty) {
+            alert('Выберите уровень сложности');
+            return false;
+        }
+
+        return true;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCharCounter('title', 'titleCounter', 200);
+        updateCharCounter('short_description', 'shortDescCounter', 250);
+
+        const form = document.getElementById('practiceForm');
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1033 @@
+/* login.css - Стили страницы входа */
+/* Версия: 3.1 - Исправлены отступы, тултипы и добавлены стили модального окна */
+
+/* ===== Variables ===== */
+:root {
+    /* Основные цвета */
+    --login-primary: #032D43;
+    --login-primary-light: rgba(3, 45, 67, 0.08);
+    --login-primary-dark: #021F2E;
+    --login-primary-alpha: rgba(3, 45, 67, 0.95);
+
+    /* Цвета состояния */
+    --login-error: #dc3545;
+    --login-error-light: rgba(220, 53, 69, 0.08);
+    --login-success: #1e5128;
+    --login-warning: #ffc107;
+
+    /* Цвета текста */
+    --login-text-dark: #1A1A1A;
+    --login-text-gray: #6B7280;
+    --login-text-light: #9CA3AF;
+    --login-text-white: #FFFFFF;
+
+    /* Фоны */
+    --login-bg-light: #F9FAFB;
+    --login-bg-white: #FFFFFF;
+
+    /* Границы */
+    --login-border: rgba(3, 45, 67, 0.1);
+    --login-border-dark: rgba(3, 45, 67, 0.2);
+    --login-border-error: rgba(220, 53, 69, 0.2);
+
+    /* Тени */
+    --login-shadow-sm: 0 1px 2px rgba(3, 45, 67, 0.05);
+    --login-shadow-md: 0 2px 4px rgba(3, 45, 67, 0.1);
+    --login-shadow-lg: 0 4px 8px rgba(3, 45, 67, 0.1);
+    --login-shadow-xl: 0 4px 20px rgba(0, 0, 0, 0.2);
+    --login-shadow-xxl: 0 4px 25px rgba(0, 0, 0, 0.25);
+
+    /* Радиусы скругления */
+    --login-radius-sm: 8px;
+    --login-radius-md: 12px;
+    --login-radius-lg: 16px;
+    --login-radius-xl: 20px;
+
+    /* Анимации */
+    --login-transition-fast: 0.15s ease;
+    --login-transition-normal: 0.3s ease;
+}
+
+/* ===== Base Styles ===== */
+.login-page {
+    font-family: 'Manrope', sans-serif;
+    color: var(--login-text-dark);
+    background-color: var(--login-bg-light);
+    min-height: 100vh;
+    margin-top: 0;
+    line-height: 1.5;
+}
+
+.login-page .container {
+    max-width: 1650px;
+    margin: 0 auto;
+    padding: 0 120px;
+}
+
+@media (max-width: 1400px) {
+    .login-page .container {
+        padding: 0 80px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .login-page .container {
+        padding: 0 60px;
+    }
+}
+
+@media (max-width: 992px) {
+    .login-page .container {
+        padding: 0 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-page .container {
+        padding: 0 24px;
+    }
+}
+
+/* ===== Breadcrumbs ===== */
+.login-breadcrumbs {
+    background: var(--login-bg-white);
+    border-bottom: 1px solid var(--login-border);
+    padding: 16px 0;
+    margin-bottom: 0;
+}
+
+.breadcrumbs-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--login-text-gray);
+}
+
+.breadcrumb-link {
+    color: var(--login-text-gray);
+    text-decoration: none;
+    transition: color var(--login-transition-normal);
+}
+
+.breadcrumb-link:hover {
+    color: var(--login-primary);
+}
+
+.breadcrumb-separator {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.breadcrumb-current {
+    color: var(--login-primary);
+    font-weight: 500;
+}
+
+/* ===== Header Section ===== */
+.login-header-section {
+    background: var(--login-bg-white);
+    border-bottom: 1px solid var(--login-border);
+    padding: 32px 0;
+}
+
+.login-header-content {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.login-main-title {
+    color: var(--login-primary);
+    font-size: 2.75rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.login-header-description {
+    color: var(--login-text-gray);
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .login-header-section {
+        padding: 24px 0;
+    }
+
+    .login-main-title {
+        font-size: 1.8rem;
+    }
+
+    .login-header-description {
+        font-size: 1rem;
+    }
+}
+
+/* ===== Красивое примечание о звездочках ===== */
+.required-fields-note {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, rgba(3, 45, 67, 0.05) 0%, rgba(3, 45, 67, 0.02) 100%);
+    border-radius: var(--login-radius-md);
+    margin: 32px auto 32px 0;
+    max-width: 400px;
+    border: 1px solid rgba(3, 45, 67, 0.1);
+    box-shadow: var(--login-shadow-sm);
+}
+
+.required-note-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--login-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.required-note-icon i {
+    color: white;
+    font-size: 12px;
+}
+
+.required-note-content {
+    font-size: 14px;
+    color: var(--login-text-dark);
+    font-weight: 500;
+}
+
+.required-star {
+    color: var(--login-error);
+    font-weight: bold;
+    margin-right: 2px;
+}
+
+/* ===== Login Form Section ===== */
+.login-form-section {
+    padding: 0 0 60px;
+}
+
+.login-form-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.login-form-card {
+    background: var(--login-bg-white);
+    border-radius: var(--login-radius-lg);
+    padding: 40px;
+    border: 1px solid var(--login-border);
+    box-shadow: var(--login-shadow-md);
+}
+
+@media (max-width: 768px) {
+    .login-form-card {
+        padding: 32px 24px;
+    }
+}
+
+/* ===== Login Form Header ===== */
+.login-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--login-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.login-icon i {
+    font-size: 28px;
+    color: var(--login-text-white);
+}
+
+.login-form-title {
+    color: var(--login-primary);
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ===== Error Message ===== */
+.login-error-message {
+    background: var(--login-error-light);
+    border: 1px solid var(--login-border-error);
+    border-radius: var(--login-radius-md);
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: fadeIn 0.3s ease;
+}
+
+.error-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--login-error);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.error-icon i {
+    color: var(--login-text-white);
+    font-size: 12px;
+}
+
+.error-content {
+    flex: 1;
+}
+
+.error-title {
+    color: var(--login-error);
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.error-text {
+    color: var(--login-error);
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* ===== Form Styles ===== */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+
+.form-label-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    min-height: 20px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--login-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ===== Input Hint Tooltip ===== */
+.input-hint-tooltip {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--login-text-light);
+    cursor: help;
+    transition: color var(--login-transition-fast);
+    position: relative;
+    flex-shrink: 0;
+    margin-left: 6px;
+    z-index: 10;
+}
+
+.input-hint-tooltip:hover {
+    color: var(--login-primary);
+}
+
+.input-hint-tooltip i {
+    font-size: 14px;
+}
+
+/* ===== Form Controls ===== */
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--login-border);
+    border-radius: var(--login-radius-sm);
+    font-size: 15px;
+    font-family: 'Manrope', sans-serif;
+    color: var(--login-text-dark);
+    background: var(--login-bg-white);
+    transition: all var(--login-transition-normal);
+    height: 48px;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+.form-control:hover {
+    border-color: var(--login-border-dark);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--login-primary);
+    box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
+}
+
+.form-control:disabled {
+    background-color: var(--login-bg-light);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.form-control::placeholder {
+    color: var(--login-text-light);
+}
+
+/* ===== Form Errors ===== */
+.form-error {
+    font-size: 12px;
+    color: var(--login-error);
+    margin-top: 6px;
+    margin-bottom: 0;
+    padding: 0;
+    min-height: 18px;
+    display: block;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+/* ===== Submit Button ===== */
+.login-submit-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--login-primary);
+    color: var(--login-text-white);
+    border: none;
+    border-radius: var(--login-radius-sm);
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Manrope', sans-serif;
+    cursor: pointer;
+    transition: all var(--login-transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+    line-height: 1.5;
+    box-shadow: var(--login-shadow-md);
+}
+
+.login-submit-btn:hover {
+    background: var(--login-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--login-shadow-lg);
+}
+
+.login-submit-btn:active {
+    transform: translateY(0);
+}
+
+.login-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ===== Divider ===== */
+.login-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 16px 0 12px; /* Уменьшен нижний отступ */
+    color: var(--login-text-gray);
+    font-size: 14px;
+    position: relative;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--login-border);
+}
+
+.login-divider span {
+    padding: 0 16px;
+    background: var(--login-bg-white);
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== Register Link ===== */
+.register-link {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--login-bg-white);
+    color: var(--login-primary);
+    border: 1.2px solid rgba(3, 45, 67, 0.1);
+    border-radius: var(--login-radius-sm);
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Manrope', sans-serif;
+    cursor: pointer;
+    transition: all var(--login-transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    text-align: center;
+    margin-top: 0;
+    line-height: 1.5;
+    box-shadow: var(--login-shadow-sm);
+}
+
+.register-link:hover {
+    background: var(--login-primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--login-shadow-md);
+}
+
+.register-link:active {
+    transform: translateY(0);
+}
+
+/* ===== TOOLTIP STYLES ===== */
+
+/* HOVER-тултипы (при наведении на знак вопроса) */
+.hover-tooltip {
+    position: fixed;
+    background-color: #032D43;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 280px;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: fadeInTooltip 0.2s ease;
+    font-family: 'Manrope', sans-serif;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.hover-tooltip.show {
+    opacity: 1;
+}
+
+/* Стрелочка для hover-тултипа - всегда под элементом */
+.hover-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background-color: #032D43;
+}
+
+/* FOCUS-тултипы (подробные требования) */
+.requirements-tooltip {
+    position: fixed;
+    background-color: white;
+    border: 1px solid rgba(3, 45, 67, 0.2);
+    border-radius: 8px;
+    padding: 15px;
+    max-width: 300px;
+    z-index: 10001;
+    box-shadow: 0 8px 25px rgba(3, 45, 67, 0.15);
+    font-family: 'Manrope', sans-serif;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.requirements-tooltip.show {
+    opacity: 1;
+}
+
+/* Стрелочка для focus-тултипа */
+.requirements-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 15px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid white;
+}
+
+.requirements-title {
+    color: #032D43;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(3, 45, 67, 0.1);
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: #4B5563;
+}
+
+.requirement i {
+    width: 16px;
+    font-size: 12px;
+}
+
+.requirement.valid i {
+    color: #10b981;
+}
+
+.requirement.invalid i {
+    color: #ef4444;
+}
+
+.requirement.example i {
+    color: #f59e0b;
+}
+
+.requirement.optional i {
+    color: #9CA3AF;
+}
+
+.requirement.valid {
+    color: #10b981;
+}
+
+.requirement.invalid {
+    color: #ef4444;
+}
+
+.requirement.example {
+    color: #f59e0b;
+}
+
+.requirement.optional {
+    color: #9CA3AF;
+}
+
+@keyframes fadeInTooltip {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) translateX(-50%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) translateX(-50%);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Анимация спиннера */
+.fa-spinner.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ===== МОДАЛЬНОЕ ОКНО ДЛЯ ДВУХФАКТОРНОЙ АУТЕНТИФИКАЦИИ ===== */
+.admin-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-modal-overlay.active {
+    display: flex;
+}
+
+.admin-modal {
+    background: var(--login-bg-white);
+    border-radius: var(--login-radius-xl);
+    padding: 30px;
+    width: 90%;
+    max-width: 380px;
+    box-shadow: var(--login-shadow-xxl);
+    animation: modalFadeIn 0.3s ease;
+}
+
+.admin-modal-icon-wrapper {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.admin-modal-icon {
+    width: 70px;
+    height: 70px;
+    background: var(--login-primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.admin-modal-icon i {
+    font-size: 32px;
+    color: var(--login-primary);
+}
+
+.admin-modal-title {
+    color: var(--login-primary);
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.admin-modal-description {
+    color: var(--login-text-gray);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.admin-modal-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--login-border);
+    border-radius: var(--login-radius-md);
+    font-size: 15px;
+    font-family: 'Manrope', sans-serif;
+    transition: all var(--login-transition-normal);
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.admin-modal-input:focus {
+    outline: none;
+    border-color: var(--login-primary);
+    box-shadow: 0 0 0 3px var(--login-primary-light);
+}
+
+.admin-modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.admin-modal-btn {
+    flex: 2;
+    padding: 14px;
+    background: var(--login-primary);
+    color: var(--login-text-white);
+    border: none;
+    border-radius: var(--login-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--login-transition-normal);
+}
+
+.admin-modal-btn:hover {
+    background: var(--login-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--login-shadow-md);
+}
+
+.admin-modal-btn-secondary {
+    flex: 1;
+    padding: 14px;
+    background: #F3F4F6;
+    color: var(--login-text-gray);
+    border: none;
+    border-radius: var(--login-radius-md);
+    cursor: pointer;
+    transition: all var(--login-transition-normal);
+}
+
+.admin-modal-btn-secondary:hover {
+    background: #E5E7EB;
+    color: var(--login-text-dark);
+}
+
+.admin-modal-footer {
+    color: var(--login-text-light);
+    font-size: 12px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.admin-modal-footer i {
+    margin-right: 5px;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Уведомления ===== */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: var(--login-radius-md);
+    color: var(--login-text-white);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10001;
+    animation: slideIn 0.3s ease;
+    box-shadow: var(--login-shadow-xl);
+    background: #10B981; /* success по умолчанию */
+}
+
+.notification.error {
+    background: #EF4444;
+}
+
+.notification.success {
+    background: #10B981;
+}
+
+.notification i {
+    margin-right: 8px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .login-form-section {
+        padding: 0 0 40px;
+    }
+
+    .login-form-card {
+        padding: 28px 20px;
+    }
+
+    .login-form-header {
+        margin-bottom: 24px;
+    }
+
+    .login-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 12px;
+    }
+
+    .login-icon i {
+        font-size: 22px;
+    }
+
+    .login-form-title {
+        font-size: 1.2rem;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .login-form {
+        gap: 16px;
+    }
+
+    .form-control {
+        padding: 10px 14px;
+        font-size: 14px;
+        height: 44px;
+    }
+
+    .login-submit-btn,
+    .register-link {
+        padding: 14px 20px;
+        font-size: 15px;
+    }
+
+    .login-divider {
+        margin: 12px 0 10px; /* Уменьшены отступы на мобильных */
+        font-size: 13px;
+    }
+
+    .required-fields-note {
+        padding: 12px 20px;
+        margin: 24px auto 24px 0;
+        max-width: 100%;
+    }
+
+    .hover-tooltip,
+    .requirements-tooltip {
+        max-width: calc(100vw - 40px);
+        left: 20px !important;
+        right: 20px !important;
+        width: auto;
+        transform: none !important;
+    }
+
+    .hover-tooltip::before {
+        left: 50% !important;
+    }
+
+    .requirements-tooltip::before {
+        left: 30px !important;
+    }
+
+    /* Модальное окно на мобильных */
+    .admin-modal {
+        padding: 25px 20px;
+    }
+
+    .admin-modal-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .admin-modal-icon i {
+        font-size: 26px;
+    }
+
+    .admin-modal-title {
+        font-size: 20px;
+    }
+
+    .admin-modal-actions {
+        flex-direction: column;
+    }
+
+    .admin-modal-btn,
+    .admin-modal-btn-secondary {
+        width: 100%;
+    }
+
+    .notification {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-form-card {
+        padding: 24px 16px;
+    }
+
+    .form-control {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .login-submit-btn,
+    .register-link {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    .login-divider {
+        margin: 10px 0 8px; /* Еще меньше на маленьких экранах */
+        font-size: 12px;
+    }
+
+    .login-divider span {
+        padding: 0 12px;
+    }
+
+    .required-fields-note {
+        padding: 10px 16px;
+        font-size: 13px;
+        margin: 16px auto 16px 0;
+    }
+
+    .admin-modal {
+        padding: 20px 15px;
+    }
+
+    .admin-modal-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .admin-modal-icon i {
+        font-size: 22px;
+    }
+
+    .admin-modal-title {
+        font-size: 18px;
+    }
+
+    .admin-modal-description {
+        font-size: 13px;
+    }
+}

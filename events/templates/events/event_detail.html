@@ -1,0 +1,133 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - Мероприятия{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'events/css/event_detail.css' %}?v=4.0">
+<div class="event-detail-page">
+
+    <!-- Breadcrumbs -->
+    <div class="event-detail-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="{% url 'events:events' %}" class="breadcrumb-link">Мероприятия</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">{{ event.title|truncatechars:50 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="event-detail-main-section">
+        <div class="container">
+            <!-- Кнопка назад наверх -->
+            <div class="event-detail-back-top">
+                <a href="{% url 'events:events' %}" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Назад к списку мероприятий
+                </a>
+            </div>
+
+            <!-- Заголовок -->
+            <h1 class="event-detail-title">{{ event.title }}</h1>
+
+            <!-- Статус (без сердечка) -->
+            <div class="event-detail-meta-line">
+                <span class="status-badge {% if is_completed %}completed{% else %}active{% endif %}">
+                    {% if is_completed %}Завершено{% else %}Актуально{% endif %}
+                </span>
+            </div>
+
+            <!-- Компактная информация в одну строку -->
+            <div class="event-detail-info-compact">
+                <!-- Дата -->
+                <div class="info-compact-item">
+                    <i class="far fa-calendar-alt"></i>
+                    <span>{{ formatted_date }}</span>
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <!-- Время -->
+                <div class="info-compact-item">
+                    <i class="far fa-clock"></i>
+                    <span>{{ formatted_time }}</span>
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <!-- Место -->
+                <div class="info-compact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ event.location }}</span>
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <!-- Формат -->
+                <span class="category-compact-tag">{{ event.format.name }}</span>
+
+                <span class="info-compact-divider">•</span>
+
+                <!-- Целевая аудитория -->
+                <span class="category-compact-tag">{{ event.target_audience.name }}</span>
+
+                <span class="info-compact-divider">•</span>
+
+                <!-- Предмет -->
+                <span class="category-compact-tag">{{ event.subject.name }}</span>
+            </div>
+
+            <!-- Краткое описание -->
+            <p class="event-detail-short">{{ event.short_description }}</p>
+
+            <!-- Подробное описание -->
+            <div class="event-detail-description">
+                <h3>О мероприятии</h3>
+                {% for paragraph in description_paragraphs %}
+                    <p>{{ paragraph }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Фотогалерея (под текстом) -->
+            {% if photos %}
+            <div class="event-detail-gallery-section">
+                <h3 class="gallery-title">Фотографии мероприятия</h3>
+                <div class="event-detail-photos-grid">
+                    {% for photo in photos %}
+                    <div class="photo-grid-item {% if forloop.first %}first-photo{% endif %}"
+                         onclick="openGalleryModal('{{ photo.photo.url }}')">
+                        <img src="{{ photo.photo.url }}"
+                             alt="{{ event.title }} - фото {{ forloop.counter }}"
+                             onerror="this.onerror=null; this.src='{% static 'events/images/default-event.png' %}';">
+                        {% if forloop.first %}
+                        <div class="photo-badge" style="background-color: {{ activity_color }}; color: {{ activity_text_color }};">
+                            {{ event.activity_type.name }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Модальное окно для фото (исправленное) -->
+    <div class="gallery-modal" id="galleryModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="closeGalleryModal" aria-label="Закрыть">
+                <i class="fas fa-times"></i>
+            </button>
+            <img src="" alt="" id="modalImage">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'events/js/event_detail.js' %}?v=4.0"></script>
+{% endblock %}

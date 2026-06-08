@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Личный кабинет - Ассоциация молодых педагогов{% endblock %}</title>
+
+    <!-- Google Fonts как в Figma -->
+    <link href="https://fonts.googleapis.com/css2?family=Akatab:wght@400;500;600;700;800;900&family=Manrope:wght@200;300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS (главный файл стилей) -->
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+
+    <!-- Дополнительные стили для ЛК -->
+    <link rel="stylesheet" href="{% static 'account/css/profile.css' %}?v=2.0">
+
+    <style>
+        /* Только дополнительные стили для ЛК, не переопределяем основные */
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: start;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .profile-sidebar {
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
+
+        .sidebar-user-card {
+            background-color: #FFFFFF;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+            border: 1px solid rgba(3, 45, 67, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-avatar {
+            margin-bottom: 16px;
+        }
+
+        .avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #032D43 0%, #1a4b6d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(3, 45, 67, 0.2);
+            overflow: hidden;
+        }
+
+        .avatar-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder span {
+            color: white;
+            font-weight: 600;
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-name {
+            color: #032D43;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            line-height: 1.3;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .user-email {
+            color: #6B7280;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.4;
+            word-break: break-all;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .sidebar-nav {
+            background-color: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+            border: 1px solid rgba(3, 45, 67, 0.1);
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            color: #6B7280;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 3px solid transparent;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar-nav .nav-item:hover {
+            background-color: rgba(3, 45, 67, 0.08);
+            color: #032D43;
+            border-left-color: #032D43;
+        }
+
+        .sidebar-nav .nav-item.active {
+            background-color: rgba(3, 45, 67, 0.08);
+            color: #032D43;
+            border-left-color: #032D43;
+            font-weight: 600;
+        }
+
+        .sidebar-nav .nav-item i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-nav .nav-badge {
+            background-color: #ff6b6b;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            margin-left: auto;
+        }
+
+        .sidebar-nav .nav-divider {
+            height: 1px;
+            background-color: rgba(3, 45, 67, 0.1);
+            margin: 12px 0;
+        }
+
+        .sidebar-nav .nav-item.logout {
+            color: #ff6b6b;
+        }
+
+        .sidebar-nav .nav-item.logout:hover {
+            background-color: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+        }
+
+        .profile-content {
+            background-color: #FFFFFF;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+            border: 1px solid rgba(3, 45, 67, 0.1);
+            min-height: 600px;
+        }
+
+        /* Адаптивность для ЛК */
+        @media (max-width: 992px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .profile-sidebar {
+                position: static;
+                order: 2;
+            }
+            .profile-content {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-content {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-content {
+                padding: 20px;
+            }
+            .sidebar-nav .nav-item {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* Фон для основного контента */
+        .profile-main-container {
+            background-color: #F9FAFB;
+            padding: 40px 0;
+            min-height: calc(100vh - 320px);
+        }
+
+        /* Footer Styles (исправленные) */
+        .site-footer {
+            background: #FFFFFF;
+            border-top: 1px solid var(--color-border);
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-container {
+            width: 100%;
+            max-width: 1650px;
+            margin: 0 auto;
+            padding: 0 125px;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 1400px) {
+            .footer-container {
+                padding: 0 80px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .footer-container {
+                padding: 0 60px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .footer-container {
+                padding: 0 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-container {
+                padding: 0 24px;
+            }
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1fr;
+            gap: 300px;
+            margin-bottom: 35px;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header - ТОЧНО КАК В ОСНОВЕ, без переопределения стилей -->
+    <header class="site-header">
+        <div class="header-container">
+            <!-- Logo -->
+            <a href="{% url 'main:index' %}" class="header-logo">
+                <img src="{% static 'main/images/logo.png' %}" alt="Ассоциация молодых педагогов" class="logo-image">
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="desktop-nav">
+                <a href="{% url 'main:index' %}" class="nav-link">Главная</a>
+
+                <!-- Ассоциация Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-toggle">
+                        Ассоциация <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'about:about' %}" class="dropdown-item">О нас</a>
+                        <a href="{% url 'news:news' %}" class="dropdown-item">Новости</a>
+                        <a href="{% url 'events:events' %}" class="dropdown-item">Мероприятия</a>
+                    </div>
+                </div>
+
+                <!-- База знаний Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-toggle">
+                        База знаний <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'materials:materials' %}" class="dropdown-item">Методические материалы</a>
+                        <a href="{% url 'documents:documents' %}" class="dropdown-item">Нормативные документы</a>
+                        <a href="{% url 'success_practices:practices_list' %}" class="dropdown-item">Успешные практики</a>
+                    </div>
+                </div>
+
+                <a href="{% url 'surveys:surveys' %}" class="nav-link">Опросы</a>
+            </nav>
+
+            <!-- Правая часть - используем данные из сессии (ТОЧНО КАК В ОСНОВЕ) -->
+            <div class="header-auth">
+                {% if request.session.is_admin %}
+                    <!-- Админские элементы -->
+                    <a href="{% url 'admin_panel:dashboard' %}" class="admin-user-info-link">
+                        <div class="admin-user-info">
+                            <div class="admin-avatar">
+                                {% if request.session.admin_name %}
+                                    {{ request.session.admin_name|first|upper }}
+                                {% else %}
+                                    А
+                                {% endif %}
+                            </div>
+                            <div class="admin-name">{{ request.session.admin_name|default:"Администратор" }}</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'admin_panel:admin_logout' %}" class="btn-admin-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Выйти</span>
+                    </a>
+                {% elif request.session.user_id %}
+                    <!-- Преподаватель авторизован - берем данные из сессии -->
+                    {% with user_data=request.session.user_data %}
+                    <a href="{% url 'account:profile' %}" class="teacher-info-link">
+                        <div class="teacher-info">
+                            <div class="teacher-avatar" id="headerAvatar">
+                                {% if request.session.profile_data.photo_url %}
+                                    <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }} {{ user_data.last_name }}">
+                                {% else %}
+                                    <span id="headerInitials">{{ user_data.first_name|first|default:'' }}{{ user_data.last_name|first|default:'' }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="teacher-name" id="headerUserName">
+                                {{ user_data.first_name }} {{ user_data.last_name }}
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{% url 'teachers:logout' %}" class="btn-teacher-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Выйти</span>
+                    </a>
+                    {% endwith %}
+                {% else %}
+                    <!-- Неавторизованный пользователь -->
+                    <a href="{% url 'teachers:login' %}" class="btn-login">
+                        Вход
+                    </a>
+                    <a href="{% url 'teachers:register' %}" class="btn-register">
+                        Регистрация
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation (ТОЧНО КАК В ОСНОВЕ) -->
+        <div class="mobile-nav" id="mobileNav">
+            <div class="mobile-nav-header">
+                <span>Меню</span>
+                <button class="mobile-nav-close" id="mobileNavClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mobile-nav-content">
+                <a href="{% url 'main:index' %}" class="mobile-nav-link">Главная</a>
+
+                <div class="mobile-nav-section">
+                    <div class="mobile-nav-title">Ассоциация</div>
+                    <a href="{% url 'about:about' %}" class="mobile-nav-sublink">О нас</a>
+                    <a href="{% url 'news:news' %}" class="mobile-nav-sublink">Новости</a>
+                    <a href="{% url 'events:events' %}" class="mobile-nav-sublink">Мероприятия</a>
+                </div>
+
+                <div class="mobile-nav-section">
+                    <div class="mobile-nav-title">База знаний</div>
+                    <a href="{% url 'materials:materials' %}" class="mobile-nav-sublink">Методические материалы</a>
+                    <a href="{% url 'documents:documents' %}" class="mobile-nav-sublink">Нормативные документы</a>
+                    <a href="{% url 'success_practices:practices_list' %}" class="mobile-nav-sublink">Успешные практики</a>
+                </div>
+
+                <a href="{% url 'surveys:surveys' %}" class="mobile-nav-link">Опросы</a>
+
+                <!-- Мобильная версия в зависимости от статуса -->
+                {% if request.session.is_admin %}
+                <div class="mobile-admin-info">
+                    <a href="{% url 'admin_panel:dashboard' %}" class="mobile-admin-user-link">
+                        <div class="mobile-admin-user">
+                            <div class="mobile-admin-avatar">
+                                {% if request.session.admin_name %}
+                                    {{ request.session.admin_name|first|upper }}
+                                {% else %}
+                                    А
+                                {% endif %}
+                            </div>
+                            <div class="mobile-admin-name">{{ request.session.admin_name|default:"Администратор" }}</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'admin_panel:admin_logout' %}" class="mobile-admin-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </a>
+                </div>
+                {% elif request.session.user_id %}
+                    {% with user_data=request.session.user_data %}
+                    <div class="mobile-teacher-info">
+                        <a href="{% url 'account:profile' %}" class="mobile-teacher-link">
+                            <div class="mobile-teacher-user">
+                                <div class="mobile-teacher-avatar" id="mobileAvatar">
+                                    {% if request.session.profile_data.photo_url %}
+                                        <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }} {{ user_data.last_name }}">
+                                    {% else %}
+                                        <span id="mobileInitials">{{ user_data.first_name|first|default:'' }}{{ user_data.last_name|first|default:'' }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="mobile-teacher-name" id="mobileUserName">
+                                    {{ user_data.first_name }} {{ user_data.last_name }}
+                                </div>
+                            </div>
+                        </a>
+                        <a href="{% url 'teachers:logout' %}" class="mobile-teacher-logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Выйти
+                        </a>
+                    </div>
+                    {% endwith %}
+                {% else %}
+                <div class="mobile-auth-buttons">
+                    <a href="{% url 'teachers:login' %}" class="btn-mobile-login">Войти</a>
+                    <a href="{% url 'teachers:register' %}" class="btn-mobile-register">Регистрация</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент с боковым меню -->
+    <main class="site-main">
+        <div class="profile-main-container">
+            <div class="container">
+                <div class="profile-layout">
+                    <!-- Sidebar Navigation -->
+                    <aside class="profile-sidebar">
+                        <div class="sidebar-user-card">
+                            <div class="user-avatar">
+                                <div class="avatar-placeholder">
+                                    {% if request.session.profile_data.photo_url %}
+                                        <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }}">
+                                    {% else %}
+                                        {% with user_data=request.session.user_data %}
+                                            <span>{{ user_data.first_name|first|default:'' }}{{ user_data.last_name|first|default:'' }}</span>
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="user-info">
+                                {% with user_data=request.session.user_data %}
+                                    <h3 class="user-name">{{ user_data.first_name }} {{ user_data.last_name }}</h3>
+                                    <p class="user-email">{{ user_data.email }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+
+                        <nav class="sidebar-nav">
+                            <a href="{% url 'account:profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                                <i class="fas fa-user"></i>
+                                <span>Профиль</span>
+                            </a>
+
+                            <a href="{% url 'account:favorites' %}" class="nav-item {% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">
+                                <i class="fas fa-heart"></i>
+                                <span>Избранное</span>
+                                {% if favorites_count %}
+                                    <span class="nav-badge">{{ favorites_count }}</span>
+                                {% endif %}
+                            </a>
+
+                            <a href="{% url 'account:help' %}" class="nav-item {% if request.resolver_match.url_name == 'help' %}active{% endif %}">
+                                <i class="fas fa-question-circle"></i>
+                                <span>Помощь</span>
+                            </a>
+
+                            <div class="nav-divider"></div>
+
+                            <a href="{% url 'teachers:logout' %}" class="nav-item logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Выйти</span>
+                            </a>
+                        </nav>
+                    </aside>
+
+                    <!-- Контент страницы -->
+                    <div class="profile-content">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer - ТОЧНО КАК В ОСНОВЕ -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <!-- Колонка 1: О нас -->
+                <div class="footer-col">
+                    <h4 class="footer-title">О нас</h4>
+                    <p class="footer-text">
+                        Ассоциация молодых педагогов Поволжского образовательного округа — объединение молодых педагогов до 35 лет.
+                    </p>
+                </div>
+
+                <!-- Колонка 2: Контакты -->
+                <div class="footer-col">
+                    <h4 class="footer-title">Контакты</h4>
+                    <ul class="footer-contacts">
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <a href="mailto:APOO.POO@yandex.ru">APOO.POO@yandex.ru</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone"></i>
+                            <a href="tel:+78463562086">(884635) 6-20-86</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Колонка 3: Мы в соцсетях -->
+                <div class="footer-col">
+                    <h4 class="footer-title">Мы в соцсетях</h4>
+                    <ul class="footer-social">
+                        <li>
+                            <i class="fab fa-vk"></i>
+                            <a href="https://vk.com/club101931084" target="_blank" rel="noopener noreferrer">ВКонтакте</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-copyright">
+                © 2026 Ассоциация молодых педагогов Поволжского образовательного округа
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="{% static 'main/js/main.js' %}"></script>
+    <script src="{% static 'main/js/header-footer.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Мобильное меню
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            const mobileNav = document.getElementById('mobileNav');
+            const mobileClose = document.getElementById('mobileNavClose');
+
+            if (mobileToggle && mobileNav) {
+                mobileToggle.addEventListener('click', function() {
+                    mobileNav.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (mobileClose && mobileNav) {
+                mobileClose.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // Дропдауны
+            document.querySelectorAll('.nav-dropdown-toggle').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.closest('.nav-dropdown');
+                    const wasActive = dropdown.classList.contains('active');
+
+                    document.querySelectorAll('.nav-dropdown.active').forEach(d => {
+                        d.classList.remove('active');
+                    });
+
+                    if (!wasActive) {
+                        dropdown.classList.add('active');
+                    }
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.nav-dropdown')) {
+                    document.querySelectorAll('.nav-dropdown.active').forEach(d => {
+                        d.classList.remove('active');
+                    });
+                }
+            });
+
+            // Закрытие мобильного меню при клике на ссылку
+            document.querySelectorAll('.mobile-nav-link, .mobile-nav-sublink, .mobile-teacher-link, .mobile-admin-user-link, .mobile-teacher-logout, .mobile-admin-logout, .btn-mobile-login, .btn-mobile-register').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (mobileNav) {
+                        mobileNav.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+
+            // ★★★ ПЕРЕДАЧА ДАННЫХ В JAVASCRIPT ★★★
+            // Передаем данные пользователя из Django в JavaScript
+            window.userData = {
+                email: '{{ user.email|escapejs }}',
+                first_name: '{{ user.first_name|escapejs }}',
+                last_name: '{{ user.last_name|escapejs }}',
+                middle_name: '{{ user.middle_name|escapejs }}',
+                educational_institution: '{{ user.educational_institution|escapejs }}',
+                experience: '{{ user.experience|escapejs }}',
+                specializations: {% if user.get_specializations_list %}{{ user.get_specializations_list|safe }}{% else %}[]{% endif %},
+                has_photo: {% if user.photo %}true{% else %}false{% endif %},
+                photo_url: '{% if user.photo %}{{ user.photo.url|escapejs }}{% endif %}'
+            };
+
+            // Список всех специализаций
+            window.allSpecializations = {{ all_specializations|safe }};
+
+            console.log('=== Данные пользователя загружены ===');
+            console.log('window.userData:', window.userData);
+            console.log('Специализации пользователя:', window.userData.specializations);
+            console.log('Все специализации:', window.allSpecializations);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

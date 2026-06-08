@@ -1,0 +1,320 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Регистрация педагога - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'auth/css/register.css' %}">
+<div class="register-page">
+
+    <!-- Breadcrumbs -->
+    <div class="register-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Регистрация педагога</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="register-header-section">
+        <div class="container">
+            <div class="register-header-content">
+                <h1 class="register-main-title">Регистрация педагога</h1>
+                <p class="register-header-description">
+                    Заполните форму для создания личного кабинета в Ассоциации молодых педагогов
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Register Form Section -->
+    <section class="register-form-section">
+        <div class="container">
+            <div class="required-fields-note">
+                <div class="required-note-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="required-note-content">
+                    <span class="required-star">*</span> — поля обязательные для заполнения
+                </div>
+            </div>
+
+            <div class="register-form-container">
+                <div class="register-form-card">
+                    <form class="register-form" id="registerForm" method="post">
+                        {% csrf_token %}
+
+                        <div class="form-three-columns">
+                            <!-- Основная информация -->
+                            <div class="form-column main-info-column">
+                                <div class="form-section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-key"></i>
+                                    </div>
+                                    <h3 class="form-section-title">Основная информация</h3>
+                                    <p class="section-subtitle">Данные для входа в систему</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="email" class="form-label">
+                                            <span class="label-text">Email</span>
+                                            <span class="required-star">*</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Формат: user@example.com">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="email"
+                                           id="email"
+                                           name="email"
+                                           class="form-control"
+                                           placeholder="example@mail.ru"
+                                           value="{{ form_data.email|default_if_none:'' }}"
+                                           required>
+                                    <div class="form-error" id="emailError">
+                                        {% if errors.email %}{{ errors.email }}{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="password" class="form-label">
+                                            <span class="label-text">Пароль</span>
+                                            <span class="required-star">*</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Минимум 6 символов">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="password"
+                                           id="password"
+                                           name="password"
+                                           class="form-control"
+                                           placeholder="Придумайте пароль"
+                                           required>
+                                    <div class="form-error" id="passwordError">
+                                        {% if errors.password %}{{ errors.password }}{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="confirm_password" class="form-label">
+                                            <span class="label-text">Подтверждение пароля</span>
+                                            <span class="required-star">*</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Пароли должны совпадать">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="password"
+                                           id="confirm_password"
+                                           name="confirm_password"
+                                           class="form-control"
+                                           placeholder="Повторите пароль"
+                                           required>
+                                    <div class="form-error" id="confirmPasswordError"></div>
+                                </div>
+                            </div>
+
+                            <!-- Личные данные -->
+                            <div class="form-column personal-info-column">
+                                <div class="form-section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <h3 class="form-section-title">Личные данные</h3>
+                                    <p class="section-subtitle">Ваши персональные данные</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="last_name" class="form-label">
+                                            <span class="label-text">Фамилия</span>
+                                            <span class="required-star">*</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Только русские буквы, можно использовать дефис">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="text"
+                                           id="last_name"
+                                           name="last_name"
+                                           class="form-control"
+                                           placeholder="Иванов"
+                                           value="{{ form_data.last_name|default_if_none:'' }}"
+                                           required>
+                                    <div class="form-error" id="lastNameError">
+                                        {% if errors.last_name %}{{ errors.last_name }}{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="first_name" class="form-label">
+                                            <span class="label-text">Имя</span>
+                                            <span class="required-star">*</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Только русские буквы, можно использовать дефис">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="text"
+                                           id="first_name"
+                                           name="first_name"
+                                           class="form-control"
+                                           placeholder="Иван"
+                                           value="{{ form_data.first_name|default_if_none:'' }}"
+                                           required>
+                                    <div class="form-error" id="firstNameError">
+                                        {% if errors.first_name %}{{ errors.first_name }}{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="middle_name" class="form-label">
+                                            <span class="label-text">Отчество</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Необязательное поле, только русские буквы">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="text"
+                                           id="middle_name"
+                                           name="middle_name"
+                                           class="form-control"
+                                           placeholder="Иванович"
+                                           value="{{ form_data.middle_name|default_if_none:'' }}">
+                                    <div class="form-error" id="middleNameError">
+                                        {% if errors.middle_name %}{{ errors.middle_name }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Профессиональные данные -->
+                            <div class="form-column professional-info-column">
+                                <div class="form-section-header">
+                                    <div class="section-icon">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    <h3 class="form-section-title">Профессиональные данные</h3>
+                                    <p class="section-subtitle">Можно заполнить позже</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="educational_institution" class="form-label">
+                                            <span class="label-text">Образовательное учреждение</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Укажите название вашей школы или другого учебного заведения">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <input type="text"
+                                           id="educational_institution"
+                                           name="educational_institution"
+                                           class="form-control"
+                                           placeholder="Например: ГБОУ Гимназия №1, Новокуйбышевск"
+                                           value="{{ form_data.educational_institution|default_if_none:'' }}">
+                                    <div class="form-error" id="educationalInstitutionError">
+                                        {% if errors.educational_institution %}{{ errors.educational_institution }}{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label for="experience" class="form-label">
+                                            <span class="label-text">Педагогический стаж</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Введите число от 0 до 100 (лет)">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-control-wrapper">
+                                        <input type="number"
+                                               id="experience"
+                                               name="experience"
+                                               class="form-control"
+                                               placeholder="0"
+                                               min="0"
+                                               max="100"
+                                               value="{{ form_data.experience|default_if_none:'' }}">
+                                        <span class="input-suffix">лет</span>
+                                    </div>
+                                    <div class="form-error" id="experienceError">
+                                        {% if errors.experience %}{{ errors.experience }}{% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Предметная специализация (множественный выбор, НЕОБЯЗАТЕЛЬНО) -->
+                                <div class="form-group">
+                                    <div class="form-label-wrapper">
+                                        <label class="form-label">
+                                            <span class="label-text">Предметные специализации</span>
+                                        </label>
+                                        <div class="input-hint-tooltip" data-tooltip="Выберите один или несколько предметов">
+                                            <i class="fas fa-question-circle"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="multi-select-container">
+                                        <input type="text"
+                                               id="specializationInput"
+                                               class="form-control multi-select-input"
+                                               placeholder="Выберите предметы..."
+                                               readonly>
+                                        <i class="fas fa-chevron-down dropdown-arrow-icon"></i>
+
+                                        <div class="multi-select-dropdown" id="specializationDropdown">
+                                            <div class="dropdown-options" id="dropdownOptions">
+                                                {% for spec in all_specializations %}
+                                                <label class="dropdown-option">
+                                                    <input type="checkbox"
+                                                           name="specializations"
+                                                           value="{{ spec }}"
+                                                           {% if spec in form_data.specializations %}checked{% endif %}>
+                                                    <span>{{ spec }}</span>
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-error" id="specializationsError">
+                                        {% if errors.specializations %}{{ errors.specializations }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-register-submit" id="submitBtn">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Зарегистрироваться</span>
+                            </button>
+
+                            <div class="form-divider">
+                                <span>Уже есть аккаунт?</span>
+                            </div>
+
+                            <a href="{% url 'auth:login' %}" class="btn-login-redirect">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Войти в аккаунт</span>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'auth/js/register.js' %}"></script>
+{% endblock %}

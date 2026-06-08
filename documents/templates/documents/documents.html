@@ -1,0 +1,246 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Нормативные базы - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'documents/css/documents.css' %}?v=2.0">
+<div class="documents-page">
+
+    <!-- Breadcrumbs -->
+    <div class="documents-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Нормативные базы</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="documents-header-section">
+        <div class="container">
+            <div class="documents-header-content">
+                <h1 class="documents-main-title">Нормативные документы</h1>
+                <p class="documents-header-description">
+                    Актуальные документы по образовательным стандартам, законодательным актам и методическим рекомендациям для педагогов
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="documents-main-section">
+        <div class="container">
+            <div class="documents-content-grid">
+                <!-- Filters Sidebar -->
+                <aside class="documents-filters-sidebar">
+                    <div class="filters-card">
+                        <div class="filters-header">
+                            <h3 class="filters-title">Фильтры</h3>
+                            <button class="btn-clear-all" id="clearAllFilters">
+                                Сбросить все
+                            </button>
+                        </div>
+
+                        <div class="filters-list">
+                            <!-- Category Filter - с цветом -->
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">По категории</h4>
+                            <div class="filter-options">
+                                {% for category in categories %}
+                                <label class="filter-option">
+                                    <input type="checkbox" class="filter-checkbox"
+                                           data-category="category" value="{{ category.id }}">
+                                    <span class="filter-color-indicator" style="background-color: {{ category.bg_color }};"></span>
+                                    <span class="filter-option-text">{{ category.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Level Filter - без цвета -->
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">По уровню</h4>
+                            <div class="filter-options">
+                                {% for level in levels %}
+                                <label class="filter-option">
+                                    <input type="checkbox" class="filter-checkbox"
+                                           data-category="level" value="{{ level.id }}">
+                                    <span class="filter-option-text">{{ level.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Year Filter - без цвета -->
+                        <div class="filter-group">
+                            <h4 class="filter-group-title">По году</h4>
+                            <div class="filter-options">
+                                {% for year in years %}
+                                <label class="filter-option">
+                                    <input type="checkbox" class="filter-checkbox"
+                                           data-category="year" value="{{ year.id }}">
+                                    <span class="filter-option-text">{{ year.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Documents Grid -->
+                <div class="documents-grid-container">
+                    <!-- Documents Grid -->
+                    <div class="documents-grid" id="documentsGrid">
+                        {% for item in documents %}
+                        <article class="document-card" data-id="{{ item.id }}">
+                            <div class="document-card-inner">
+                                <!-- Document Header - иконка и категория в одной строке -->
+                                <div class="document-header">
+                                    <!-- Document Icon (уменьшенный) -->
+                                    <div class="document-icon" style="background-color: {{ item.category.bg_color }};">
+                                        <i class="fas fa-file-alt" style="color: {{ item.category.text_color }};"></i>
+                                    </div>
+
+                                    <!-- Document Category -->
+                                    <span class="document-category" style="background-color: {{ item.category.bg_color }}; color: {{ item.category.text_color }};">
+                                        {{ item.category.name }}
+                                    </span>
+                                </div>
+
+                                <!-- Document Content - под иконкой и категорией -->
+                                <div class="document-content">
+                                    <h3 class="document-title">{{ item.title }}</h3>
+                                    <p class="document-description">{{ item.description }}</p>
+
+                                    <!-- Document Details -->
+                                    <div class="document-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-layer-group"></i>
+                                            <div class="detail-text">
+                                                <strong>Уровень документа:</strong> {{ item.level.name }}
+                                            </div>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="far fa-calendar"></i>
+                                            <div class="detail-text">
+                                                <strong>Год принятия:</strong> {{ item.year }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Document Meta -->
+                                    <div class="document-meta">
+                                        <div class="meta-item">
+                                            <i class="far fa-calendar-alt"></i>
+                                            <span>{{ item.date_display }}</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="fas fa-file-alt"></i>
+                                            <span>{{ item.file_size_display }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Document Actions -->
+                                    <!-- Document Actions -->
+                                    <!-- Document Actions -->
+                                    <div class="document-actions">
+                                        <!-- Кнопка Скачать - без target="_blank", принудительное скачивание -->
+                                        <a href="{% if item.file %}{{ item.file.url }}{% else %}#{% endif %}"
+                                           class="btn-download"
+                                           download
+                                           {% if not item.file %}disabled{% endif %}>
+                                            <i class="fas fa-download"></i>
+                                            Скачать
+                                        </a>
+
+                                        <!-- Кнопка Открыть онлайн - с target="_blank" для просмотра -->
+                                        <a href="{% if item.file %}{{ item.file.url }}{% else %}#{% endif %}"
+                                           class="btn-online"
+                                           target="_blank"
+                                           {% if not item.file %}disabled{% endif %}>
+                                            <i class="fas fa-external-link-alt"></i>
+                                            Открыть онлайн
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        {% empty %}
+                        <div class="no-documents-message">
+                            <i class="fas fa-file-alt"></i>
+                            <p>Документы не найдены</p>
+                            <p class="empty-state-description">
+                                Попробуйте изменить параметры фильтрации
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="documents-pagination">
+                        <button class="pagination-btn pagination-prev" id="prevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="pagination-pages" id="paginationPages">
+                            <button class="pagination-page active" data-page="1">1</button>
+                            {% if total_pages > 1 %}
+                            <button class="pagination-page" data-page="2">2</button>
+                            {% endif %}
+                        </div>
+
+                        <button class="pagination-btn pagination-next" id="nextPage" {% if total_pages <= 1 %}disabled{% endif %}>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile Filters Modal -->
+    <div class="mobile-filters-modal" id="mobileFiltersModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Фильтры</h3>
+                <button class="modal-close" id="closeFiltersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-filters">
+                <!-- Фильтры будут скопированы через JS -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-apply-filters" id="applyMobileFilters">Применить</button>
+                <button class="btn-reset-modal" id="resetMobileFilters">Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Button -->
+    <button class="mobile-filters-btn" id="openFiltersModal">
+        <i class="fas fa-filter"></i> Фильтры
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'documents/js/documents.js' %}?v=2.0"></script>
+<script>
+    // Передача данных из Django
+    const documentsAppConfig = {
+        documents: {{ documents_json|safe }},
+        categories: {{ categories_json|safe }},
+        levels: {{ levels_json|safe }},
+        years: {{ years_json|safe }},
+        itemsPerPage: 8,  <!-- ИЗМЕНИТЕ С 12 НА 8 -->
+        currentPage: {{ current_page }},
+        totalPages: {{ total_pages }}
+    };
+</script>
+{% endblock %}

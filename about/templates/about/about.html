@@ -1,0 +1,276 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'about/css/about.css' %}?v=3.0">
+
+<!-- Главный контейнер страницы -->
+<div class="amp-about-page">
+
+    <!-- Навигационная цепочка (хлебные крошки) -->
+    <div class="amp-about-breadcrumbs">
+        <div class="container">
+            <div class="amp-breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="amp-breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right amp-breadcrumb-separator"></i>
+                <a href="{% url 'about:about' %}" class="amp-breadcrumb-link">Ассоциация</a>
+                <i class="fas fa-chevron-right amp-breadcrumb-separator"></i>
+                <span class="amp-breadcrumb-current">О нас</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Заголовочная секция -->
+    <section class="amp-about-header-section">
+        <div class="container">
+            <div class="amp-about-header-content">
+                <h1 class="amp-about-main-title">{{ hero_section.title }}</h1>
+                <p class="amp-about-header-description">
+                    {{ hero_section.subtitle }}
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основная секция с изображением -->
+    <section class="amp-about-hero-section">
+        <div class="container">
+            <div class="amp-about-hero-grid">
+                <div class="amp-about-hero-text">
+                    <h2 class="amp-about-section-title">{{ hero_section.content.title }}</h2>
+                    {% for paragraph in hero_section.content.paragraphs %}
+                    <p class="amp-about-hero-paragraph">{{ paragraph }}</p>
+                    {% endfor %}
+                    <a href="{% url 'teachers:register' %}" class="amp-btn amp-btn-primary amp-cta-btn">
+                        {{ hero_section.content.cta.text }}
+                    </a>
+                </div>
+                <div class="amp-about-hero-image">
+                    <img src="{% static 'about/images/hero-image.jpg' %}"
+                         alt="{{ hero_section.content.image.alt }}"
+                         class="amp-hero-image"
+                         onerror="this.onerror=null; this.src='{% static 'about/images/default-member.jpg' %}';">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция статистики -->
+    <section class="amp-about-stats-section">
+        <div class="container">
+            <div class="amp-stats-grid">
+                {% for stat in stats %}
+                <div class="amp-stat-card">
+                    <div class="amp-stat-number">{{ stat.number }}</div>
+                    <p class="amp-stat-label">{{ stat.label }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция миссии и видения -->
+    <section class="amp-about-mission-vision-section">
+        <div class="container">
+            <!-- Миссия -->
+            <div class="amp-mission-section">
+                <div class="amp-mission-content">
+                    <div class="amp-mission-header">
+                        <div class="amp-mission-icon-container">
+                            <div class="amp-mission-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <div class="amp-mission-divider"></div>
+                        </div>
+                        <h3 class="amp-mission-title">{{ mission_vision.mission.title }}</h3>
+                    </div>
+                    <p class="amp-mission-description">
+                        {{ mission_vision.mission.description }}
+                    </p>
+                </div>
+                <div class="amp-mission-graphic">
+                    <div class="amp-mission-graphic-circle">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Видение -->
+            <div class="amp-vision-section">
+                <div class="amp-vision-graphic">
+                    <div class="amp-vision-graphic-circle">
+                        <i class="fas fa-award"></i>
+                    </div>
+                </div>
+                <div class="amp-vision-content">
+                    <div class="amp-vision-header">
+                        <div class="amp-vision-divider"></div>
+                        <div class="amp-vision-icon-container">
+                            <div class="amp-vision-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                        </div>
+                        <h3 class="amp-vision-title">{{ mission_vision.vision.title }}</h3>
+                    </div>
+                    <p class="amp-vision-description">
+                        {{ mission_vision.vision.description }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция ценностей -->
+    <section class="amp-about-values-section">
+        <div class="container">
+            <div class="amp-section-header">
+                <h2 class="amp-section-title">Наши принципы</h2>
+                <p class="amp-section-subtitle">
+                    Принципы, на которых строится деятельность Ассоциации
+                </p>
+            </div>
+            <div class="amp-values-grid">
+                {% for value in values %}
+                <div class="amp-value-card">
+                    <div class="amp-value-icon-container" style="background-color: {{ value.color }};">
+                        <i class="fas fa-{{ value.icon }}"></i>
+                    </div>
+                    <h4 class="amp-value-title">{{ value.title }}</h4>
+                    <p class="amp-value-description">{{ value.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция команды -->
+    <section class="amp-about-team-section">
+        <div class="container">
+            <div class="amp-section-header">
+                <h2 class="amp-section-title">Актив ассоциации</h2>
+                <p class="amp-section-subtitle">
+                    Познакомьтесь с нашей командой
+                </p>
+            </div>
+
+            <!-- Карусель команды -->
+            <div class="amp-team-carousel-container">
+                <button class="amp-carousel-btn amp-carousel-btn-prev" aria-label="Прокрутить влево">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="amp-team-carousel">
+                    {% for member in team_members %}
+                    <div class="amp-team-card" data-member-id="{{ member.id }}">
+                        <!-- Внутренний контейнер для flip эффекта -->
+                        <div class="amp-team-card-inner">
+                            <!-- Лицевая сторона - только фото и ФИО -->
+                            <div class="amp-team-card-front">
+                                <img src="{% static member.photo %}"
+                                     alt="{{ member.name }}"
+                                     class="amp-team-member-photo"
+                                     onerror="this.onerror=null; this.src='{% static 'about/images/default-member.jpg' %}';">
+                                <div class="amp-team-card-overlay"></div>
+                                <div class="amp-team-card-header" style="background-color: {{ member.color }};"></div>
+                                <div class="amp-team-card-info">
+                                    <h3 class="amp-team-member-name">{{ member.name }}</h3>
+                                </div>
+                            </div>
+
+                            <!-- Обратная сторона - школа и должность -->
+                            <div class="amp-team-card-back">
+                                <div class="amp-team-card-header" style="background-color: {{ member.color }};"></div>
+                                <div class="amp-team-card-back-content">
+                                    <h4 class="amp-back-member-name">{{ member.name }}</h4>
+                                    <div class="amp-back-member-details">
+                                        <div class="amp-back-detail-item">
+                                            <i class="fas fa-school"></i>
+                                            <span>{{ member.role }}</span>
+                                        </div>
+                                        <div class="amp-back-detail-item">
+                                            <i class="fas fa-briefcase"></i>
+                                            <span>{{ member.position }}</span>
+                                        </div>
+                                        <div class="amp-back-detail-item">
+                                            <i class="fas fa-users"></i>
+                                            <span>{{ member.committee }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button class="amp-carousel-btn amp-carousel-btn-next" aria-label="Прокрутить вправо">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция призыва к действию с галереей -->
+    <section class="amp-about-cta-gallery-section">
+        <div class="container">
+            <div class="amp-cta-content">
+                <h2 class="amp-cta-title">{{ cta_section.title }}</h2>
+                <p class="amp-cta-description">
+                    {{ cta_section.description }}
+                </p>
+                <div class="amp-cta-buttons">
+                    <a href="{% url 'teachers:register' %}" class="amp-btn amp-btn-primary">Зарегистрироваться</a>
+                    <a href="{% url 'main:index' %}#contact-form" class="amp-btn amp-btn-outline">Связаться с нами</a>
+                </div>
+            </div>
+
+            <!-- Фотогалерея -->
+            <div class="amp-photo-gallery">
+                {% for image in gallery_images %}
+                <div class="amp-gallery-item">
+                    <img src="{% static image.url %}"
+                         alt="{{ image.alt }}"
+                         class="amp-gallery-image"
+                         onerror="this.onerror=null; this.src='{% static 'about/images/default-gallery.jpg' %}';">
+                    <div class="amp-gallery-overlay"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Секция часто задаваемых вопросов -->
+    <section class="amp-about-faq-section">
+        <div class="container">
+            <div class="amp-section-header">
+                <h2 class="amp-section-title">Часто задаваемые вопросы</h2>
+                <p class="amp-section-subtitle">
+                    Ответы на ваши вопросы о нашей деятельности
+                </p>
+            </div>
+
+            <div class="amp-faq-list">
+                {% for faq in faqs %}
+                <div class="amp-faq-item" data-faq-id="{{ faq.id }}">
+                    <div class="amp-faq-question">
+                        <h4 class="amp-faq-question-text">{{ faq.question }}</h4>
+                        <i class="fas fa-chevron-down amp-faq-toggle-icon"></i>
+                    </div>
+                    <div class="amp-faq-answer">
+                        <p class="amp-faq-answer-text">{{ faq.answer }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'about/js/about.js' %}?v=3.0"></script>
+{% endblock %}

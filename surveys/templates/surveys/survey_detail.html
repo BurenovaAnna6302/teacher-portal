@@ -1,0 +1,325 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ survey.title }} - Опрос{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'surveys/css/survey_detail.css' %}?v=5.0">
+<div class="survey-detail-page" data-survey-status="{% if survey.status_code == 'active' %}active{% else %}completed{% endif %}">
+
+    <!-- Breadcrumbs -->
+    <div class="survey-detail-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="{% url 'surveys:surveys' %}" class="breadcrumb-link">Опросы</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">{{ survey.title|truncatechars:50 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="survey-detail-main-section">
+        <div class="container">
+            <!-- Вывод сообщений -->
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <!-- Заголовок -->
+            <h1 class="survey-detail-title">{{ survey.title }}</h1>
+
+            <!-- Компактная информация (статус, основные данные и кнопка назад) -->
+            <div class="survey-detail-info-compact">
+                <!-- Кнопка назад слева от статуса -->
+                <a href="{% url 'surveys:surveys' %}" class="btn-back-top">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </a>
+
+                <div class="status-badge {% if survey.status_code == 'active' %}status-active{% else %}status-completed{% endif %}">
+                    {{ survey.status_display }}
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <div class="info-compact-item">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>{{ survey.questions_count }} вопросов</span>
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <div class="info-compact-item">
+                    <i class="far fa-clock"></i>
+                    <span>{{ survey.duration }}</span>
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <div class="info-compact-item">
+                    <i class="far fa-calendar"></i>
+                    <span>Опубликовано {{ survey.published_date_display }}</span>
+                </div>
+
+                <span class="info-compact-divider">•</span>
+
+                <span class="category-badge" style="background-color: {{ survey.category.bg_color }}; color: {{ survey.category.text_color }};">
+                    {{ survey.category.name }}
+                </span>
+            </div>
+
+            <!-- Описание -->
+            <div class="survey-detail-description">
+                <p>{{ survey.description }}</p>
+            </div>
+
+            {% if survey.status_code == 'active' %}
+                <!-- Форма прохождения опроса -->
+                <form method="post" action="{% url 'surveys:submit_survey' survey.id %}" class="survey-form">
+                    {% csrf_token %}
+
+                    <!-- Список вопросов в матричном стиле -->
+                    <div class="survey-questions-section">
+                        <h2 class="questions-title">Вопросы опроса</h2>
+
+                        {% if questions %}
+                            <div class="questions-list matrix-style">
+                                {% for question in questions %}
+                                <div class="question-item matrix-item" data-question-type="{{ question.question_type.id }}">
+                                    <!-- Номер вопроса -->
+                                    <div class="question-number">Вопрос {{ forloop.counter }}</div>
+
+                                    <!-- Текст вопроса -->
+                                    <div class="question-text">{{ question.text }}</div>
+
+                                    <!-- Мета-информация с текстом -->
+                                    <div class="question-meta">
+                                        {% if question.question_type.id == 1 %}
+                                        <div class="question-type-badge type-1">
+                                            <i class="fas fa-paragraph"></i>
+                                            Открытый вопрос
+                                        </div>
+                                        {% elif question.question_type.id == 2 %}
+                                        <div class="question-type-badge type-2">
+                                            <i class="fas fa-dot-circle"></i>
+                                            Одиночный выбор
+                                        </div>
+                                        {% elif question.question_type.id == 3 %}
+                                        <div class="question-type-badge type-3">
+                                            <i class="fas fa-check-square"></i>
+                                            Множественный выбор
+                                        </div>
+                                        {% endif %}
+
+                                        {% if question.is_required %}
+                                        <div class="required-badge">
+                                            <i class="fas fa-asterisk"></i>
+                                            Обязательный
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Поле для ответа в зависимости от типа вопроса -->
+                                    <div class="question-answer">
+                                        {% if question.question_type.id == 1 %}
+                                            <!-- Открытый вопрос - текстовое поле -->
+                                            <textarea
+                                                class="form-control answer-textarea"
+                                                name="question_{{ question.id }}"
+                                                id="q_{{ question.id }}"
+                                                placeholder="Введите ваш ответ..."
+                                                {% if question.is_required %}required{% endif %}
+                                                rows="3"
+                                            ></textarea>
+
+                                        {% elif question.question_type.id == 2 %}
+                                            <!-- Одиночный выбор - radio buttons в сетке -->
+                                            <div class="options-grid">
+                                                {% for option in question.options %}
+                                                <label class="option-card">
+                                                    <input
+                                                        type="radio"
+                                                        name="question_{{ question.id }}"
+                                                        value="{{ option.id }}"
+                                                        {% if question.is_required %}required{% endif %}
+                                                    >
+                                                    <span class="option-text">{{ option.text }}</span>
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+
+                                        {% elif question.question_type.id == 3 %}
+                                            <!-- Множественный выбор - checkboxes в сетке -->
+                                            <div class="options-grid">
+                                                {% for option in question.options %}
+                                                <label class="option-card">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="question_{{ question.id }}"
+                                                        value="{{ option.id }}"
+                                                    >
+                                                    <span class="option-text">{{ option.text }}</span>
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-questions-message">
+                                <i class="far fa-question-circle"></i>
+                                <p>В этом опросе пока нет вопросов</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Кнопка отправки -->
+                    <div class="survey-actions">
+                        <button type="submit" class="btn-submit-survey">
+                            <i class="fas fa-paper-plane"></i> Отправить ответы
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <!-- Опрос завершен - только просмотр вопросов в матричном стиле -->
+                <div class="survey-questions-section">
+                    <h2 class="questions-title">Вопросы опроса</h2>
+
+                    {% if questions %}
+                        <div class="questions-list matrix-style">
+                            {% for question in questions %}
+                            <div class="question-item matrix-item" data-question-type="{{ question.question_type.id }}">
+                                <!-- Номер вопроса -->
+                                <div class="question-number">Вопрос {{ forloop.counter }}</div>
+
+                                <!-- Текст вопроса -->
+                                <div class="question-text">{{ question.text }}</div>
+
+                                <!-- Мета-информация с текстом -->
+                                <div class="question-meta">
+                                    {% if question.question_type.id == 1 %}
+                                    <div class="question-type-badge type-1">
+                                        <i class="fas fa-paragraph"></i>
+                                        Открытый вопрос
+                                    </div>
+                                    {% elif question.question_type.id == 2 %}
+                                    <div class="question-type-badge type-2">
+                                        <i class="fas fa-dot-circle"></i>
+                                        Одиночный выбор
+                                    </div>
+                                    {% elif question.question_type.id == 3 %}
+                                    <div class="question-type-badge type-3">
+                                        <i class="fas fa-check-square"></i>
+                                        Множественный выбор
+                                    </div>
+                                    {% endif %}
+
+                                    {% if question.is_required %}
+                                    <div class="required-badge">
+                                        <i class="fas fa-asterisk"></i>
+                                        Обязательный
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Отображение вариантов ответов для вопросов с выбором -->
+                                {% if question.question_type.id == 2 or question.question_type.id == 3 %}
+                                    {% if question.options %}
+                                    <div class="question-options">
+                                        <div class="options-grid">
+                                            {% for option in question.options %}
+                                            <div class="option-item">
+                                                <div class="option-marker">
+                                                    {% if question.question_type.id == 2 %}
+                                                        <i class="far fa-circle"></i>
+                                                    {% else %}
+                                                        <i class="far fa-square"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="option-text">{{ option.text }}</div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-questions-message">
+                            <i class="far fa-question-circle"></i>
+                            <p>В этом опросе пока нет вопросов</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Отладочная информация (можно удалить после проверки) -->
+            {% if debug %}
+            <div class="debug-info">
+                <h3>Отладочная информация</h3>
+                {% for question in questions %}
+                <div class="debug-item">
+                    <p><strong>Вопрос {{ forloop.counter }}:</strong> {{ question.text }}</p>
+                    <p><strong>Тип вопроса ID:</strong> {{ question.question_type.id }}</p>
+                    <p><strong>Тип вопроса Name:</strong> {{ question.question_type.name }}</p>
+                    <p><strong>Количество options:</strong> {{ question.options|length }}</p>
+                    {% if question.options %}
+                        <p><strong>Options:</strong></p>
+                        <ul>
+                        {% for option in question.options %}
+                            <li>{{ option.id }}: {{ option.text }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<!-- Подключаем JavaScript -->
+<script src="{% static 'surveys/js/survey_detail.js' %}?v=5.3"></script>
+
+<script>
+// Дополнительная проверка для отладки
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== ОТЛАДКА СТАТУСА ОПРОСА ===');
+    console.log('Статус из данных:', '{{ survey.status_code }}');
+    console.log('Статус для отображения:', '{{ survey.status_display }}');
+    console.log('Опрос активен?', {% if survey.status_code == 'active' %}true{% else %}false{% endif %});
+
+    // Проверяем data-атрибут
+    const pageDiv = document.querySelector('.survey-detail-page');
+    if (pageDiv) {
+        console.log('data-survey-status:', pageDiv.dataset.surveyStatus);
+    }
+
+    // Проверяем статус-бейдж
+    const statusBadge = document.querySelector('.status-badge');
+    if (statusBadge) {
+        console.log('Статус-бейдж найден');
+        console.log('Классы статус-бейджа:', statusBadge.classList);
+        console.log('Текст статус-бейджа:', statusBadge.textContent.trim());
+    } else {
+        console.log('❌ Статус-бейдж не найден');
+    }
+
+    // Проверяем форму
+    const surveyForm = document.querySelector('.survey-form');
+    console.log('Форма опроса найдена:', !!surveyForm);
+    console.log('============================');
+});
+</script>
+{% endblock %}

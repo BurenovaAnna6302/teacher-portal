@@ -1,0 +1,748 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if material %}Редактирование материала{% else %}Создание материала{% endif %} - Админ панель
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* ===== Заголовок и кнопка назад ===== */
+    .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .form-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--admin-primary);
+        margin: 0 0 5px 0;
+    }
+
+    .form-header p {
+        color: var(--admin-text-gray);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid var(--admin-border);
+        border-radius: 8px;
+        color: var(--admin-text-dark);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        background: var(--admin-primary-light);
+        border-color: var(--admin-primary);
+        color: var(--admin-primary);
+    }
+
+    /* ===== Две колонки ===== */
+    .form-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 992px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===== Основная форма ===== */
+    .form-main {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        padding: 30px;
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--admin-text-dark);
+        margin-bottom: 8px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: var(--admin-danger);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        font-size: 14px;
+        font-family: 'Manrope', sans-serif;
+        color: var(--admin-text-dark);
+        background: white;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:hover {
+        border-color: var(--admin-text-gray);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--admin-primary);
+        box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.6;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+    }
+
+    /* ===== Счетчик символов ===== */
+    .char-counter {
+        text-align: right;
+        font-size: 12px;
+        color: var(--admin-text-light);
+        margin-top: 5px;
+    }
+
+    .char-counter.warning {
+        color: var(--admin-warning);
+    }
+
+    .char-counter.error {
+        color: var(--admin-danger);
+    }
+
+    /* ===== Сайдбар ===== */
+    .form-sidebar {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        padding: 25px;
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .sidebar-section {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--admin-border);
+    }
+
+    .sidebar-section:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .sidebar-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-title i {
+        color: var(--admin-primary);
+        background: var(--admin-primary-light);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    /* ===== Загрузка файла ===== */
+    .file-upload-area {
+        border: 2px dashed var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        padding: 25px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 15px;
+        background: var(--admin-bg-light);
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--admin-primary);
+        background: var(--admin-primary-light);
+    }
+
+    .file-upload-icon {
+        font-size: 40px;
+        color: var(--admin-primary);
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .file-upload-area:hover .file-upload-icon {
+        opacity: 1;
+    }
+
+    .upload-text {
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 5px;
+    }
+
+    .upload-hint {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+    }
+
+    /* ===== Информация о файле ===== */
+    .file-info {
+        padding: 15px;
+        background: var(--admin-bg-light);
+        border-radius: var(--admin-radius-sm);
+        border: 1px solid var(--admin-border);
+        margin-top: 15px;
+    }
+
+    .file-info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .file-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--admin-text-dark);
+        word-break: break-word;
+    }
+
+    .file-size {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+        margin-top: 4px;
+    }
+
+    .btn-remove-file {
+        color: var(--admin-danger);
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.1);
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .btn-remove-file:hover {
+        background: var(--admin-danger);
+        color: white;
+    }
+
+    /* ===== Информация в сайдбаре ===== */
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--admin-border);
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: var(--admin-text-gray);
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--admin-text-dark);
+    }
+
+    /* ===== Кнопки действий ===== */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        padding-top: 20px;
+        border-top: 1px solid var(--admin-border);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--admin-primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(3, 45, 67, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: var(--admin-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(3, 45, 67, 0.3);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--admin-text-dark);
+        border: 1px solid var(--admin-border);
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--admin-danger);
+        color: var(--admin-danger);
+        background: rgba(239, 68, 68, 0.05);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <!-- Заголовок и кнопка назад -->
+    <div class="form-header">
+        <div>
+            <h1>
+                {% if material %}
+                    Редактирование материала
+                {% else %}
+                    Создание методического материала
+                {% endif %}
+            </h1>
+            <p>
+                {% if material %}
+                    Внесите изменения в информацию о материале
+                {% else %}
+                    Заполните форму для добавления нового учебного материала
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'admin_panel:materials_list' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i>
+            Назад к списку
+        </a>
+    </div>
+
+    <form method="post" id="materialForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-columns">
+            <!-- Основная форма -->
+            <div class="form-main">
+                <div class="form-group">
+                    <label for="title" class="form-label required">Название материала</label>
+                    <input type="text"
+                           class="form-control"
+                           id="title"
+                           name="title"
+                           value="{{ material.title|default:'' }}"
+                           placeholder="Например: Конспект урока по теме 'Дроби' для 5 класса"
+                           required
+                           maxlength="100">
+                    <div class="char-counter">
+                        <span id="titleCounter">{{ material.title|length|default:0 }}</span>/100
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="short_description" class="form-label required">Краткое описание</label>
+                    <textarea class="form-control"
+                              id="short_description"
+                              name="short_description"
+                              rows="3"
+                              placeholder="Краткое описание материала для карточки"
+                              required
+                              maxlength="250">{{ material.short_description|default:'' }}</textarea>
+                    <div class="char-counter">
+                        <span id="shortDescCounter">{{ material.short_description|length|default:0 }}</span>/250
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subject_area" class="form-label required">Предметная область</label>
+                        <select class="form-control" id="subject_area" name="subject_area" required>
+                            <option value="">Выберите предмет</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}"
+                                    {% if material.subject_id == subject.id %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="material_type" class="form-label required">Тип материала</label>
+                        <select class="form-control" id="material_type" name="material_type" required>
+                            <option value="">Выберите тип</option>
+                            {% for type in types %}
+                            <option value="{{ type.id }}"
+                                    {% if material.material_type_id == type.id %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="difficulty_level" class="form-label required">Уровень сложности</label>
+                        <select class="form-control" id="difficulty_level" name="difficulty_level" required>
+                            <option value="">Выберите уровень</option>
+                            {% for level in difficulty %}
+                            <option value="{{ level.id }}"
+                                    {% if material.difficulty_id == level.id %}selected{% endif %}>
+                                {{ level.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="grade" class="form-label required">Класс/возрастная группа</label>
+                        <select class="form-control" id="grade" name="grade" required>
+                            <option value="">Выберите класс</option>
+                            {% for grade in grades %}
+                            <option value="{{ grade.id }}"
+                                    {% if material.grade_id == grade.id %}selected{% endif %}>
+                                {{ grade.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="work_format" class="form-label required">Формат работы</label>
+                        <select class="form-control" id="work_format" name="work_format" required>
+                            <option value="">Выберите формат</option>
+                            {% for format in formats %}
+                            <option value="{{ format.id }}"
+                                    {% if material.format_id == format.id %}selected{% endif %}>
+                                {{ format.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="assessment_system" class="form-label required">Система оценки</label>
+                        <select class="form-control" id="assessment_system" name="assessment_system" required>
+                            <option value="">Выберите систему</option>
+                            {% for assess in assessment %}
+                            <option value="{{ assess.id }}"
+                                    {% if material.assessment_id == assess.id %}selected{% endif %}>
+                                {{ assess.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="additional_category" class="form-label">Дополнительная категория</label>
+                    <select class="form-control" id="additional_category" name="additional_category">
+                        <option value="">Нет</option>
+                        {% for add in additional %}
+                        <option value="{{ add.id }}"
+                                {% if material.additional_id == add.id %}selected{% endif %}>
+                            {{ add.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Сайдбар с файлом -->
+            <div class="form-sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-file-upload"></i>
+                        Файл материала
+                    </h3>
+
+                    <!-- Загрузка файла -->
+                    <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="file-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Нажмите для загрузки</div>
+                        <div class="upload-hint">PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX до 50 МБ</div>
+                        <input type="file"
+                               id="fileInput"
+                               name="file"
+                               style="display: none;"
+                               accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                               onchange="handleFileSelect(this)">
+                    </div>
+
+                    <!-- Информация о загруженном файле -->
+                    <div id="fileInfo">
+                        {% if material.file_name %}
+                        <div class="file-info">
+                            <div class="file-info-header">
+                                <div>
+                                    <div class="file-name">{{ material.file_name }}</div>
+                                    <div class="file-size">{{ material.file_size|filesizeformat }}</div>
+                                </div>
+                                <span class="btn-remove-file" onclick="removeFile()">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-info-circle"></i>
+                        Информация
+                    </h3>
+                    <div class="info-item">
+                        <span class="info-label">Дата создания:</span>
+                        <span class="info-value">
+                            {% if material %}
+                                {{ material.created_at }}
+                            {% else %}
+                                {% now "d.m.Y H:i" %}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="form-actions">
+            <a href="{% url 'admin_panel:materials_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Отмена
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                {% if material %}Сохранить изменения{% else %}Создать материал{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Счетчики символов
+    function updateCharCounter(textareaId, counterId, maxLength) {
+        const textarea = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+
+        function update() {
+            const length = textarea.value.length;
+            counter.textContent = length;
+
+            if (length > maxLength * 0.9) {
+                counter.classList.add('warning');
+                counter.classList.remove('error');
+            } else if (length > maxLength) {
+                counter.classList.remove('warning');
+                counter.classList.add('error');
+            } else {
+                counter.classList.remove('warning', 'error');
+            }
+        }
+
+        textarea.addEventListener('input', update);
+        update();
+    }
+
+    // Обработка выбора файла
+    function handleFileSelect(input) {
+        const fileInfo = document.getElementById('fileInfo');
+
+        if (input.files.length > 0) {
+            const file = input.files[0];
+            const fileSizeKB = file.size / 1024;
+
+            // Проверка размера (50 МБ = 51200 КБ)
+            if (fileSizeKB > 51200) {
+                alert('Файл слишком большой. Максимальный размер: 50 МБ');
+                input.value = '';
+                return;
+            }
+
+            // Форматирование размера
+            let sizeText = '';
+            if (fileSizeKB < 1024) {
+                sizeText = Math.round(fileSizeKB) + ' КБ';
+            } else {
+                sizeText = (fileSizeKB / 1024).toFixed(1) + ' МБ';
+            }
+
+            // Отображение информации о файле
+            fileInfo.innerHTML = `
+                <div class="file-info">
+                    <div class="file-info-header">
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${sizeText}</div>
+                        </div>
+                        <span class="btn-remove-file" onclick="removeFile()">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Удаление файла
+    function removeFile() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.value = '';
+        document.getElementById('fileInfo').innerHTML = '';
+    }
+
+    // Валидация формы
+    function validateForm() {
+        const title = document.getElementById('title').value.trim();
+        const shortDesc = document.getElementById('short_description').value.trim();
+        const subject = document.getElementById('subject_area').value;
+        const materialType = document.getElementById('material_type').value;
+        const difficulty = document.getElementById('difficulty_level').value;
+        const grade = document.getElementById('grade').value;
+        const format = document.getElementById('work_format').value;
+        const assessment = document.getElementById('assessment_system').value;
+
+        if (!title) {
+            alert('Название материала обязательно');
+            return false;
+        }
+        if (!shortDesc) {
+            alert('Краткое описание обязательно');
+            return false;
+        }
+        if (!subject) {
+            alert('Выберите предметную область');
+            return false;
+        }
+        if (!materialType) {
+            alert('Выберите тип материала');
+            return false;
+        }
+        if (!difficulty) {
+            alert('Выберите уровень сложности');
+            return false;
+        }
+        if (!grade) {
+            alert('Выберите класс');
+            return false;
+        }
+        if (!format) {
+            alert('Выберите формат работы');
+            return false;
+        }
+        if (!assessment) {
+            alert('Выберите систему оценки');
+            return false;
+        }
+
+        // Проверка файла для нового материала
+        {% if not material %}
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) {
+            alert('Загрузите файл материала');
+            return false;
+        }
+        {% endif %}
+
+        return true;
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCharCounter('title', 'titleCounter', 100);
+        updateCharCounter('short_description', 'shortDescCounter', 250);
+
+        const form = document.getElementById('materialForm');
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

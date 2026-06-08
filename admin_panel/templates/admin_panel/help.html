@@ -1,0 +1,505 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}Помощь и поддержка - Админ панель{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'account/css/help.css' %}?v=1.0">
+<style>
+    /* Дополнительные стили для формы смены пароля */
+    .password-form-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .password-form-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .password-form-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, #032D43 0%, #0A4A6B 100%);
+        color: white;
+    }
+
+    .password-form-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .password-form-title {
+        flex: 1;
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .password-form-content {
+        padding: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #1a1a1a;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #032D43;
+        box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
+    }
+
+    .btn-change-password {
+        background: #032D43;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-change-password:hover {
+        background: #021F2E;
+        transform: translateY(-2px);
+    }
+
+    .password-message {
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        display: none;
+    }
+
+    .password-message.success {
+        display: block;
+        background: #d1fae5;
+        color: #065f46;
+        border-left: 4px solid #10b981;
+    }
+
+    .password-message.error {
+        display: block;
+        background: #fee2e2;
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+    }
+
+    .password-requirements {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .password-form-header {
+            padding: 16px 20px;
+        }
+
+        .password-form-title {
+            font-size: 18px;
+        }
+
+        .password-form-content {
+            padding: 20px;
+        }
+
+        .btn-change-password {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="help-breadcrumbs">
+    <div class="container">
+        <div class="breadcrumbs-content">
+            <a href="{% url 'admin_panel:dashboard' %}" class="breadcrumb-link">Главная</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Помощь и поддержка</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header Section -->
+<section class="help-header-section">
+    <div class="container">
+        <div class="help-header-content">
+            <h1 class="help-main-title">Помощь и поддержка</h1>
+            <p class="help-header-subtitle">Что вас интересует?</p>
+            <p class="help-header-description">
+                Здесь вы найдёте ответы на частые вопросы и инструкции по работе с платформой.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Help Categories Section -->
+<section class="help-categories-section">
+    <div class="container">
+        <div class="help-categories-grid">
+
+            <!-- Категория 1: Работа с новостями -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="1">
+                    <div class="category-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h3 class="category-title">Работа с новостями</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent1">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="1">
+                            <span>Как создать новость?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел «Новости» → кнопка «Создать новость». Заполните заголовок, краткое и полное описание, выберите целевую аудиторию и тип контента. Затем нажмите «Опубликовать».</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="2">
+                            <span>Как редактировать новость?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В списке новостей нажмите кнопку «Редактировать» (иконка карандаша) у нужной новости. Внесите изменения и нажмите «Сохранить».</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="3">
+                            <span>Как удалить новость?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Нажмите кнопку «Удалить» (иконка корзины) у нужной новости и подтвердите удаление в модальном окне. Удаление необратимо.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 2: Работа с мероприятиями -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="2">
+                    <div class="category-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="category-title">Работа с мероприятиями</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent2">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="4">
+                            <span>Как создать мероприятие?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел «Мероприятия» → «Добавить мероприятие». Укажите название, дату, время, место, формат и описание. Затем нажмите «Сохранить».</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="5">
+                            <span>Как редактировать мероприятие?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В списке мероприятий нажмите кнопку «Редактировать» у нужного мероприятия, внесите изменения и сохраните.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 3: Работа с опросами -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="3">
+                    <div class="category-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3 class="category-title">Работа с опросами</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent3">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="6">
+                            <span>Как создать опрос?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел «Опросы» → «Создать опрос». Укажите название, категорию, статус (Активный/Завершенный), затем добавьте вопросы с вариантами ответов.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="7">
+                            <span>Как добавить вопросы в опрос?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>После создания опроса на странице редактирования нажмите «Добавить вопрос». Выберите тип вопроса: открытый, одиночный выбор или множественный выбор.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="8">
+                            <span>Как изменить статус опроса?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>В списке опросов используйте кнопки «Активировать» или «Завершить». Активные опросы видны педагогам, завершенные — скрыты.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 4: Работа с материалами -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="4">
+                    <div class="category-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3 class="category-title">Работа с материалами</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent4">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="9">
+                            <span>Как добавить методический материал?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел «Методические материалы» → «Добавить материал». Укажите название, описание, предмет, тип материала и загрузите файл.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="10">
+                            <span>Какие форматы файлов поддерживаются?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Поддерживаются форматы: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG. Максимальный размер файла — 50 МБ.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 5: Работа с документами -->
+            <div class="help-category-card">
+                <div class="category-header" data-category="5">
+                    <div class="category-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="category-title">Работа с документами</h3>
+                    <i class="fas fa-chevron-down category-arrow"></i>
+                </div>
+                <div class="category-content" id="categoryContent5">
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="11">
+                            <span>Как добавить нормативный документ?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел «Документы» → «Добавить документ». Укажите название, категорию, уровень документа и загрузите файл.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" data-faq="12">
+                            <span>Как обновить документ?</span>
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Отредактируйте документ через кнопку «Редактировать» и загрузите новую версию файла. Старая версия будет заменена.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Категория 6: Безопасность и смена пароля -->
+            <div class="password-form-card">
+                <div class="password-form-header">
+                    <div class="password-form-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="password-form-title">Безопасность аккаунта</h3>
+                </div>
+                <div class="password-form-content">
+                    <form id="changePasswordForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="old_password">Текущий пароль</label>
+                            <input type="password" id="old_password" name="old_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">Новый пароль</label>
+                            <input type="password" id="new_password" name="new_password" required>
+                            <div class="password-requirements">Минимум 8 символов</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Подтверждение нового пароля</label>
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn-change-password">
+                            <i class="fas fa-save"></i> Сменить пароль
+                        </button>
+                    </form>
+                    <div id="passwordMessage" class="password-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'account/js/help.js' %}?v=1.0"></script>
+<script>
+// Функциональность аккордеона (как у педагогов)
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчики для категорий
+    const categoryHeaders = document.querySelectorAll('.category-header');
+
+    categoryHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const categoryId = this.dataset.category;
+            const content = document.getElementById(`categoryContent${categoryId}`);
+            const isActive = this.classList.contains('active');
+
+            categoryHeaders.forEach(h => {
+                h.classList.remove('active');
+                const otherContent = document.getElementById(`categoryContent${h.dataset.category}`);
+                if (otherContent) otherContent.classList.remove('active');
+            });
+
+            if (!isActive) {
+                this.classList.add('active');
+                if (content) content.classList.add('active');
+            }
+        });
+    });
+
+    // Обработчики для вопросов
+    const faqQuestions = document.querySelectorAll('.faq-question');
+
+    faqQuestions.forEach(question => {
+        question.addEventListener('click', function() {
+            const answer = this.nextElementSibling;
+            const isActive = this.classList.contains('active');
+
+            const currentCategory = this.closest('.category-content');
+            if (currentCategory) {
+                const questions = currentCategory.querySelectorAll('.faq-question');
+                questions.forEach(q => {
+                    q.classList.remove('active');
+                    const ans = q.nextElementSibling;
+                    if (ans) ans.classList.remove('show');
+                });
+            }
+
+            if (!isActive) {
+                this.classList.add('active');
+                if (answer) answer.classList.add('show');
+            }
+        });
+    });
+
+    // Открываем первую категорию
+    const firstCategory = document.querySelector('.category-header');
+    if (firstCategory) {
+        firstCategory.click();
+    }
+
+    // ========== ИСПРАВЛЕННАЯ ОБРАБОТКА СМЕНЫ ПАРОЛЯ ==========
+    const passwordForm = document.getElementById('changePasswordForm');
+    const messageDiv = document.getElementById('passwordMessage');
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const oldPassword = document.getElementById('old_password').value;
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            // Валидация
+            if (newPassword !== confirmPassword) {
+                messageDiv.className = 'password-message error';
+                messageDiv.innerHTML = '<i class="fas fa-times-circle"></i> Пароли не совпадают';
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                messageDiv.className = 'password-message error';
+                messageDiv.innerHTML = '<i class="fas fa-times-circle"></i> Пароль должен содержать минимум 8 символов';
+                return;
+            }
+
+            try {
+                // ИСПРАВЛЕНО: используем динамический URL через тег url
+                const response = await fetch("{% url 'admin_panel:change_admin_password' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        old_password: oldPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    messageDiv.className = 'password-message success';
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                    passwordForm.reset();
+                } else {
+                    messageDiv.className = 'password-message error';
+                    messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + data.error;
+                }
+            } catch (error) {
+                messageDiv.className = 'password-message error';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Ошибка соединения. Попробуйте позже.';
+                console.error('Ошибка при смене пароля:', error);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

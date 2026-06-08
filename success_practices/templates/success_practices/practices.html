@@ -1,0 +1,299 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Успешные практики - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'success_practices/css/practices.css' %}?v=1.0">
+<div class="practices-page">
+
+    <!-- Breadcrumbs -->
+    <div class="practices-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="#" class="breadcrumb-link">База знаний</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Успешные практики</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="practices-header-section">
+        <div class="container">
+            <div class="practices-header-content">
+                <h1 class="practices-main-title">Успешные практики</h1>
+                <p class="practices-header-description">
+                    Сборник лучших педагогических практик, опыта и методических находок
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="practices-main-section">
+        <div class="container">
+            <!-- Sort Dropdown -->
+            <div class="sorting-controls">
+                <div class="sort-container">
+                    <select class="sort-select" id="sortSelect">
+                        <option value="none">Все практики</option>
+                        <option value="date-desc">Новые сначала</option>
+                        <option value="date-asc">Старые сначала</option>
+                        <option value="title-asc">По названию (А-Я)</option>
+                        <option value="title-desc">По названию (Я-А)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="practices-content-grid">
+                <!-- Filters Sidebar -->
+                <aside class="practices-filters-sidebar">
+                    <div class="filters-card">
+                        <div class="filters-header">
+                            <h3 class="filters-title">Фильтры</h3>
+                            <button class="btn-clear-all" id="clearAllFilters">
+                                Сбросить все
+                            </button>
+                        </div>
+
+                        <div class="filters-list">
+                            <!-- Categories Filter - с цветным квадратиком -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По категориям</h4>
+                                <div class="filter-options">
+                                    {% for category in categories %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="category" value="{{ category.id }}">
+                                        <span class="filter-color-indicator" style="background-color: {{ category.icon_color }};"></span>
+                                        <span class="filter-option-text">{{ category.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Audience Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">Целевая аудитория</h4>
+                                <div class="filter-options">
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="audience" value="young">
+                                        <span class="filter-option-text">Молодые педагоги (до 3 лет)</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="audience" value="experienced">
+                                        <span class="filter-option-text">Опытные педагоги</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="audience" value="all">
+                                        <span class="filter-option-text">Все категории</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Format Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">Формат практики</h4>
+                                <div class="filter-options">
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="single">
+                                        <span class="filter-option-text">Опыт одного педагога</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="methodological">
+                                        <span class="filter-option-text">Опыт методического объединения</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="school">
+                                        <span class="filter-option-text">Школьный проект</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="municipal">
+                                        <span class="filter-option-text">Муниципальный опыт</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="regional">
+                                        <span class="filter-option-text">Региональный опыт</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Difficulty Filter - без цвета -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">Уровень сложности</h4>
+                                <div class="filter-options">
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="difficulty" value="easy">
+                                        <span class="filter-option-text">Лёгкий</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="difficulty" value="medium">
+                                        <span class="filter-option-text">Средний</span>
+                                    </label>
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="difficulty" value="hard">
+                                        <span class="filter-option-text">Сложный</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Practices Grid -->
+                <div class="practices-grid-container">
+                    <div class="practices-grid" id="practicesGrid">
+                        {% for practice in practices %}
+                        <article class="practice-card" data-id="{{ practice.id }}">
+                            <div class="practice-card-inner">
+                                <!-- Practice Header -->
+                                <div class="practice-header">
+                                    <span class="practice-category-badge" style="background-color: {{ practice.category.icon_color }}20; color: {{ practice.category.icon_color }};">
+                                        <i class="{{ practice.category.icon }}"></i>
+                                        {{ practice.category.name }}
+                                    </span>
+                                </div>
+
+                                <!-- Practice Content -->
+                                <div class="practice-content">
+                                    <h3 class="practice-title" title="{{ practice.title }}">{{ practice.title }}</h3>
+                                    <p class="practice-description" title="{{ practice.short_description }}">{{ practice.short_description|truncatechars:120 }}</p>
+
+                                    <!-- Practice Badges - вертикально с иконками -->
+                                    <div class="practice-badges-vertical">
+                                        {% if practice.audience.value %}
+                                        <div class="badge-item">
+                                            <i class="fas fa-users"></i>
+                                            <span>{{ practice.audience.display }}</span>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if practice.format_type.value %}
+                                        <div class="badge-item">
+                                            <i class="fas fa-chalkboard-user"></i>
+                                            <span>{{ practice.format_type.display }}</span>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if practice.difficulty.value %}
+                                        <div class="badge-item">
+                                            <i class="{{ practice.difficulty.icon }}"></i>
+                                            <span>{{ practice.difficulty.display }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Practice Meta -->
+                                    <div class="practice-meta">
+                                        <span class="date-added">
+                                            <i class="far fa-calendar"></i>
+                                            {{ practice.published_date_display }}
+                                        </span>
+                                        <button class="expand-btn" data-id="{{ practice.id }}">
+                                            <i class="fas fa-expand-alt"></i>
+                                            Подробнее
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        {% empty %}
+                        <div class="no-practices-message">
+                            <i class="fas fa-star-of-life"></i>
+                            <p>Практики не найдены</p>
+                            <p class="empty-state-description">
+                                Попробуйте изменить параметры фильтрации
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="practices-pagination">
+                        <button class="pagination-btn pagination-prev" id="prevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="pagination-pages" id="paginationPages">
+                            <button class="pagination-page active" data-page="1">1</button>
+                            {% if total_pages > 1 %}
+                            <button class="pagination-page" data-page="2">2</button>
+                            {% endif %}
+                        </div>
+
+                        <button class="pagination-btn pagination-next" id="nextPage" {% if total_pages <= 1 %}disabled{% endif %}>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for Practice Details -->
+    <div class="practice-modal" id="practiceModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Подробная информация</h3>
+                <button class="modal-close" id="closePracticeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Modal -->
+    <div class="mobile-filters-modal" id="mobileFiltersModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Фильтры</h3>
+                <button class="modal-close" id="closeFiltersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-filters">
+                <!-- Фильтры будут скопированы через JS -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-apply-filters" id="applyMobileFilters">Применить</button>
+                <button class="btn-reset-modal" id="resetMobileFilters">Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Button -->
+    <button class="mobile-filters-btn" id="openFiltersModal">
+        <i class="fas fa-filter"></i> Фильтры
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const practicesAppConfig = {
+        practices: {{ practices|safe }},
+        totalPages: {{ total_pages }},
+        currentPage: {{ current_page }}
+    };
+</script>
+<script src="{% static 'success_practices/js/practices.js' %}?v=1.0"></script>
+{% endblock %}

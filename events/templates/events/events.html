@@ -1,0 +1,268 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Мероприятия - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}?v=3.0">
+<div class="events-page">
+
+    <!-- Breadcrumbs -->
+    <div class="events-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <a href="{% url 'about:about' %}" class="breadcrumb-link">Ассоциация</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Мероприятия</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="events-header-section">
+        <div class="container">
+            <div class="events-header-content">
+                <h1 class="events-main-title">Мероприятия ассоциации</h1>
+                <p class="events-header-description">
+                    Профессиональные встречи, семинары и конференции для развития и обмена опытом молодых педагогов
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="events-main-section">
+        <div class="container">
+            <!-- Sort and Reset -->
+            <div class="events-controls">
+                <div class="sort-controls">
+                    <div class="sort-select-wrapper">
+                       <select id="sortSelect" class="form-select">
+                            <option value="all" selected>Все мероприятия</option>
+                            <option value="date-asc">Ближайшие мероприятия</option>
+                            <option value="date-desc">Дальнейшие мероприятия</option>
+                            <option value="name-asc">По названию (А-Я)</option>
+                            <option value="name-desc">По названию (Я-А)</option>
+                            <option value="completed">Завершенные мероприятия</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="events-content-grid">
+                <!-- Filters Sidebar -->
+                <aside class="events-filters-sidebar">
+                    <div class="filters-card">
+                        <div class="filters-header">
+                            <h3 class="filters-title">Фильтры</h3>
+                            <button class="btn-clear-all" id="clearAllFilters">
+                                Сбросить все
+                            </button>
+                        </div>
+
+                        <div class="filters-list">
+                            <!-- Audience Filter -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По целевой аудитории</h4>
+                                <div class="filter-options">
+                                    {% for audience in audiences %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="audience" value="{{ audience.id }}">
+                                        <span class="filter-option-text">{{ audience.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Format Filter -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По формату проведения</h4>
+                                <div class="filter-options">
+                                    {% for format in formats %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="format" value="{{ format.id }}">
+                                        <span class="filter-option-text">{{ format.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Activity Type Filter -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По типу активности</h4>
+                                <div class="filter-options">
+                                    {% for type in activity_types %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="activity_type" value="{{ type.id }}">
+                                        <span class="filter-color-indicator" style="background-color: {{ type.color }};"></span>
+                                        <span class="filter-option-text">{{ type.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Subject Filter -->
+                            <div class="filter-group">
+                                <h4 class="filter-group-title">По предметной области</h4>
+                                <div class="filter-options">
+                                    {% for subject in subjects %}
+                                    <label class="filter-option">
+                                        <input type="checkbox" class="filter-checkbox"
+                                               data-category="subject" value="{{ subject.id }}">
+                                        <span class="filter-option-text">{{ subject.name }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Events Grid -->
+                <div class="events-grid-container">
+                    <!-- Events Grid -->
+                    <div class="events-grid" id="eventsGrid">
+                        {% for item in events %}
+                        <a href="{% url 'events:event_detail' item.id %}" class="events-card-link" style="text-decoration: none; color: inherit; display: block;">
+                            <article class="events-card" data-id="{{ item.id }}">
+                                <div class="events-card-image">
+                                    {% with first_photo=item.photos.first %}
+                                        {% if first_photo and first_photo.photo %}
+                                            <img src="{{ first_photo.photo.url }}"
+                                                 alt="{{ item.title }}"
+                                                 class="events-image"
+                                                 onerror="this.onerror=null; this.src='{% static 'events/images/default-event.png' %}';">
+                                        {% else %}
+                                            <img src="{% static 'events/images/default-event.png' %}"
+                                                 alt="{{ item.title }}"
+                                                 class="events-image">
+                                        {% endif %}
+                                    {% endwith %}
+
+                                    <!-- Activity Type Badge -->
+                                    <div class="category-badge" style="background-color: {{ item.activity_type.color }}; color: {{ item.activity_type.text_color }};">
+                                        {{ item.activity_type.name }}
+                                    </div>
+                                </div>
+
+                                <div class="events-card-content">
+                                    <h3 class="events-title" title="{{ item.title }}">{{ item.title }}</h3>
+                                    <p class="events-description" title="{{ item.short_description }}">{{ item.short_description|truncatechars:120 }}</p>
+
+                                    <div class="events-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-users"></i>
+                                            <div class="detail-text">
+                                                <strong>Целевая аудитория:</strong> {{ item.target_audience.name }}
+                                            </div>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-laptop"></i>
+                                            <div class="detail-text">
+                                                <strong>Формат проведения:</strong> {{ item.format.name }}
+                                            </div>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-graduation-cap"></i>
+                                            <div class="detail-text">
+                                                <strong>Предметная область:</strong> {{ item.subject.name }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="events-meta">
+                                        <div class="meta-item">
+                                            <i class="far fa-calendar-alt"></i>
+                                            <span>{{ item.date|date:"d.m.Y" }} • {{ item.time|time:"H:i" }}</span>
+                                        </div>
+                                        <!-- ТОЛЬКО ЭТОТ БЛОК ИСПРАВЛЕН -->
+                                        <div class="meta-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span class="event-location-text" title="{% if item.format.name == 'Дистанционные мероприятия (онлайн)' %}Онлайн{% else %}{{ item.location }}{% endif %}">
+                                                {% if item.format.name == 'Дистанционные мероприятия (онлайн)' %}
+                                                    Онлайн
+                                                {% else %}
+                                                    {{ item.location }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
+                        {% empty %}
+                        <div class="no-events-message">
+                            <i class="far fa-calendar-alt"></i>
+                            <p>Мероприятия не найдены</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="events-pagination">
+                        <button class="pagination-btn pagination-prev" id="prevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="pagination-pages" id="paginationPages">
+                            <button class="pagination-page active" data-page="1">1</button>
+                            {% if total_pages > 1 %}
+                            <button class="pagination-page" data-page="2">2</button>
+                            {% endif %}
+                        </div>
+
+                        <button class="pagination-btn pagination-next" id="nextPage" {% if total_pages <= 1 %}disabled{% endif %}>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mobile Filters Modal -->
+    <div class="mobile-filters-modal" id="mobileFiltersModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Фильтры</h3>
+                <button class="modal-close" id="closeFiltersModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-filters"></div>
+            <div class="modal-actions">
+                <button class="btn-apply-filters" id="applyMobileFilters">Применить</button>
+                <button class="btn-reset-modal" id="resetMobileFilters">Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filters Button -->
+    <button class="mobile-filters-btn" id="openFiltersModal">
+        <i class="fas fa-filter"></i> Фильтры
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'events/js/events.js' %}?v=3.0"></script>
+<script>
+    // Передача данных из Django
+    const eventsAppConfig = {
+        audiences: {{ audiences_json|safe }},
+        formats: {{ formats_json|safe }},
+        activityTypes: {{ activity_types_json|safe }},
+        subjects: {{ subjects_json|safe }},
+        events: {{ events_json|safe }},
+        itemsPerPage: 12,
+        currentPage: {{ current_page }},
+        totalPages: {{ total_pages }}
+    };
+</script>
+{% endblock %}

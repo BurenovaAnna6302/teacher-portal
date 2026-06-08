@@ -1,0 +1,1237 @@
+/* events.css - Стили страницы мероприятий */
+/* Версия: 3.2 - Уменьшено отображение текста места проведения */
+
+/* ===== Variables ===== */
+:root {
+    --events-primary: #032D43;
+    --events-primary-light: rgba(3, 45, 67, 0.08);
+    --events-primary-dark: #021F2E;
+    --events-text-dark: #1A1A1A;
+    --events-text-gray: #6B7280;
+    --events-text-light: #9CA3AF;
+    --events-bg-light: #F9FAFB;
+    --events-bg-white: #FFFFFF;
+    --events-border: rgba(3, 45, 67, 0.1);
+    --events-border-light: rgba(3, 45, 67, 0.05);
+    --events-border-dark: rgba(3, 45, 67, 0.2);
+
+    /* Shadows */
+    --events-shadow-sm: 0 1px 2px rgba(3, 45, 67, 0.05);
+    --events-shadow-md: 0 2px 4px rgba(3, 45, 67, 0.1);
+    --events-shadow-lg: 0 4px 8px rgba(3, 45, 67, 0.1);
+    --events-shadow-xl: 0 8px 16px rgba(3, 45, 67, 0.1);
+
+    /* Border radius */
+    --events-radius-sm: 8px;
+    --events-radius-md: 12px;
+    --events-radius-lg: 16px;
+    --events-radius-full: 999px;
+}
+
+/* ===== Base Styles ===== */
+.events-page {
+    font-family: 'Manrope', sans-serif;
+    color: var(--events-text-dark);
+    background-color: var(--events-bg-light);
+    min-height: 100vh;
+    margin-top: 0;
+}
+
+.events-page .container {
+    max-width: 1650px;
+    margin: 0 auto;
+    padding: 0 120px;
+}
+
+@media (max-width: 1400px) {
+    .events-page .container {
+        padding: 0 80px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .events-page .container {
+        padding: 0 60px;
+    }
+}
+
+@media (max-width: 992px) {
+    .events-page .container {
+        padding: 0 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .events-page .container {
+        padding: 0 24px;
+    }
+}
+
+/* ===== Breadcrumbs ===== */
+.events-breadcrumbs {
+    background: var(--events-bg-white);
+    border-bottom: 1px solid var(--events-border);
+    padding: 16px 0;
+    margin-bottom: 0;
+}
+
+.breadcrumbs-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--events-text-gray);
+}
+
+.breadcrumb-link {
+    color: var(--events-text-gray);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-link:hover {
+    color: var(--events-primary);
+}
+
+.breadcrumb-separator {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.breadcrumb-current {
+    color: var(--events-primary);
+    font-weight: 500;
+}
+
+/* ===== Header Section ===== */
+.events-header-section {
+    background: var(--events-bg-white);
+    border-bottom: 1px solid var(--events-border);
+    padding: 32px 0;
+}
+
+.events-header-content {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.events-main-title {
+    color: var(--events-primary);
+    font-size: 2.75rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.events-header-description {
+    color: var(--events-text-gray);
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin: 0 auto;
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    padding: 0 20px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .events-header-section {
+        padding: 24px 0 20px;
+    }
+
+    .events-main-title {
+        font-size: 1.8rem;
+        margin-bottom: 12px;
+    }
+
+    .events-header-description {
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+}
+
+/* ===== Controls ===== */
+.events-controls {
+    margin: 40px 0 32px;
+}
+
+.sort-controls {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.sort-select-wrapper {
+    width: 280px;
+    position: relative;
+}
+
+.form-select {
+    width: 100%;
+    padding: 14px 20px;
+    padding-right: 48px;
+    border: 1px solid var(--events-border);
+    border-radius: var(--events-radius-sm);
+    background: var(--events-bg-white);
+    color: var(--events-text-dark);
+    font-size: 15px;
+    font-family: 'Manrope', sans-serif;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23032D43' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    background-size: 16px;
+    box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+    transition: all 0.3s ease;
+}
+
+.form-select option {
+    padding: 12px 20px;
+    background: var(--events-bg-white);
+    color: var(--events-text-dark);
+    font-size: 15px;
+    border: none;
+    font-family: 'Manrope', sans-serif;
+}
+
+.form-select option:hover {
+    background: var(--events-primary-light);
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--events-primary);
+    box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
+}
+
+.form-select:hover {
+    border-color: var(--events-border-dark);
+    box-shadow: 0 4px 8px rgba(3, 45, 67, 0.15);
+}
+
+@media (max-width: 768px) {
+    .events-controls {
+        margin: 32px 0 24px;
+    }
+
+    .sort-select-wrapper {
+        width: 100%;
+    }
+}
+
+/* ===== Content Grid ===== */
+.events-content-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+@media (max-width: 1200px) {
+    .events-content-grid {
+        grid-template-columns: 300px 1fr;
+        gap: 24px;
+    }
+}
+
+@media (max-width: 992px) {
+    .events-content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .events-filters-sidebar {
+        display: none;
+    }
+}
+
+/* ===== Filters Sidebar ===== */
+.events-filters-sidebar {
+    position: relative;
+    height: fit-content;
+    align-self: flex-start;
+}
+
+.filters-card {
+    background: var(--events-bg-white);
+    border-radius: var(--events-radius-md);
+    box-shadow: var(--events-shadow-md);
+    padding: 24px;
+    border: 1px solid var(--events-border);
+    margin-bottom: 32px;
+}
+
+.filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--events-border-light);
+}
+
+.filters-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--events-primary);
+    margin: 0;
+}
+
+.btn-clear-all {
+    padding: 8px 16px;
+    background: var(--events-bg-white);
+    border: 1px solid var(--events-border);
+    border-radius: var(--events-radius-sm);
+    color: var(--events-text-gray);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+}
+
+.btn-clear-all:hover {
+    border-color: var(--events-primary);
+    color: var(--events-primary);
+    background: var(--events-primary-light);
+}
+
+.filters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-group-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--events-text-dark);
+    margin: 0;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 4px;
+    transition: all 0.3s ease;
+    border-radius: var(--events-radius-sm);
+}
+
+.filter-option:hover {
+    background: var(--events-primary-light);
+}
+
+.filter-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--events-border);
+    border-radius: 4px;
+    appearance: none;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.filter-checkbox:hover {
+    border-color: var(--events-border-dark);
+}
+
+.filter-checkbox:checked {
+    background-color: var(--events-primary);
+    border-color: var(--events-primary);
+}
+
+.filter-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.filter-color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.filter-option-text {
+    font-size: 15px;
+    color: var(--events-text-dark);
+    line-height: 1.4;
+    flex: 1;
+}
+
+.filter-option.active .filter-option-text {
+    color: var(--events-primary);
+    font-weight: 500;
+}
+
+.filter-option.active {
+    background: var(--events-primary-light);
+}
+
+/* ===== Events Grid ===== */
+.events-grid-container {
+    min-height: 600px;
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+@media (max-width: 1400px) {
+    .events-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .events-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .events-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+/* ===== Events Card Styles ===== */
+.events-card {
+    background: var(--events-bg-white);
+    border-radius: var(--events-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--events-shadow-md);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--events-border);
+    position: relative;
+}
+
+.events-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--events-shadow-xl);
+    border-color: var(--events-border-dark);
+}
+
+.events-card-image {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+.events-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.events-card:hover .events-image {
+    transform: scale(1.05);
+}
+
+/* Категория в верхнем левом углу поверх изображения */
+.category-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    padding: 8px 16px;
+    border-radius: var(--events-radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    max-width: calc(100% - 32px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: var(--events-shadow-sm);
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.events-card-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.events-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--events-text-dark);
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 48px;
+}
+
+.events-description {
+    font-size: 14px;
+    color: var(--events-text-gray);
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 63px;
+    max-height: 63px;
+}
+
+/* ===== МЕСТО ПРОВЕДЕНИЯ - УМЕНЬШЕННОЕ ОТОБРАЖЕНИЕ ===== */
+.event-location {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.event-location i {
+    color: var(--events-text-gray);
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.location-text {
+    font-size: 13px;
+    color: var(--events-text-gray);
+    line-height: 1.4;
+    flex: 1;
+
+    /* Обрезаем текст до 2 строк с многоточием */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    /* Уменьшаем максимальную ширину для более раннего обрезания */
+    max-width: 95%;
+
+    /* Курсор в виде знака вопроса при наведении */
+    cursor: help;
+
+    /* Плавный переход */
+    transition: color 0.3s ease;
+}
+
+/* Дополнительное обрезание через max-width в процентах */
+@media (min-width: 1200px) {
+    .location-text {
+        max-width: 90%; /* На больших экранах обрезаем на 10% */
+    }
+}
+
+@media (max-width: 1199px) and (min-width: 768px) {
+    .location-text {
+        max-width: 88%; /* На планшетах обрезаем на 12% */
+    }
+}
+
+@media (max-width: 767px) {
+    .location-text {
+        -webkit-line-clamp: 1; /* На телефонах 1 строка */
+        max-width: 85%; /* Обрезаем на 15% */
+    }
+}
+
+.location-text:hover {
+    color: var(--events-primary);
+}
+
+/* Кастомная всплывающая подсказка при наведении */
+.location-text {
+    position: relative;
+}
+
+.location-text:hover::after {
+    content: attr(data-fulltext);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    transform: translateY(-8px);
+    background: #1f2937;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: normal;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 320px;
+    width: max-content;
+    min-width: 200px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    line-height: 1.5;
+}
+
+/* Стрелка для подсказки */
+.location-text:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 16px;
+    transform: translateY(2px);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* ===== Детали мероприятия ===== */
+.events-details {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--events-border-light);
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--events-text-gray);
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-item i {
+    font-size: 13px;
+    color: var(--events-text-light);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.detail-text {
+    line-height: 1.4;
+    flex: 1;
+}
+
+.detail-text strong {
+    color: var(--events-primary);
+    font-weight: 600;
+}
+
+/* Мета информация */
+.events-meta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--events-text-gray);
+}
+
+.meta-item i {
+    font-size: 13px;
+    color: var(--events-text-light);
+    flex-shrink: 0;
+}
+
+.no-events-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--events-text-light);
+}
+
+.no-events-message i {
+    font-size: 56px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-events-message p {
+    font-size: 18px;
+    margin: 0 0 24px 0;
+}
+
+.btn-reset-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--events-primary);
+    color: white;
+    border: none;
+    border-radius: var(--events-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+}
+
+.btn-reset-filters:hover {
+    background: var(--events-primary-dark);
+    transform: translateY(-2px);
+}
+
+/* ===== Pagination ===== */
+.events-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 0;
+}
+
+.pagination-btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--events-border);
+    border-radius: var(--events-radius-sm);
+    background: var(--events-bg-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: var(--events-primary);
+    color: var(--events-primary);
+    background: var(--events-primary-light);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 6px;
+}
+
+.pagination-page {
+    min-width: 44px;
+    height: 44px;
+    border: 1px solid var(--events-border);
+    border-radius: var(--events-radius-sm);
+    background: var(--events-bg-white);
+    color: var(--events-text-dark);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(3, 45, 67, 0.1);
+}
+
+.pagination-page:hover {
+    border-color: var(--events-primary);
+    color: var(--events-primary);
+    background: var(--events-primary-light);
+}
+
+.pagination-page.active {
+    background: var(--events-primary);
+    border-color: var(--events-primary);
+    color: var(--events-bg-white);
+}
+
+.pagination-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: var(--events-text-light);
+    font-size: 14px;
+}
+
+/* ===== Mobile Filters ===== */
+.mobile-filters-btn {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .mobile-filters-btn {
+        display: flex;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 90;
+        padding: 12px 24px;
+        background: var(--events-primary);
+        color: white;
+        border: none;
+        border-radius: var(--events-radius-lg);
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: var(--events-shadow-xl);
+        cursor: pointer;
+        gap: 8px;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-filters-btn:hover {
+        background: var(--events-primary-dark);
+        transform: translateY(-2px);
+    }
+}
+
+.mobile-filters-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+}
+
+.mobile-filters-modal.active {
+    display: block;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    background: var(--events-bg-white);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease;
+    border-left: 1px solid var(--events-border);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--events-border-light);
+    flex-shrink: 0;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--events-primary);
+    margin: 0;
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--events-border);
+    background: var(--events-bg-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--events-text-gray);
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: var(--events-primary-light);
+    color: var(--events-primary);
+}
+
+.modal-filters {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    padding-right: 16px;
+}
+
+.modal-filters .filters-list {
+    gap: 20px;
+}
+
+.modal-filters .filter-options {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.modal-filters .filter-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-filters .filter-options::-webkit-scrollbar-thumb {
+    background: var(--events-border);
+    border-radius: var(--events-radius-full);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid var(--events-border-light);
+    flex-shrink: 0;
+}
+
+.btn-apply-filters,
+.btn-reset-modal {
+    flex: 1;
+    padding: 14px;
+    border-radius: var(--events-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--events-border);
+}
+
+.btn-apply-filters {
+    background: var(--events-primary);
+    color: white;
+    border-color: var(--events-primary);
+}
+
+.btn-apply-filters:hover {
+    background: var(--events-primary-dark);
+}
+
+.btn-reset-modal {
+    background: var(--events-bg-white);
+    color: var(--events-text-gray);
+}
+
+.btn-reset-modal:hover {
+    border-color: var(--events-primary);
+    color: var(--events-primary);
+    background: var(--events-primary-light);
+}
+
+/* ===== Loading State ===== */
+.events-grid.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--events-border);
+    border-top-color: var(--events-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state-icon {
+    font-size: 56px;
+    color: var(--events-text-light);
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--events-text-dark);
+    margin-bottom: 12px;
+}
+
+.empty-state-description {
+    font-size: 15px;
+    color: var(--events-text-gray);
+    max-width: 400px;
+    margin: 0 auto 28px;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 480px) {
+    .category-badge {
+        top: 12px;
+        left: 12px;
+        font-size: 12px;
+        padding: 6px 12px;
+        font-weight: 700;
+        max-width: calc(100% - 24px);
+    }
+
+    .events-card-content {
+        padding: 20px;
+    }
+
+    .events-title {
+        font-size: 16px;
+        height: 44px;
+    }
+
+    .events-description {
+        font-size: 14px;
+        min-height: 63px;
+        max-height: 63px;
+        margin-bottom: 16px;
+    }
+
+    .events-details {
+        margin-top: 8px;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+    }
+
+    .detail-item {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .detail-item i {
+        font-size: 12px;
+    }
+
+    .detail-text strong {
+        font-size: 12px;
+    }
+
+    .events-meta {
+        gap: 12px;
+    }
+
+    .meta-item {
+        font-size: 12px;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+/* Стилизация опций select */
+select.form-select::-ms-expand {
+    display: none;
+}
+
+select.form-select option:checked {
+    background: var(--events-primary);
+    color: white;
+}
+
+/* ===== КНОПКА "НАВЕРХ" ===== */
+:root {
+    --primary-color: #99ccff;
+    --primary-dark: #3385d6;
+}
+
+.scroll-to-top {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+    background: var(--primary-color, #4da6ff) !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 15px !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.3s ease !important;
+    z-index: 9999 !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+}
+
+.scroll-to-top.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.scroll-to-top:hover {
+    background: var(--primary-dark, #3385d6) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2) !important;
+}
+
+@media (max-width: 768px) {
+    .scroll-to-top {
+        bottom: 20px !important;
+        right: 20px !important;
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 18px !important;
+    }
+}
+/* ===== Исправление отображения места проведения ===== */
+.meta-item .event-location-text {
+    font-size: 12px;
+    color: var(--events-text-gray);
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: normal;
+    display: inline-block;
+    max-width: 100%;
+}
+
+/* Для онлайн мероприятий */
+.meta-item .event-location-text[title="Онлайн"] {
+    color: var(--events-primary);
+    font-weight: 500;
+}
+/* ===== Всплывающая подсказка для места проведения ===== */
+.event-location-item {
+    position: relative;
+}
+
+.event-location-text {
+    font-size: 12px;
+    color: var(--events-text-gray);
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: normal;
+    cursor: help;
+    display: inline-block;
+    max-width: 100%;
+}
+
+/* Для онлайн мероприятий */
+.event-location-text[data-fulltext="Онлайн"] {
+    color: var(--events-primary);
+    font-weight: 500;
+}
+
+/* Всплывающая подсказка при наведении */
+.event-location-text[data-fulltext]:hover::after {
+    content: attr(data-fulltext);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    transform: translateY(-8px);
+    background: #1f2937;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: normal;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 320px;
+    width: max-content;
+    min-width: 200px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    line-height: 1.5;
+}
+
+/* Стрелка подсказки */
+.event-location-text[data-fulltext]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 16px;
+    transform: translateY(4px);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+/* Убираем подсказку для короткого текста "Онлайн" */
+.event-location-text[data-fulltext="Онлайн"]:hover::after,
+.event-location-text[data-fulltext="Онлайн"]:hover::before {
+    display: none;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .event-location-text[data-fulltext]:hover::after {
+        max-width: 260px;
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+}

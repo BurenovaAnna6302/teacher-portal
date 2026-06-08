@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Админ панель</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Исправленный путь к CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin_dashboard.css' %}">
+</head>
+<body class="admin-page">
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <div class="logo-text">Админ панель</div>
+                    <div class="logo-subtext">Ассоциация молодых педагогов</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar">А</div>
+                    <div class="user-name">{{ admin_name }}</div>
+                </div>
+                <a href="/" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>На сайт</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        <aside class="admin-sidebar">
+            <nav class="sidebar-nav">
+                <a href="/dashboard/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Главная</span>
+                </a>
+
+                <a href="/dashboard/events/" class="nav-item {% if item_type == 'events' %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Мероприятия</span>
+                </a>
+
+                <a href="/dashboard/news/" class="nav-item {% if item_type == 'news' %}active{% endif %}">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Новости</span>
+                </a>
+
+                <a href="#" class="nav-item {% if item_type == 'materials' %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span>Материалы</span>
+                </a>
+
+                <a href="#" class="nav-item {% if item_type == 'documents' %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Документы</span>
+                </a>
+
+                <a href="#" class="nav-item {% if item_type == 'surveys' %}active{% endif %}">
+                    <i class="fas fa-poll"></i>
+                    <span>Опросы</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Настройки</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/dashboard/logout/" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="admin-content">
+            <div class="form-section">
+                <h1 class="form-title">{{ title }}</h1>
+                <p class="form-subtitle">
+                    {% if item %}
+                    Редактирование существующего элемента
+                    {% else %}
+                    Создание нового элемента
+                    {% endif %}
+                </p>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="title" class="form-label required">Название</label>
+                        <input type="text"
+                               class="form-control"
+                               id="title"
+                               name="title"
+                               value="{{ item.title|default:'' }}"
+                               placeholder="Введите название"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control"
+                                  id="description"
+                                  name="description"
+                                  rows="4"
+                                  placeholder="Введите описание">{{ item.description|default:'' }}</textarea>
+                    </div>
+
+                    {% if item_type == 'events' %}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                        <div class="form-group">
+                            <label for="type" class="form-label">Тип мероприятия</label>
+                            <select class="form-control" id="type" name="type">
+                                <option value="">Выберите тип</option>
+                                {% for type in types %}
+                                <option value="{{ type.id }}"
+                                        {% if item.type == type.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ type.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="date" class="form-label">Дата проведения</label>
+                            <input type="date"
+                                   class="form-control"
+                                   id="date"
+                                   name="date"
+                                   value="{{ item.date|default:'' }}">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-actions">
+                        <a href="{% url 'item_list' item_type=item_type %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            {% if item %}Сохранить изменения{% else %}Создать{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Админ панель{% endblock %} - Ассоциация молодых педагогов</title>
+
+    <!-- Google Fonts как в Figma -->
+    <link href="https://fonts.googleapis.com/css2?family=Akatab:wght@400;500;600;700;800;900&family=Manrope:wght@200;300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS (стили основного сайта) -->
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+
+    <!-- Admin Dashboard CSS (только для левого меню) -->
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin_dashboard.css' %}">
+
+    <style>
+        /* Только стили для админского левого меню и специфичные для админки */
+        .admin-main {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+
+        .admin-sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid rgba(3, 45, 67, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            position: sticky;
+            top: 80px;
+            overflow: hidden;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 5px 0;
+            overflow-y: visible;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            color: #4A5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .nav-item i {
+            width: 20px;
+            color: #6B7280;
+            font-size: 16px;
+        }
+
+        .nav-item:hover {
+            background: rgba(3, 45, 67, 0.05);
+            color: #032D43;
+        }
+
+        .nav-item:hover i {
+            color: #032D43;
+        }
+
+        .nav-item.active {
+            background: rgba(3, 45, 67, 0.05);
+            color: #032D43;
+            border-left-color: #032D43;
+            font-weight: 600;
+        }
+
+        .nav-item.active i {
+            color: #032D43;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: rgba(3, 45, 67, 0.1);
+            margin: 12px 0;
+        }
+
+        .nav-section-title {
+            padding: 8px 20px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(3, 45, 67, 0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            color: #dc3545;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .logout-btn i {
+            font-size: 16px;
+        }
+
+        .admin-content {
+            flex: 1;
+            padding: 30px;
+            background: var(--admin-bg-light, #F9FAFB);
+            overflow-x: auto;
+        }
+
+        /* Адаптивность для админки */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                display: none;
+            }
+        }
+
+        /* Стили для сообщений */
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .alert-success {
+            background-color: #d1e7dd;
+            border-color: #badbcc;
+            color: #0f5132;
+        }
+
+        .alert-error, .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+            color: #842029;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #664d03;
+        }
+
+        .alert-info {
+            background-color: #cff4fc;
+            border-color: #b6effb;
+            color: #055160;
+        }
+
+        .btn-close {
+            float: right;
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header - ТОЧНО КАК В ОСНОВЕ (использует стили из style.css) -->
+    <header class="site-header">
+        <div class="header-container">
+            <!-- Logo -->
+            <a href="{% url 'main:index' %}" class="header-logo">
+                <img src="{% static 'main/images/logo.png' %}" alt="Ассоциация молодых педагогов" class="logo-image">
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="desktop-nav">
+                <a href="{% url 'main:index' %}" class="nav-link">Главная</a>
+
+                <!-- Ассоциация Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-toggle">
+                        Ассоциация <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'about:about' %}" class="dropdown-item">О нас</a>
+                        <a href="{% url 'news:news' %}" class="dropdown-item">Новости</a>
+                        <a href="{% url 'events:events' %}" class="dropdown-item">Мероприятия</a>
+                    </div>
+                </div>
+
+                <!-- База знаний Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-toggle">
+                        База знаний <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'materials:materials' %}" class="dropdown-item">Методические материалы</a>
+                        <a href="{% url 'documents:documents' %}" class="dropdown-item">Нормативные документы</a>
+                        <a href="{% url 'success_practices:practices_list' %}" class="dropdown-item">Успешные практики</a>
+                    </div>
+                </div>
+
+                <a href="{% url 'surveys:surveys' %}" class="nav-link">Опросы</a>
+            </nav>
+
+            <!-- Правая часть - админские элементы (использует стили из style.css) -->
+            <div class="header-auth">
+                <a href="{% url 'admin_panel:dashboard' %}" class="admin-user-info-link">
+                    <div class="admin-user-info">
+                        <div class="admin-avatar">
+                            {% if admin_name %}
+                                {{ admin_name|first|upper }}
+                            {% else %}
+                                А
+                            {% endif %}
+                        </div>
+                        <div class="admin-name">{{ admin_name|default:"Администратор" }}</div>
+                    </div>
+                </a>
+                <a href="{% url 'admin_panel:admin_logout' %}" class="btn-admin-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation (ТОЧНО КАК В ОСНОВЕ) -->
+        <div class="mobile-nav" id="mobileNav">
+            <div class="mobile-nav-header">
+                <span>Меню</span>
+                <button class="mobile-nav-close" id="mobileNavClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mobile-nav-content">
+                <a href="{% url 'main:index' %}" class="mobile-nav-link">Главная</a>
+
+                <div class="mobile-nav-section">
+                    <div class="mobile-nav-title">Ассоциация</div>
+                    <a href="{% url 'about:about' %}" class="mobile-nav-sublink">О нас</a>
+                    <a href="{% url 'news:news' %}" class="mobile-nav-sublink">Новости</a>
+                    <a href="{% url 'events:events' %}" class="mobile-nav-sublink">Мероприятия</a>
+                </div>
+
+                <div class="mobile-nav-section">
+                    <div class="mobile-nav-title">База знаний</div>
+                    <a href="{% url 'materials:materials' %}" class="mobile-nav-sublink">Методические материалы</a>
+                    <a href="{% url 'documents:documents' %}" class="mobile-nav-sublink">Нормативные документы</a>
+                    <a href="{% url 'success_practices:practices_list' %}" class="mobile-nav-sublink">Успешные практики</a>
+                </div>
+
+                <a href="{% url 'surveys:surveys' %}" class="mobile-nav-link">Опросы</a>
+
+                <!-- Мобильная версия админских элементов (использует стили из style.css) -->
+                <div class="mobile-admin-info">
+                    <a href="{% url 'admin_panel:dashboard' %}" class="mobile-admin-user-link">
+                        <div class="mobile-admin-user">
+                            <div class="mobile-admin-avatar">
+                                {% if admin_name %}
+                                    {{ admin_name|first|upper }}
+                                {% else %}
+                                    А
+                                {% endif %}
+                            </div>
+                            <div class="mobile-admin-name">{{ admin_name|default:"Администратор" }}</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'admin_panel:admin_logout' %}" class="mobile-admin-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        <!-- Левое меню (админское) -->
+        <aside class="admin-sidebar">
+            <nav class="sidebar-nav">
+                <!-- Система -->
+                <div class="nav-section-title">Система</div>
+
+                <a href="{% url 'admin_panel:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Главная</span>
+                </a>
+
+                <a href="{% url 'admin_panel:statistics' %}" class="nav-item {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Статистика</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <!-- Управление контентом -->
+                <div class="nav-section-title">Управление контентом</div>
+
+                <a href="{% url 'admin_panel:event_list' %}" class="nav-item {% if request.resolver_match.url_name == 'event_list' %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Мероприятия</span>
+                </a>
+
+                <a href="{% url 'admin_panel:news_list' %}" class="nav-item {% if request.resolver_match.url_name == 'news_list' %}active{% endif %}">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Новости</span>
+                </a>
+
+                <a href="{% url 'admin_panel:materials_list' %}" class="nav-item {% if request.resolver_match.url_name == 'materials_list' %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span>Методические материалы</span>
+                </a>
+
+                <a href="{% url 'admin_panel:documents_list' %}" class="nav-item {% if request.resolver_match.url_name == 'documents_list' %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Нормативные документы</span>
+                </a>
+
+                <a href="{% url 'admin_panel:practices_list' %}" class="nav-item {% if request.resolver_match.url_name == 'practices_list' %}active{% endif %}">
+                    <i class="fas fa-star-of-life"></i>
+                    <span>Успешные практики</span>
+                </a>
+
+                <a href="{% url 'admin_panel:surveys_list' %}" class="nav-item {% if request.resolver_match.url_name == 'surveys_list' %}active{% endif %}">
+                    <i class="fas fa-poll"></i>
+                    <span>Опросы</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <!-- Поддержка -->
+                <div class="nav-section-title">Поддержка</div>
+
+                <a href="{% url 'admin_panel:help' %}" class="nav-item {% if request.resolver_match.url_name == 'help' %}active{% endif %}">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Помощь</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Основной контент -->
+        <div class="admin-content">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- jQuery и Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Скрипты для шапки -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Мобильное меню
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            const mobileNav = document.getElementById('mobileNav');
+            const mobileClose = document.getElementById('mobileNavClose');
+
+            if (mobileToggle && mobileNav) {
+                mobileToggle.addEventListener('click', function() {
+                    mobileNav.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (mobileClose && mobileNav) {
+                mobileClose.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // Дропдауны
+            document.querySelectorAll('.nav-dropdown-toggle').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.closest('.nav-dropdown');
+                    const wasActive = dropdown.classList.contains('active');
+
+                    document.querySelectorAll('.nav-dropdown.active').forEach(d => {
+                        d.classList.remove('active');
+                    });
+
+                    if (!wasActive) {
+                        dropdown.classList.add('active');
+                    }
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.nav-dropdown')) {
+                    document.querySelectorAll('.nav-dropdown.active').forEach(d => {
+                        d.classList.remove('active');
+                    });
+                }
+            });
+
+            // Закрытие мобильного меню при клике на ссылку
+            document.querySelectorAll('.mobile-nav-link, .mobile-nav-sublink, .mobile-admin-user-link, .mobile-admin-logout').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (mobileNav) {
+                        mobileNav.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Custom JavaScript -->
+    <script src="{% static 'main/js/main.js' %}"></script>
+    <script src="{% static 'main/js/header-footer.js' %}"></script>
+
+    <!-- Кастомный JS для админки -->
+    <script src="{% static 'admin_panel/js/admin.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

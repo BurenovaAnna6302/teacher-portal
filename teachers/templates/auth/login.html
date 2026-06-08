@@ -1,0 +1,245 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Вход в личный кабинет - Ассоциация молодых педагогов{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'auth/css/login.css' %}">
+<div class="login-page">
+
+    <!-- Breadcrumbs -->
+    <div class="login-breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+                <i class="fas fa-chevron-right breadcrumb-separator"></i>
+                <span class="breadcrumb-current">Вход</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <section class="login-header-section">
+        <div class="container">
+            <div class="login-header-content">
+                <h1 class="login-main-title">Вход в личный кабинет</h1>
+                <p class="login-header-description">
+                    Войдите в свой аккаунт для доступа к материалам
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Form Section -->
+    <section class="login-form-section">
+        <div class="container">
+            <div class="required-fields-note">
+                <div class="required-note-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="required-note-content">
+                    <span class="required-star">*</span> — поля обязательные для заполнения
+                </div>
+            </div>
+
+            <div class="login-form-container">
+                <div class="login-form-card">
+                    <div class="login-form-header">
+                        <div class="login-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h2 class="login-form-title">Введите данные для входа</h2>
+                    </div>
+
+                    <form class="login-form" id="loginForm" method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Email Field -->
+                        <div class="form-group">
+                            <div class="form-label-wrapper">
+                                <label for="email" class="form-label">
+                                    <span class="label-text">Email</span>
+                                    <span class="required-star">*</span>
+                                </label>
+                                <div class="input-hint-tooltip" data-tooltip="Формат: user@example.com">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                            </div>
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="example@mail.ru"
+                                   value="{{ email_value|default_if_none:'' }}"
+                                   autocomplete="email">
+                            <div class="form-error" id="emailError">{{ error_email|default:'' }}</div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="form-group">
+                            <div class="form-label-wrapper">
+                                <label for="password" class="form-label">
+                                    <span class="label-text">Пароль</span>
+                                    <span class="required-star">*</span>
+                                </label>
+                                <div class="input-hint-tooltip" data-tooltip="Нажмите на поле для просмотра требований">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                            </div>
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Введите ваш пароль"
+                                   autocomplete="current-password">
+                            <div class="form-error" id="passwordError">{{ error_password|default:'' }}</div>
+                        </div>
+
+                        <button type="submit" class="login-submit-btn" id="submitBtn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Войти</span>
+                        </button>
+
+                        <div class="login-divider">
+                            <span>Впервые у нас?</span>
+                        </div>
+
+                        <a href="{% url 'auth:register' %}" class="register-link">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Создать аккаунт</span>
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Модальное окно для двухфакторной аутентификации -->
+<div class="admin-modal-overlay" id="adminCodeModal">
+    <div class="admin-modal">
+        <div class="admin-modal-icon-wrapper">
+            <div class="admin-modal-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+        </div>
+        <h3 class="admin-modal-title">Двухфакторная аутентификация</h3>
+        <p class="admin-modal-description">Введите секретный код для доступа к панели администратора</p>
+
+        <input type="password" id="adminCodeInput" class="admin-modal-input" placeholder="Введите код">
+
+        <div class="admin-modal-actions">
+            <button onclick="submitAdminCode()" class="admin-modal-btn">Подтвердить</button>
+            <button onclick="closeAdminModal()" class="admin-modal-btn-secondary">Отмена</button>
+        </div>
+
+        <p class="admin-modal-footer">
+            <i class="fas fa-info-circle"></i>
+            Код предоставляется администраторам системы
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'auth/js/login.js' %}"></script>
+
+<script>
+let tildeCount = 0;
+let tildeTimer;
+let adminCodeAttempts = 0;
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === '`' || e.key === '~' || e.key === 'Ё' || e.key === 'ё') {
+        tildeCount++;
+        clearTimeout(tildeTimer);
+        tildeTimer = setTimeout(() => tildeCount = 0, 2000);
+        if (tildeCount === 3) {
+            showAdminModal();
+            tildeCount = 0;
+        }
+    }
+});
+
+function showAdminModal() {
+    document.getElementById('adminCodeModal').classList.add('active');
+    document.getElementById('adminCodeInput').focus();
+}
+
+function closeAdminModal() {
+    document.getElementById('adminCodeModal').classList.remove('active');
+    document.getElementById('adminCodeInput').value = '';
+    adminCodeAttempts = 0;
+}
+
+function submitAdminCode() {
+    const code = document.getElementById('adminCodeInput').value.trim();
+    if (!code) {
+        showNotification('Пожалуйста, введите код', 'error');
+        return;
+    }
+    const submitBtn = document.querySelector('.admin-modal-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
+    fetch('/dashboard/check-admin-code/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({code: code})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Доступ разрешен! Перенаправление...', 'success');
+            closeAdminModal();
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1000);
+        } else {
+            adminCodeAttempts++;
+            showNotification(data.error || 'Неверный код', 'error');
+            if (adminCodeAttempts >= 3) {
+                showNotification('Слишком много попыток. Попробуйте позже.', 'error');
+                closeAdminModal();
+            }
+        }
+    })
+    .catch(error => {
+        showNotification('Ошибка соединения', 'error');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>${message}`;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('adminCodeModal');
+        if (modal.classList.contains('active')) {
+            closeAdminModal();
+        }
+    }
+});
+
+document.getElementById('adminCodeModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAdminModal();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,324 @@
+{% extends 'account/base_profile.html' %}
+{% load static %}
+
+{% block title %}Профиль - Личный кабинет{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'account/css/profile.css' %}?v=5.3">
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="profile-breadcrumbs">
+    <div class="container">
+        <div class="breadcrumbs-content">
+            <a href="{% url 'main:index' %}" class="breadcrumb-link">Главная</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Личный кабинет</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<section class="profile-header-section">
+    <div class="container">
+        <div class="profile-header-content">
+            <h1 class="profile-main-title">Личный кабинет</h1>
+            <p class="profile-header-description">Управляйте вашими персональными данными</p>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="profile-form-container">
+    <!-- Обязательные поля -->
+    <div class="required-fields-note">
+        <div class="required-note-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="required-note-content">
+            <span class="required-star">*</span> — обязательные поля
+        </div>
+    </div>
+
+    <!-- Форма -->
+    <form class="profile-form" id="profileForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Фото профиля -->
+        <div class="profile-photo-section">
+            <div class="profile-photo-container">
+                <div class="profile-photo-preview" id="photoPreview">
+                    {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="Фото профиля" class="profile-photo-image" id="profilePhotoImg">
+                        <div class="profile-photo-placeholder" style="display: none;">
+                            <i class="fas fa-user"></i>
+                            <span id="initials">{{ user.first_name|first|default:'' }}{{ user.last_name|first|default:'' }}</span>
+                        </div>
+                    {% else %}
+                        <div class="profile-photo-placeholder">
+                            <i class="fas fa-user"></i>
+                            <span id="initials">{{ user.first_name|first|default:'' }}{{ user.last_name|first|default:'' }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <input type="file"
+                   id="photoInput"
+                   name="photo"
+                   accept="image/jpeg,image/png,image/jpg"
+                   style="display: none;">
+
+            <div class="photo-actions">
+                <button type="button" class="photo-upload-btn" id="uploadPhotoBtn">
+                    <i class="fas fa-camera"></i>
+                    <span>Загрузить фото</span>
+                </button>
+                <button type="button" class="photo-remove-btn" id="removePhotoBtn" {% if not user.photo %}style="display: none;"{% endif %}>
+                    <i class="fas fa-trash"></i>
+                    <span>Удалить</span>
+                </button>
+            </div>
+
+            <div class="photo-hint">
+                <i class="fas fa-info-circle"></i>
+                <small>Рекомендуемый размер: 500×500 пикселей, форматы: JPG, PNG (до 5MB)</small>
+            </div>
+        </div>
+
+        <!-- Три колонки формы -->
+        <div class="form-three-columns">
+            <!-- Основная информация -->
+            <div class="form-column">
+                <div class="form-section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h3 class="form-section-title">Основная информация</h3>
+                    <p class="section-subtitle">Данные для входа в систему</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label for="email" class="form-label">
+                            <span class="label-text">Email</span>
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Формат: user@example.com">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="example@mail.ru"
+                           value="{{ user.email }}"
+                           required>
+                    <div class="form-error" id="emailError"></div>
+                </div>
+            </div>
+
+            <!-- Личные данные -->
+            <div class="form-column">
+                <div class="form-section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="form-section-title">Личные данные</h3>
+                    <p class="section-subtitle">Ваши персональные данные</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label for="last_name" class="form-label">
+                            <span class="label-text">Фамилия</span>
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Только русские буквы, можно использовать дефис">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <input type="text"
+                           id="last_name"
+                           name="last_name"
+                           class="form-control"
+                           placeholder="Иванов"
+                           value="{{ user.last_name }}"
+                           required>
+                    <div class="form-error" id="lastNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label for="first_name" class="form-label">
+                            <span class="label-text">Имя</span>
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Только русские буквы, можно использовать дефис">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <input type="text"
+                           id="first_name"
+                           name="first_name"
+                           class="form-control"
+                           placeholder="Иван"
+                           value="{{ user.first_name }}"
+                           required>
+                    <div class="form-error" id="firstNameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label for="middle_name" class="form-label">
+                            <span class="label-text">Отчество</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Необязательное поле, только русские буквы">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <input type="text"
+                           id="middle_name"
+                           name="middle_name"
+                           class="form-control"
+                           placeholder="Иванович"
+                           value="{{ user.middle_name|default:'' }}">
+                    <div class="form-error" id="middleNameError"></div>
+                </div>
+            </div>
+
+            <!-- Профессиональные данные -->
+            <div class="form-column">
+                <div class="form-section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3 class="form-section-title">Профессиональные данные</h3>
+                    <p class="section-subtitle optional">Можно заполнить позже</p>
+                </div>
+
+                <!-- Образовательное учреждение -->
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label for="educational_institution" class="form-label">
+                            <span class="label-text">Образовательное учреждение</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Укажите название вашей школы или другого учебного заведения">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <input type="text"
+                           id="educational_institution"
+                           name="educational_institution"
+                           class="form-control"
+                           placeholder="Например: ГБОУ Гимназия №1, Новокуйбышевск"
+                           value="{{ user.educational_institution|default:'' }}">
+                    <div class="form-error" id="educationalInstitutionError"></div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label for="experience" class="form-label">
+                            <span class="label-text">Педагогический стаж</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Введите число от 0 до 100 (лет)">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+                    <div class="form-control-wrapper">
+                        <input type="number"
+                               id="experience"
+                               name="experience"
+                               class="form-control"
+                               placeholder="0"
+                               min="0"
+                               max="100"
+                               value="{{ user.experience|default:'' }}">
+                        <span class="input-suffix">лет</span>
+                    </div>
+                    <div class="form-error" id="experienceError"></div>
+                </div>
+
+                <!-- Предметные специализации (множественный выбор, НЕОБЯЗАТЕЛЬНО) -->
+                <div class="form-group">
+                    <div class="form-label-wrapper">
+                        <label class="form-label">
+                            <span class="label-text">Предметные специализации</span>
+                        </label>
+                        <div class="input-hint-tooltip" data-tooltip="Выберите один или несколько предметов (необязательно)">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                    </div>
+
+                    <div class="multi-select-container">
+                        <input type="text"
+                               id="specializationInput"
+                               class="form-control multi-select-input"
+                               placeholder="Выберите предметы (необязательно)..."
+                               readonly>
+                        <i class="fas fa-chevron-down dropdown-arrow-icon"></i>
+
+                        <div class="multi-select-dropdown" id="specializationDropdown">
+                            <div class="dropdown-options" id="dropdownOptions">
+                                {% for spec in all_specializations %}
+                                <label class="dropdown-option">
+                                    <input type="checkbox"
+                                           name="specializations"
+                                           value="{{ spec }}"
+                                           {% if spec in user.get_specializations_list %}checked{% endif %}>
+                                    <span>{{ spec }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-error" id="specializationsError"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка сохранения -->
+        <div class="form-actions">
+            <button type="submit" class="btn-profile-save" id="saveProfileBtn">
+                <i class="fas fa-save"></i>
+                <span>Сохранить изменения</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Сообщение об успехе -->
+<div id="profileSuccessMessage" class="success-message" style="display: none;">
+    <i class="fas fa-check-circle"></i>
+    <span>Изменения успешно сохранены!</span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'account/js/profile.js' %}?v=3.0"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Profile page loaded');
+
+        // Передаем данные пользователя в JavaScript
+        window.userData = {
+            email: '{{ user.email|escapejs }}',
+            first_name: '{{ user.first_name|escapejs }}',
+            last_name: '{{ user.last_name|escapejs }}',
+            middle_name: '{{ user.middle_name|escapejs }}',
+            educational_institution: '{{ user.educational_institution|escapejs }}',
+            experience: '{{ user.experience|escapejs }}',
+            specializations: {{ user.get_specializations_list|safe|default:'[]' }},
+            has_photo: {% if user.photo %}true{% else %}false{% endif %},
+            photo_url: '{% if user.photo %}{{ user.photo.url|escapejs }}{% endif %}'
+        };
+
+        // Список всех специализаций
+        window.allSpecializations = {{ all_specializations|safe|default:'[]' }};
+    });
+</script>
+
+{% endblock %}

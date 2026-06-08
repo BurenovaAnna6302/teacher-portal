@@ -1,0 +1,877 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if event %}Редактирование мероприятия{% else %}Создание мероприятия{% endif %} - Админ панель
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* ===== Заголовок и кнопка назад ===== */
+    .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .form-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--admin-primary);
+        margin: 0 0 5px 0;
+    }
+
+    .form-header p {
+        color: var(--admin-text-gray);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid var(--admin-border);
+        border-radius: 8px;
+        color: var(--admin-text-dark);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        background: var(--admin-primary-light);
+        border-color: var(--admin-primary);
+        color: var(--admin-primary);
+    }
+
+    /* ===== Две колонки ===== */
+    .form-columns {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 992px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===== Основная форма ===== */
+    .form-main {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        padding: 30px;
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--admin-text-dark);
+        margin-bottom: 8px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: var(--admin-danger);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        font-size: 14px;
+        font-family: 'Manrope', sans-serif;
+        color: var(--admin-text-dark);
+        background: white;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:hover {
+        border-color: var(--admin-text-gray);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--admin-primary);
+        box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.6;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+    }
+
+    /* ===== Счетчик символов ===== */
+    .char-counter {
+        text-align: right;
+        font-size: 12px;
+        color: var(--admin-text-light);
+        margin-top: 5px;
+    }
+
+    .char-counter.warning {
+        color: var(--admin-warning);
+    }
+
+    .char-counter.error {
+        color: var(--admin-danger);
+    }
+
+    /* ===== Сайдбар ===== */
+    .form-sidebar {
+        background: var(--admin-bg-white);
+        border-radius: var(--admin-radius-lg);
+        border: 1px solid var(--admin-border);
+        padding: 25px;
+        box-shadow: var(--admin-shadow-sm);
+    }
+
+    .sidebar-section {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--admin-border);
+    }
+
+    .sidebar-section:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .sidebar-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-title i {
+        color: var(--admin-primary);
+        background: var(--admin-primary-light);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    /* ===== Загрузка фото ===== */
+    .image-upload-area {
+        border: 2px dashed var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        padding: 25px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 15px;
+        background: var(--admin-bg-light);
+    }
+
+    .image-upload-area:hover {
+        border-color: var(--admin-primary);
+        background: var(--admin-primary-light);
+    }
+
+    .image-upload-icon {
+        font-size: 40px;
+        color: var(--admin-primary);
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .image-upload-area:hover .image-upload-icon {
+        opacity: 1;
+    }
+
+    .upload-text {
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 5px;
+    }
+
+    .upload-hint {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+    }
+
+    /* ===== Превью фото ===== */
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .preview-item {
+        position: relative;
+        border-radius: var(--admin-radius-sm);
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        border: 1px solid var(--admin-border);
+        background: var(--admin-bg-light);
+    }
+
+    .preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-remove {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        background: var(--admin-danger);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+        border: none;
+    }
+
+    .preview-item:hover .preview-remove {
+        opacity: 1;
+    }
+
+    .photo-limit-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--admin-text-gray);
+        margin-top: 15px;
+        padding: 8px 12px;
+        background: var(--admin-bg-light);
+        border-radius: var(--admin-radius-sm);
+        border: 1px solid var(--admin-border);
+    }
+
+    .photo-limit-hint i {
+        color: var(--admin-warning);
+    }
+
+    .photo-count {
+        font-size: 13px;
+        color: var(--admin-text-gray);
+        margin-top: 15px;
+        font-weight: 500;
+    }
+
+    /* ===== Существующие фото ===== */
+    .existing-photos-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--admin-text-dark);
+        margin-bottom: 15px;
+    }
+
+    #deletePhotosContainer {
+        margin-top: 10px;
+    }
+
+    /* ===== Кнопки действий ===== */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        padding-top: 20px;
+        border-top: 1px solid var(--admin-border);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--admin-primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(3, 45, 67, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: var(--admin-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(3, 45, 67, 0.3);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--admin-text-dark);
+        border: 1px solid var(--admin-border);
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--admin-danger);
+        color: var(--admin-danger);
+        background: rgba(239, 68, 68, 0.05);
+        transform: translateY(-2px);
+    }
+
+    /* ===== Информация в сайдбаре ===== */
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--admin-border);
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: var(--admin-text-gray);
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--admin-text-dark);
+    }
+
+    .info-value.status-upcoming {
+        color: #3498db;
+    }
+
+    .info-value.status-completed {
+        color: #9b59b6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <!-- Заголовок и кнопка назад -->
+    <div class="form-header">
+        <div>
+            <h1>
+                {% if event %}
+                    Редактирование мероприятия
+                {% else %}
+                    Создание мероприятия
+                {% endif %}
+            </h1>
+            <p>
+                {% if event %}
+                    Внесите изменения в информацию о мероприятии
+                {% else %}
+                    Заполните форму для создания мероприятия
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'admin_panel:event_list' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i>
+            Назад к списку
+        </a>
+    </div>
+
+    <form method="post" id="eventForm" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-columns">
+            <!-- Основная форма -->
+            <div class="form-main">
+                <div class="form-group">
+                    <label for="title" class="form-label required">Название мероприятия</label>
+                    <input type="text"
+                           class="form-control"
+                           id="title"
+                           name="title"
+                           value="{{ event.title|default:'' }}"
+                           placeholder="Например: Вебинар по цифровым инструментам"
+                           required
+                           maxlength="100">
+                    <div class="char-counter">
+                        <span id="titleCounter">{{ event.title|length|default:0 }}</span>/100
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="short_description" class="form-label required">Краткое описание</label>
+                    <textarea class="form-control"
+                              id="short_description"
+                              name="short_description"
+                              rows="3"
+                              placeholder="Краткое описание для карточки мероприятия"
+                              required
+                              maxlength="250">{{ event.short_description|default:'' }}</textarea>
+                    <div class="char-counter">
+                        <span id="shortDescCounter">{{ event.short_description|length|default:0 }}</span>/250
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="full_description" class="form-label required">Подробное описание</label>
+                    <textarea class="form-control"
+                              id="full_description"
+                              name="full_description"
+                              rows="10"
+                              placeholder="Подробное описание мероприятия, программа, спикеры и т.д."
+                              required
+                              maxlength="5000">{{ event.detailed_description|default:'' }}</textarea>
+                    <div class="char-counter">
+                        <span id="fullDescCounter">{{ event.detailed_description|length|default:0 }}</span>/5000
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date_time" class="form-label required">Дата и время проведения</label>
+                        <input type="datetime-local"
+                               class="form-control"
+                               id="date_time"
+                               name="date_time"
+                               value="{{ event.date_time|default:'' }}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location" class="form-label required">Место проведения</label>
+                        <input type="text"
+                               class="form-control"
+                               id="location"
+                               name="location"
+                               value="{{ event.location|default:'' }}"
+                               placeholder="Например: Онлайн (Zoom) или адрес"
+                               required
+                               maxlength="100">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subject_area" class="form-label required">Предметная область</label>
+                        <select class="form-control" id="subject_area" name="subject_area" required>
+                            <option value="">Выберите предмет</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}"
+                                    {% if event.subject_id == subject.id %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="activity_type" class="form-label required">Тип активности</label>
+                        <select class="form-control" id="activity_type" name="activity_type" required>
+                            <option value="">Выберите тип</option>
+                            {% for type in activity_types %}
+                            <option value="{{ type.id }}"
+                                    {% if event.activity_type_id == type.id %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="format" class="form-label required">Формат проведения</label>
+                        <select class="form-control" id="format" name="format" required>
+                            <option value="">Выберите формат</option>
+                            {% for format in formats %}
+                            <option value="{{ format.id }}"
+                                    {% if event.format_id == format.id %}selected{% endif %}>
+                                {{ format.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="target_audience" class="form-label required">Целевая аудитория</label>
+                        <select class="form-control" id="target_audience" name="target_audience" required>
+                            <option value="">Выберите аудиторию</option>
+                            {% for audience in audiences %}
+                            <option value="{{ audience.id }}"
+                                    {% if event.target_audience_id == audience.id %}selected{% endif %}>
+                                {{ audience.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сайдбар с фото -->
+            <div class="form-sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-image"></i>
+                        Фотографии
+                    </h3>
+
+                    <!-- Существующие фото (при редактировании) -->
+                    {% if existing_photos %}
+                    <div class="existing-photos-title">Текущие фото:</div>
+                    <div class="image-preview-grid">
+                        {% for photo in existing_photos %}
+                        <div class="preview-item">
+                            <img src="{{ photo.url }}" alt="Фото мероприятия">
+                            <button type="button" class="preview-remove" onclick="markForDelete('{{ photo.id }}', this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div id="deletePhotosContainer"></div>
+                    {% endif %}
+
+                    <!-- Загрузка новых фото -->
+                    <div class="image-upload-area" onclick="document.getElementById('photosInput').click()">
+                        <div class="image-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Нажмите для загрузки</div>
+                        <div class="upload-hint">JPG, PNG до 5 МБ</div>
+                        <input type="file"
+                               id="photosInput"
+                               name="photos"
+                               style="display: none;"
+                               accept="image/jpeg,image/png,image/jpg"
+                               multiple
+                               onchange="previewPhotos(this)">
+                    </div>
+
+                    <div class="photo-limit-hint">
+                        <i class="fas fa-info-circle"></i>
+                        Можно загрузить до 6 фотографий
+                    </div>
+
+                    <!-- Превью новых фото -->
+                    <div class="image-preview-grid" id="photoPreview"></div>
+
+                    <!-- Счетчик фото -->
+                    <div class="photo-count" id="photoCount">
+                        {% if existing_photos %}
+                            Загружено: {{ existing_photos|length }}/6
+                        {% else %}
+                            Загружено: 0/6
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-info-circle"></i>
+                        Информация
+                    </h3>
+                    {% if event %}
+                    <div class="info-item">
+                        <span class="info-label">Статус:</span>
+                        <span class="info-value {% if event.is_upcoming %}status-upcoming{% else %}status-completed{% endif %}">
+                            {% if event.is_upcoming %}
+                                Предстоящее
+                            {% else %}
+                                Завершено
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Дата создания:</span>
+                        <span class="info-value">{{ event.created_at }}</span>
+                    </div>
+                    {% if event.updated_at %}
+                    <div class="info-item">
+                        <span class="info-label">Изменено:</span>
+                        <span class="info-value">{{ event.updated_at }}</span>
+                    </div>
+                    {% endif %}
+                    {% else %}
+
+                    <div class="info-item">
+                        <span class="info-label">Дата создания:</span>
+                        <span class="info-value">{% now "d.m.Y H:i" %}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="form-actions">
+            <a href="{% url 'admin_panel:event_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Отмена
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                {% if event %}Сохранить изменения{% else %}Создать мероприятие{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Счетчики символов
+    function updateCharCounter(textareaId, counterId, maxLength) {
+        const textarea = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+
+        function update() {
+            const length = textarea.value.length;
+            counter.textContent = length;
+
+            if (length > maxLength * 0.9) {
+                counter.classList.add('warning');
+                counter.classList.remove('error');
+            } else if (length > maxLength) {
+                counter.classList.remove('warning');
+                counter.classList.add('error');
+            } else {
+                counter.classList.remove('warning', 'error');
+            }
+        }
+
+        textarea.addEventListener('input', update);
+        update();
+    }
+
+    // Предпросмотр фото
+    function previewPhotos(input) {
+        const preview = document.getElementById('photoPreview');
+        const existingPhotosCount = {{ existing_photos|length|default:0 }};
+        const photoCountEl = document.getElementById('photoCount');
+
+        preview.innerHTML = '';
+
+        if (input.files) {
+            const totalPhotos = existingPhotosCount + input.files.length;
+
+            if (totalPhotos > 6) {
+                alert('Можно загрузить максимум 6 фотографий');
+                input.value = '';
+                return;
+            }
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`Файл "${file.name}" слишком большой. Максимальный размер 5 МБ`);
+                    continue;
+                }
+
+                const reader = new FileReader();
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+
+                reader.onload = function(e) {
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="Превью">
+                        <button type="button" class="preview-remove" onclick="removeNewPhoto(this, ${i})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                };
+
+                reader.readAsDataURL(file);
+                preview.appendChild(previewItem);
+            }
+
+            photoCountEl.textContent = `Загружено: ${totalPhotos}/6`;
+        }
+    }
+
+    // Удаление нового фото
+    function removeNewPhoto(button, index) {
+        button.closest('.preview-item').remove();
+
+        const input = document.getElementById('photosInput');
+        const dt = new DataTransfer();
+
+        for (let i = 0; i < input.files.length; i++) {
+            if (i !== index) {
+                dt.items.add(input.files[i]);
+            }
+        }
+
+        input.files = dt.files;
+
+        const existingPhotosCount = {{ existing_photos|length|default:0 }};
+        const photoCountEl = document.getElementById('photoCount');
+        photoCountEl.textContent = `Загружено: ${existingPhotosCount + input.files.length}/6`;
+    }
+
+    // Отметка фото на удаление
+    function markForDelete(photoId, button) {
+        if (confirm('Удалить это фото?')) {
+            const container = document.getElementById('deletePhotosContainer');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'delete_photos';
+            input.value = photoId;
+            container.appendChild(input);
+
+            const previewItem = button.closest('.preview-item');
+            previewItem.style.opacity = '0.5';
+            previewItem.style.pointerEvents = 'none';
+            button.style.display = 'none';
+
+            const photoCountEl = document.getElementById('photoCount');
+            const currentText = photoCountEl.textContent;
+            const match = currentText.match(/(\d+)\/(\d+)/);
+            if (match) {
+                const current = parseInt(match[1]);
+                photoCountEl.textContent = `Загружено: ${current - 1}/6`;
+            }
+        }
+    }
+
+    // Валидация формы
+    function validateForm() {
+        const title = document.getElementById('title').value.trim();
+        const shortDesc = document.getElementById('short_description').value.trim();
+        const fullDesc = document.getElementById('full_description').value.trim();
+        const dateTime = document.getElementById('date_time').value;
+        const location = document.getElementById('location').value.trim();
+        const subject = document.getElementById('subject_area').value;
+        const activityType = document.getElementById('activity_type').value;
+        const format = document.getElementById('format').value;
+        const audience = document.getElementById('target_audience').value;
+
+        if (!title) {
+            alert('Название мероприятия обязательно');
+            return false;
+        }
+        if (!shortDesc) {
+            alert('Краткое описание обязательно');
+            return false;
+        }
+        if (!fullDesc) {
+            alert('Подробное описание обязательно');
+            return false;
+        }
+        if (!dateTime) {
+            alert('Дата и время проведения обязательны');
+            return false;
+        }
+        if (!location) {
+            alert('Место проведения обязательно');
+            return false;
+        }
+        if (!subject) {
+            alert('Выберите предметную область');
+            return false;
+        }
+        if (!activityType) {
+            alert('Выберите тип активности');
+            return false;
+        }
+        if (!format) {
+            alert('Выберите формат проведения');
+            return false;
+        }
+        if (!audience) {
+            alert('Выберите целевую аудиторию');
+            return false;
+        }
+        return true;
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCharCounter('title', 'titleCounter', 100);
+        updateCharCounter('short_description', 'shortDescCounter', 250);
+        updateCharCounter('full_description', 'fullDescCounter', 5000);
+
+        const form = document.getElementById('eventForm');
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+            }
+        });
+
+        // Предзаполнение даты и времени
+        const dateTimeInput = document.getElementById('date_time');
+        if (!dateTimeInput.value) {
+            const now = new Date();
+            now.setHours(now.getHours() + 24);
+            now.setMinutes(0);
+            now.setSeconds(0);
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            dateTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+    });
+</script>
+{% endblock %}
