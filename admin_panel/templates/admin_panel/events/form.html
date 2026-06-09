@@ -79,10 +79,6 @@
         margin-bottom: 25px;
     }
 
-    .form-group:last-child {
-        margin-bottom: 0;
-    }
-
     .form-label {
         display: block;
         font-size: 14px;
@@ -107,16 +103,6 @@
         background: white;
         transition: all 0.2s;
         box-sizing: border-box;
-    }
-
-    .form-control:hover {
-        border-color: var(--admin-text-gray);
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: var(--admin-primary);
-        box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
     }
 
     textarea.form-control {
@@ -147,20 +133,11 @@
         }
     }
 
-    /* ===== Счетчик символов ===== */
     .char-counter {
         text-align: right;
         font-size: 12px;
         color: var(--admin-text-light);
         margin-top: 5px;
-    }
-
-    .char-counter.warning {
-        color: var(--admin-warning);
-    }
-
-    .char-counter.error {
-        color: var(--admin-danger);
     }
 
     /* ===== Сайдбар ===== */
@@ -230,10 +207,6 @@
         opacity: 0.5;
     }
 
-    .image-upload-area:hover .image-upload-icon {
-        opacity: 1;
-    }
-
     .upload-text {
         font-weight: 600;
         color: var(--admin-primary);
@@ -245,7 +218,6 @@
         color: var(--admin-text-gray);
     }
 
-    /* ===== Превью фото ===== */
     .image-preview-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -304,10 +276,6 @@
         border: 1px solid var(--admin-border);
     }
 
-    .photo-limit-hint i {
-        color: var(--admin-warning);
-    }
-
     .photo-count {
         font-size: 13px;
         color: var(--admin-text-gray);
@@ -315,19 +283,7 @@
         font-weight: 500;
     }
 
-    /* ===== Существующие фото ===== */
-    .existing-photos-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--admin-text-dark);
-        margin-bottom: 15px;
-    }
-
-    #deletePhotosContainer {
-        margin-top: 10px;
-    }
-
-    /* ===== Кнопки действий ===== */
+    /* ===== Кнопки ===== */
     .form-actions {
         display: flex;
         justify-content: flex-end;
@@ -373,10 +329,8 @@
         border-color: var(--admin-danger);
         color: var(--admin-danger);
         background: rgba(239, 68, 68, 0.05);
-        transform: translateY(-2px);
     }
 
-    /* ===== Информация в сайдбаре ===== */
     .info-item {
         display: flex;
         justify-content: space-between;
@@ -400,36 +354,15 @@
         font-weight: 600;
         color: var(--admin-text-dark);
     }
-
-    .info-value.status-upcoming {
-        color: #3498db;
-    }
-
-    .info-value.status-completed {
-        color: #9b59b6;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="form-section">
-    <!-- Заголовок и кнопка назад -->
     <div class="form-header">
         <div>
-            <h1>
-                {% if event %}
-                    Редактирование мероприятия
-                {% else %}
-                    Создание мероприятия
-                {% endif %}
-            </h1>
-            <p>
-                {% if event %}
-                    Внесите изменения в информацию о мероприятии
-                {% else %}
-                    Заполните форму для создания мероприятия
-                {% endif %}
-            </p>
+            <h1>{% if event %}Редактирование мероприятия{% else %}Создание мероприятия{% endif %}</h1>
+            <p>{% if event %}Внесите изменения в информацию о мероприятии{% else %}Заполните форму для создания мероприятия{% endif %}</p>
         </div>
         <a href="{% url 'admin_panel:event_list' %}" class="btn-back">
             <i class="fas fa-arrow-left"></i>
@@ -441,72 +374,38 @@
         {% csrf_token %}
 
         <div class="form-columns">
-            <!-- Основная форма -->
             <div class="form-main">
                 <div class="form-group">
                     <label for="title" class="form-label required">Название мероприятия</label>
-                    <input type="text"
-                           class="form-control"
-                           id="title"
-                           name="title"
-                           value="{{ event.title|default:'' }}"
-                           placeholder="Например: Вебинар по цифровым инструментам"
-                           required
-                           maxlength="100">
-                    <div class="char-counter">
-                        <span id="titleCounter">{{ event.title|length|default:0 }}</span>/100
-                    </div>
+                    <input type="text" class="form-control" id="title" name="title"
+                           value="{{ event.title|default:'' }}" maxlength="100" required>
+                    <div class="char-counter"><span id="titleCounter">{{ event.title|length|default:0 }}</span>/100</div>
                 </div>
 
                 <div class="form-group">
                     <label for="short_description" class="form-label required">Краткое описание</label>
-                    <textarea class="form-control"
-                              id="short_description"
-                              name="short_description"
-                              rows="3"
-                              placeholder="Краткое описание для карточки мероприятия"
-                              required
-                              maxlength="250">{{ event.short_description|default:'' }}</textarea>
-                    <div class="char-counter">
-                        <span id="shortDescCounter">{{ event.short_description|length|default:0 }}</span>/250
-                    </div>
+                    <textarea class="form-control" id="short_description" name="short_description"
+                              rows="3" maxlength="250" required>{{ event.short_description|default:'' }}</textarea>
+                    <div class="char-counter"><span id="shortDescCounter">{{ event.short_description|length|default:0 }}</span>/250</div>
                 </div>
 
                 <div class="form-group">
                     <label for="full_description" class="form-label required">Подробное описание</label>
-                    <textarea class="form-control"
-                              id="full_description"
-                              name="full_description"
-                              rows="10"
-                              placeholder="Подробное описание мероприятия, программа, спикеры и т.д."
-                              required
-                              maxlength="5000">{{ event.detailed_description|default:'' }}</textarea>
-                    <div class="char-counter">
-                        <span id="fullDescCounter">{{ event.detailed_description|length|default:0 }}</span>/5000
-                    </div>
+                    <textarea class="form-control" id="full_description" name="full_description"
+                              rows="10" maxlength="5000" required>{{ event.detailed_description|default:'' }}</textarea>
+                    <div class="char-counter"><span id="fullDescCounter">{{ event.detailed_description|length|default:0 }}</span>/5000</div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="date_time" class="form-label required">Дата и время проведения</label>
-                        <input type="datetime-local"
-                               class="form-control"
-                               id="date_time"
-                               name="date_time"
-                               value="{{ event.date_time|default:'' }}"
-                               required>
+                        <input type="datetime-local" class="form-control" id="date_time" name="date_time"
+                               value="{{ event.date_time|default:'' }}" required>
                     </div>
-
                     <div class="form-group">
                         <label for="location" class="form-label required">Место проведения</label>
-                        <input type="text"
-                               class="form-control"
-                               id="location"
-                               name="location"
-                               value="{{ event.location|default:'' }}"
-                               placeholder="Например: Онлайн (Zoom) или адрес"
-                               required
-                               maxlength="100">
+                        <input type="text" class="form-control" id="location" name="location"
+                               value="{{ event.location|default:'' }}" maxlength="100" required>
                     </div>
                 </div>
 
@@ -516,23 +415,16 @@
                         <select class="form-control" id="subject_area" name="subject_area" required>
                             <option value="">Выберите предмет</option>
                             {% for subject in subjects %}
-                            <option value="{{ subject.id }}"
-                                    {% if event.subject_id == subject.id %}selected{% endif %}>
-                                {{ subject.name }}
-                            </option>
+                            <option value="{{ subject.id }}" {% if event.subject_id == subject.id %}selected{% endif %}>{{ subject.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="activity_type" class="form-label required">Тип активности</label>
                         <select class="form-control" id="activity_type" name="activity_type" required>
                             <option value="">Выберите тип</option>
                             {% for type in activity_types %}
-                            <option value="{{ type.id }}"
-                                    {% if event.activity_type_id == type.id %}selected{% endif %}>
-                                {{ type.name }}
-                            </option>
+                            <option value="{{ type.id }}" {% if event.activity_type_id == type.id %}selected{% endif %}>{{ type.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -544,134 +436,69 @@
                         <select class="form-control" id="format" name="format" required>
                             <option value="">Выберите формат</option>
                             {% for format in formats %}
-                            <option value="{{ format.id }}"
-                                    {% if event.format_id == format.id %}selected{% endif %}>
-                                {{ format.name }}
-                            </option>
+                            <option value="{{ format.id }}" {% if event.format_id == format.id %}selected{% endif %}>{{ format.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="target_audience" class="form-label required">Целевая аудитория</label>
                         <select class="form-control" id="target_audience" name="target_audience" required>
                             <option value="">Выберите аудиторию</option>
                             {% for audience in audiences %}
-                            <option value="{{ audience.id }}"
-                                    {% if event.target_audience_id == audience.id %}selected{% endif %}>
-                                {{ audience.name }}
-                            </option>
+                            <option value="{{ audience.id }}" {% if event.target_audience_id == audience.id %}selected{% endif %}>{{ audience.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
             </div>
 
-            <!-- Сайдбар с фото -->
             <div class="form-sidebar">
                 <div class="sidebar-section">
-                    <h3 class="sidebar-title">
-                        <i class="fas fa-image"></i>
-                        Фотографии
-                    </h3>
+                    <h3 class="sidebar-title"><i class="fas fa-image"></i>Фотографии</h3>
 
-                    <!-- Существующие фото (при редактировании) -->
                     {% if existing_photos %}
                     <div class="existing-photos-title">Текущие фото:</div>
-                    <div class="image-preview-grid">
+                    <div class="image-preview-grid" id="existingPhotosGrid">
                         {% for photo in existing_photos %}
-                        <div class="preview-item">
+                        <div class="preview-item" data-photo-id="{{ photo.id }}">
                             <img src="{{ photo.url }}" alt="Фото мероприятия">
-                            <button type="button" class="preview-remove" onclick="markForDelete('{{ photo.id }}', this)">
-                                <i class="fas fa-times"></i>
-                            </button>
+                            <button type="button" class="preview-remove" onclick="markForDelete('{{ photo.id }}', this)"><i class="fas fa-times"></i></button>
                         </div>
                         {% endfor %}
                     </div>
                     <div id="deletePhotosContainer"></div>
                     {% endif %}
 
-                    <!-- Загрузка новых фото -->
-                    <div class="image-upload-area" onclick="document.getElementById('photosInput').click()">
-                        <div class="image-upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
+                    <div class="image-upload-area" id="uploadArea">
+                        <div class="image-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
                         <div class="upload-text">Нажмите для загрузки</div>
-                        <div class="upload-hint">JPG, PNG до 5 МБ</div>
-                        <input type="file"
-                               id="photosInput"
-                               name="photos"
-                               style="display: none;"
-                               accept="image/jpeg,image/png,image/jpg"
-                               multiple
-                               onchange="previewPhotos(this)">
+                        <div class="upload-hint">JPG, PNG до 5 МБ, до 6 фото</div>
+                        <input type="file" id="photosInput" name="photos" style="display: none;" accept="image/jpeg,image/png,image/jpg" multiple>
                     </div>
 
-                    <div class="photo-limit-hint">
-                        <i class="fas fa-info-circle"></i>
-                        Можно загрузить до 6 фотографий
-                    </div>
-
-                    <!-- Превью новых фото -->
-                    <div class="image-preview-grid" id="photoPreview"></div>
-
-                    <!-- Счетчик фото -->
+                    <div class="photo-limit-hint"><i class="fas fa-info-circle"></i>Можно загрузить до 6 фотографий</div>
+                    <div class="image-preview-grid" id="newPhotosPreview"></div>
                     <div class="photo-count" id="photoCount">
-                        {% if existing_photos %}
-                            Загружено: {{ existing_photos|length }}/6
-                        {% else %}
-                            Загружено: 0/6
-                        {% endif %}
+                        Загружено: {{ existing_photos|length|default:0 }}/6
                     </div>
                 </div>
 
                 <div class="sidebar-section">
-                    <h3 class="sidebar-title">
-                        <i class="fas fa-info-circle"></i>
-                        Информация
-                    </h3>
+                    <h3 class="sidebar-title"><i class="fas fa-info-circle"></i>Информация</h3>
                     {% if event %}
-                    <div class="info-item">
-                        <span class="info-label">Статус:</span>
-                        <span class="info-value {% if event.is_upcoming %}status-upcoming{% else %}status-completed{% endif %}">
-                            {% if event.is_upcoming %}
-                                Предстоящее
-                            {% else %}
-                                Завершено
-                            {% endif %}
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Дата создания:</span>
-                        <span class="info-value">{{ event.created_at }}</span>
-                    </div>
-                    {% if event.updated_at %}
-                    <div class="info-item">
-                        <span class="info-label">Изменено:</span>
-                        <span class="info-value">{{ event.updated_at }}</span>
-                    </div>
-                    {% endif %}
+                    <div class="info-item"><span class="info-label">Статус:</span><span class="info-value">{% if event.is_upcoming %}Предстоящее{% else %}Завершено{% endif %}</span></div>
+                    <div class="info-item"><span class="info-label">Дата создания:</span><span class="info-value">{{ event.created_at }}</span></div>
+                    {% if event.updated_at %}<div class="info-item"><span class="info-label">Изменено:</span><span class="info-value">{{ event.updated_at }}</span></div>{% endif %}
                     {% else %}
-
-                    <div class="info-item">
-                        <span class="info-label">Дата создания:</span>
-                        <span class="info-value">{% now "d.m.Y H:i" %}</span>
-                    </div>
+                    <div class="info-item"><span class="info-label">Дата создания:</span><span class="info-value">{% now "d.m.Y H:i" %}</span></div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Кнопки действий -->
         <div class="form-actions">
-            <a href="{% url 'admin_panel:event_list' %}" class="btn btn-secondary">
-                <i class="fas fa-times"></i>
-                Отмена
-            </a>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i>
-                {% if event %}Сохранить изменения{% else %}Создать мероприятие{% endif %}
-            </button>
+            <a href="{% url 'admin_panel:event_list' %}" class="btn btn-secondary"><i class="fas fa-times"></i>Отмена</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>{% if event %}Сохранить изменения{% else %}Создать мероприятие{% endif %}</button>
         </div>
     </form>
 </div>
@@ -679,188 +506,144 @@
 
 {% block extra_js %}
 <script>
-    // Счетчики символов
-    function updateCharCounter(textareaId, counterId, maxLength) {
-        const textarea = document.getElementById(textareaId);
-        const counter = document.getElementById(counterId);
-
-        function update() {
-            const length = textarea.value.length;
-            counter.textContent = length;
-
-            if (length > maxLength * 0.9) {
-                counter.classList.add('warning');
-                counter.classList.remove('error');
-            } else if (length > maxLength) {
-                counter.classList.remove('warning');
-                counter.classList.add('error');
-            } else {
-                counter.classList.remove('warning', 'error');
+    (function() {
+        // Счетчики символов
+        function updateCharCounter(textareaId, counterId, maxLength) {
+            const textarea = document.getElementById(textareaId);
+            const counter = document.getElementById(counterId);
+            if (!textarea || !counter) return;
+            function update() {
+                const len = textarea.value.length;
+                counter.textContent = len;
             }
+            textarea.addEventListener('input', update);
+            update();
         }
 
-        textarea.addEventListener('input', update);
-        update();
-    }
-
-    // Предпросмотр фото
-    function previewPhotos(input) {
-        const preview = document.getElementById('photoPreview');
-        const existingPhotosCount = {{ existing_photos|length|default:0 }};
-        const photoCountEl = document.getElementById('photoCount');
-
-        preview.innerHTML = '';
-
-        if (input.files) {
-            const totalPhotos = existingPhotosCount + input.files.length;
-
-            if (totalPhotos > 6) {
-                alert('Можно загрузить максимум 6 фотографий');
-                input.value = '';
-                return;
-            }
-
-            for (let i = 0; i < input.files.length; i++) {
-                const file = input.files[i];
-
-                if (file.size > 5 * 1024 * 1024) {
-                    alert(`Файл "${file.name}" слишком большой. Максимальный размер 5 МБ`);
-                    continue;
-                }
-
-                const reader = new FileReader();
-                const previewItem = document.createElement('div');
-                previewItem.className = 'preview-item';
-
-                reader.onload = function(e) {
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}" alt="Превью">
-                        <button type="button" class="preview-remove" onclick="removeNewPhoto(this, ${i})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                };
-
-                reader.readAsDataURL(file);
-                preview.appendChild(previewItem);
-            }
-
-            photoCountEl.textContent = `Загружено: ${totalPhotos}/6`;
-        }
-    }
-
-    // Удаление нового фото
-    function removeNewPhoto(button, index) {
-        button.closest('.preview-item').remove();
-
-        const input = document.getElementById('photosInput');
-        const dt = new DataTransfer();
-
-        for (let i = 0; i < input.files.length; i++) {
-            if (i !== index) {
-                dt.items.add(input.files[i]);
-            }
-        }
-
-        input.files = dt.files;
-
-        const existingPhotosCount = {{ existing_photos|length|default:0 }};
-        const photoCountEl = document.getElementById('photoCount');
-        photoCountEl.textContent = `Загружено: ${existingPhotosCount + input.files.length}/6`;
-    }
-
-    // Отметка фото на удаление
-    function markForDelete(photoId, button) {
-        if (confirm('Удалить это фото?')) {
-            const container = document.getElementById('deletePhotosContainer');
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'delete_photos';
-            input.value = photoId;
-            container.appendChild(input);
-
-            const previewItem = button.closest('.preview-item');
-            previewItem.style.opacity = '0.5';
-            previewItem.style.pointerEvents = 'none';
-            button.style.display = 'none';
-
-            const photoCountEl = document.getElementById('photoCount');
-            const currentText = photoCountEl.textContent;
-            const match = currentText.match(/(\d+)\/(\d+)/);
-            if (match) {
-                const current = parseInt(match[1]);
-                photoCountEl.textContent = `Загружено: ${current - 1}/6`;
-            }
-        }
-    }
-
-    // Валидация формы
-    function validateForm() {
-        const title = document.getElementById('title').value.trim();
-        const shortDesc = document.getElementById('short_description').value.trim();
-        const fullDesc = document.getElementById('full_description').value.trim();
-        const dateTime = document.getElementById('date_time').value;
-        const location = document.getElementById('location').value.trim();
-        const subject = document.getElementById('subject_area').value;
-        const activityType = document.getElementById('activity_type').value;
-        const format = document.getElementById('format').value;
-        const audience = document.getElementById('target_audience').value;
-
-        if (!title) {
-            alert('Название мероприятия обязательно');
-            return false;
-        }
-        if (!shortDesc) {
-            alert('Краткое описание обязательно');
-            return false;
-        }
-        if (!fullDesc) {
-            alert('Подробное описание обязательно');
-            return false;
-        }
-        if (!dateTime) {
-            alert('Дата и время проведения обязательны');
-            return false;
-        }
-        if (!location) {
-            alert('Место проведения обязательно');
-            return false;
-        }
-        if (!subject) {
-            alert('Выберите предметную область');
-            return false;
-        }
-        if (!activityType) {
-            alert('Выберите тип активности');
-            return false;
-        }
-        if (!format) {
-            alert('Выберите формат проведения');
-            return false;
-        }
-        if (!audience) {
-            alert('Выберите целевую аудиторию');
-            return false;
-        }
-        return true;
-    }
-
-    // Инициализация
-    document.addEventListener('DOMContentLoaded', function() {
         updateCharCounter('title', 'titleCounter', 100);
         updateCharCounter('short_description', 'shortDescCounter', 250);
         updateCharCounter('full_description', 'fullDescCounter', 5000);
 
-        const form = document.getElementById('eventForm');
-        form.addEventListener('submit', function(e) {
-            if (!validateForm()) {
-                e.preventDefault();
+        // Переменные для новых фото (сохраняем список файлов, которые реально отправятся)
+        let selectedFiles = []; // массив File объектов
+        const photosInput = document.getElementById('photosInput');
+        const newPhotosPreview = document.getElementById('newPhotosPreview');
+        const photoCountSpan = document.getElementById('photoCount');
+        const existingCount = {{ existing_photos|length|default:0 }};
+
+        function updatePhotoCount() {
+            const total = existingCount + selectedFiles.length;
+            photoCountSpan.textContent = `Загружено: ${total}/6`;
+        }
+
+        function renderPreviews() {
+            newPhotosPreview.innerHTML = '';
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const reader = new FileReader();
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.setAttribute('data-index', i);
+                reader.onload = (function(f, idx) {
+                    return function(e) {
+                        previewItem.innerHTML = `
+                            <img src="${e.target.result}" alt="Превью">
+                            <button type="button" class="preview-remove" data-index="${idx}"><i class="fas fa-times"></i></button>
+                        `;
+                    };
+                })(file, i);
+                reader.readAsDataURL(file);
+                newPhotosPreview.appendChild(previewItem);
             }
+            // Назначить обработчики удаления
+            document.querySelectorAll('#newPhotosPreview .preview-remove').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const idx = parseInt(this.getAttribute('data-index'));
+                    if (!isNaN(idx)) {
+                        selectedFiles.splice(idx, 1);
+                        renderPreviews(); // перерисуем
+                        updatePhotoCount();
+                        // Обновить input.files (не обязательно, но для синхронизации)
+                        const dataTransfer = new DataTransfer();
+                        selectedFiles.forEach(f => dataTransfer.items.add(f));
+                        photosInput.files = dataTransfer.files;
+                    }
+                    e.stopPropagation();
+                });
+            });
+        }
+
+        // Обработчик выбора файлов
+        photosInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (existingCount + selectedFiles.length + files.length > 6) {
+                alert('Можно загрузить максимум 6 фотографий');
+                return;
+            }
+            // Фильтр по размеру
+            for (let file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`Файл "${file.name}" слишком большой. Максимальный размер 5 МБ`);
+                    return;
+                }
+            }
+            selectedFiles = selectedFiles.concat(files);
+            renderPreviews();
+            updatePhotoCount();
+            // Обновить input.files
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(f => dataTransfer.items.add(f));
+            photosInput.files = dataTransfer.files;
         });
 
-        // Предзаполнение даты и времени
+        // Клик по области загрузки
+        document.getElementById('uploadArea').addEventListener('click', function() {
+            photosInput.click();
+        });
+
+        // Удаление существующих фото (отметка на удаление)
+        window.markForDelete = function(photoId, btn) {
+            if (confirm('Удалить это фото?')) {
+                const container = document.getElementById('deletePhotosContainer');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_photos';
+                input.value = photoId;
+                container.appendChild(input);
+                const previewItem = btn.closest('.preview-item');
+                previewItem.style.opacity = '0.5';
+                previewItem.style.pointerEvents = 'none';
+                btn.style.display = 'none';
+                const newCount = existingCount - 1;
+                const total = newCount + selectedFiles.length;
+                photoCountSpan.textContent = `Загружено: ${total}/6`;
+            }
+        };
+
+        // Валидация формы перед отправкой
+        const form = document.getElementById('eventForm');
+        form.addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const shortDesc = document.getElementById('short_description').value.trim();
+            const fullDesc = document.getElementById('full_description').value.trim();
+            const dateTime = document.getElementById('date_time').value;
+            const location = document.getElementById('location').value.trim();
+            const subject = document.getElementById('subject_area').value;
+            const activityType = document.getElementById('activity_type').value;
+            const format = document.getElementById('format').value;
+            const audience = document.getElementById('target_audience').value;
+
+            if (!title || !shortDesc || !fullDesc || !dateTime || !location || !subject || !activityType || !format || !audience) {
+                alert('Пожалуйста, заполните все обязательные поля.');
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        });
+
+        // Предзаполнение даты (если пусто)
         const dateTimeInput = document.getElementById('date_time');
-        if (!dateTimeInput.value) {
+        if (dateTimeInput && !dateTimeInput.value) {
             const now = new Date();
             now.setHours(now.getHours() + 24);
             now.setMinutes(0);
@@ -872,6 +655,6 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             dateTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
         }
-    });
+    })();
 </script>
 {% endblock %}
