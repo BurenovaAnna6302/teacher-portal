@@ -15,14 +15,24 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 # Разрешённые хосты – задаются через переменную окружения (на сервере – список доменов)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Обратите внимание: в переменной ALLOWED_HOSTS должны быть перечислены все домены, включая платформенный
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(',')
 
-# ✅ Добавлено: доверенные источники для CSRF-защиты (обязательно для HTTPS)
+# ✅ Доверенные источники для CSRF-защиты (обязательно для HTTPS)
 CSRF_TRUSTED_ORIGINS = [
     'https://burenkovaanna6302-teacher-portal-a1f8.twc1.net',
-    'https://явтемпе.рф',           # ваш будущий домен
-    'https://www.явтемпе.рф',       # если будете использовать www
+    'https://явтемпе.рф',
+    'https://www.явтемпе.рф',
 ]
+
+# Дополнительные настройки CSRF и сессий для корректной работы на HTTPS
+CSRF_COOKIE_SECURE = True          # Куки CSRF только по HTTPS
+CSRF_COOKIE_HTTPONLY = False       # Чтобы JavaScript мог читать токен (если нужно)
+CSRF_COOKIE_SAMESITE = 'Lax'       # Защита от межсайтовой подделки
+
+SESSION_COOKIE_SECURE = True       # Куки сессии только по HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Коды для двухфакторной аутентификации администратора
 ADMIN_SECRET_CODE = os.getenv('ADMIN_SECRET_CODE', '')
@@ -84,17 +94,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# База данных – используем единую строку подключения DATABASE_URL
+# База данных
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
 
 # Сессии
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False      # При включенном HTTPS поставьте True
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_NAME = 'sessionid'
 SESSION_COOKIE_AGE = 1209600
 
 # Интернационализация
@@ -135,4 +141,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/account/profile/'
 LOGOUT_REDIRECT_URL = '/'
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
