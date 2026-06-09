@@ -15,16 +15,18 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 # Разрешённые хосты
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
+                          'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(
+    ',')
 
-# ✅ Доверенные источники для CSRF
+# Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://burenkovaanna6302-teacher-portal-a1f8.twc1.net',
     'https://явтемпе.рф',
     'https://www.явтемпе.рф',
 ]
 
-# ✅ КЛЮЧЕВЫЕ НАСТРОЙКИ ДЛЯ ПРОКСИ (Timeweb Cloud)
+# КЛЮЧЕВЫЕ НАСТРОЙКИ ДЛЯ ПРОКСИ (Timeweb Cloud)
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -37,7 +39,7 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# ✅ Логирование CSRF-ошибок (чтобы видеть точную причину)
+# Логирование CSRF-ошибок
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -65,6 +67,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Подключаем storages для S3
+    'storages',
+
     'main', 'about', 'news', 'events', 'materials', 'documents',
     'surveys', 'members', 'teachers', 'account', 'admin_panel', 'success_practices',
 ]
@@ -114,6 +120,7 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
+# ===== Статика =====
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
@@ -131,7 +138,25 @@ STATICFILES_DIRS = [
     BASE_DIR / 'success_practices/static',
 ]
 
-MEDIA_URL = '/media/'
+# ===== Медиа (загружаемые пользователями файлы) =====
+# Блок настроек для S3
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Переменные окружения для S3 (обязательно добавить в панели Timeweb)
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = 'ru-1'  # Регион вашего бакета
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'https://s3.timeweb.cloud')
+
+# Настройки приватности: файлы будут публично читаемы
+AWS_QUERYSTRING_AUTH = False  # Отключаем подписанные URL
+AWS_DEFAULT_ACL = 'public-read'  # Публичное чтение
+
+# Медиа-URL теперь будет вести на S3 (но для удобства оставляем старую переменную)
+# MEDIA_URL не используется при DEFAULT_FILE_STORAGE, но оставим для обратной совместимости
+MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.timeweb.cloud/'
+# Локальный MEDIA_ROOT больше не нужен для загрузок, но оставим, если используется в других местах
 MEDIA_ROOT = BASE_DIR / 'media'
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
