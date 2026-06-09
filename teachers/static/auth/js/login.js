@@ -1,5 +1,5 @@
 // login.js - Полная версия с AJAX, тултипами, требованиями и ошибками под полями
-// Версия: 3.0 - Асинхронная отправка без перезагрузки
+// Версия: 4.0 - Исправлена проблема CSRF
 
 class LoginApp {
     constructor() {
@@ -30,6 +30,22 @@ class LoginApp {
         this.isSubmitting = false;
 
         console.log('LoginApp инициализирован');
+    }
+
+    // ✅ ДОБАВЛЕН МЕТОД ДЛЯ ПОЛУЧЕНИЯ CSRF-ТОКЕНА ИЗ COOKIE
+    getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === ('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     init() {
@@ -526,7 +542,13 @@ class LoginApp {
         this.showLoading();
 
         const formData = new FormData(this.loginForm);
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // ✅ ПРАВИЛЬНОЕ ПОЛУЧЕНИЕ CSRF-ТОКЕНА
+        let csrfToken = this.getCSRFToken();
+        if (!csrfToken) {
+            const csrfInput = this.loginForm.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfInput) csrfToken = csrfInput.value;
+        }
 
         fetch(this.loginForm.action || window.location.href, {
             method: 'POST',
@@ -536,7 +558,16 @@ class LoginApp {
             },
             body: formData,
         })
-        .then(response => response.json())
+        .then(response => {
+            // ✅ ОБРАБОТКА ОШИБКИ CSRF
+            if (response.status === 403) {
+                throw new Error('Ошибка проверки безопасности. Обновите страницу и попробуйте снова.');
+            }
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             this.hideLoading();
             this.isSubmitting = false;
@@ -555,7 +586,7 @@ class LoginApp {
             console.error('Ошибка:', error);
             this.hideLoading();
             this.isSubmitting = false;
-            this.setError('passwordError', 'Ошибка соединения. Проверьте интернет.');
+            this.setError('passwordError', error.message || 'Ошибка соединения. Проверьте интернет.');
         });
     }
 }

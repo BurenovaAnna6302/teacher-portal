@@ -1,5 +1,5 @@
 // register.js - Реализация валидации и множественного выбора
-// Версия: 4.7 - ИСПРАВЛЕНЫ ТУЛТИПЫ (ПОЛНАЯ ВЕРСИЯ)
+// Версия: 5.0 - ИСПРАВЛЕНА ОШИБКА CSRF
 
 class RegisterApp {
     constructor() {
@@ -51,6 +51,22 @@ class RegisterApp {
         this.currentTooltip = null;
 
         console.log('RegisterApp инициализирован');
+    }
+
+    // ✅ ДОБАВЛЕН МЕТОД ДЛЯ ПОЛУЧЕНИЯ CSRF-ТОКЕНА ИЗ COOKIE
+    getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === ('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     init() {
@@ -129,7 +145,6 @@ class RegisterApp {
         input.addEventListener('click', (e) => {
             e.stopPropagation();
             const isOpen = dropdown.classList.contains('show');
-            // Закрываем все другие dropdown
             document.querySelectorAll('.multi-select-dropdown').forEach(d => d.classList.remove('show'));
             document.querySelectorAll('.multi-select-container').forEach(c => c.classList.remove('open'));
 
@@ -194,7 +209,6 @@ class RegisterApp {
     }
 
     updateTooltipPositions() {
-        // Обновляем позиции hover-тултипов
         this.hoverTooltips.forEach((tooltip, element) => {
             if (tooltip && tooltip.parentNode) {
                 const rect = element.getBoundingClientRect();
@@ -206,7 +220,6 @@ class RegisterApp {
             }
         });
 
-        // Обновляем позиции requirement-тултипов
         this.requirementTooltips.forEach((tooltip, fieldId) => {
             if (tooltip && tooltip.parentNode) {
                 let inputElement;
@@ -220,7 +233,6 @@ class RegisterApp {
                     case 'experience': inputElement = this.experienceInput; break;
                     default: return;
                 }
-
                 if (inputElement) {
                     const rect = inputElement.getBoundingClientRect();
                     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -233,14 +245,12 @@ class RegisterApp {
     }
 
     setupFieldValidation() {
-        // Email
         if (this.emailInput) {
             this.emailInput.addEventListener('input', () => {
                 this.clearError('emailError');
                 this.validateEmail(false);
                 this.updateEmailRequirements();
             });
-
             this.emailInput.addEventListener('blur', () => {
                 this.emailTouched = true;
                 if (this.emailInput.value.trim() !== '') {
@@ -251,7 +261,6 @@ class RegisterApp {
             });
         }
 
-        // Пароль
         if (this.passwordInput) {
             this.passwordInput.addEventListener('input', () => {
                 this.clearError('passwordError');
@@ -261,7 +270,6 @@ class RegisterApp {
                     this.validateConfirmPassword(false);
                 }
             });
-
             this.passwordInput.addEventListener('blur', () => {
                 this.passwordTouched = true;
                 if (this.passwordInput.value !== '') {
@@ -272,14 +280,12 @@ class RegisterApp {
             });
         }
 
-        // Подтверждение пароля
         if (this.confirmPasswordInput) {
             this.confirmPasswordInput.addEventListener('input', () => {
                 this.clearError('confirmPasswordError');
                 this.validateConfirmPassword(false);
                 this.updateConfirmPasswordRequirements();
             });
-
             this.confirmPasswordInput.addEventListener('blur', () => {
                 this.confirmPasswordTouched = true;
                 if (this.confirmPasswordInput.value !== '') {
@@ -290,14 +296,12 @@ class RegisterApp {
             });
         }
 
-        // Имя
         if (this.firstNameInput) {
             this.firstNameInput.addEventListener('input', () => {
                 this.clearError('firstNameError');
                 this.validateFirstName(false);
                 this.updateNameRequirements('first_name', this.firstNameInput, 'Имя');
             });
-
             this.firstNameInput.addEventListener('blur', () => {
                 this.firstNameTouched = true;
                 if (this.firstNameInput.value.trim() !== '') {
@@ -308,14 +312,12 @@ class RegisterApp {
             });
         }
 
-        // Фамилия
         if (this.lastNameInput) {
             this.lastNameInput.addEventListener('input', () => {
                 this.clearError('lastNameError');
                 this.validateLastName(false);
                 this.updateNameRequirements('last_name', this.lastNameInput, 'Фамилия');
             });
-
             this.lastNameInput.addEventListener('blur', () => {
                 this.lastNameTouched = true;
                 if (this.lastNameInput.value.trim() !== '') {
@@ -326,13 +328,11 @@ class RegisterApp {
             });
         }
 
-        // Отчество (необязательное)
         if (this.middleNameInput) {
             this.middleNameInput.addEventListener('input', () => {
                 this.clearError('middleNameError');
                 this.validateMiddleName(false);
             });
-
             this.middleNameInput.addEventListener('blur', () => {
                 this.middleNameTouched = true;
                 if (this.middleNameInput.value.trim() !== '') {
@@ -343,20 +343,17 @@ class RegisterApp {
             });
         }
 
-        // Образовательное учреждение (необязательное)
         if (this.educationalInstitutionInput) {
             this.educationalInstitutionInput.addEventListener('input', () => {
                 this.clearError('educationalInstitutionError');
             });
         }
 
-        // Опыт работы
         if (this.experienceInput) {
             this.experienceInput.addEventListener('input', () => {
                 this.clearError('experienceError');
                 this.validateExperience(false);
             });
-
             this.experienceInput.addEventListener('blur', () => {
                 this.experienceTouched = true;
                 if (this.experienceInput.value.trim() !== '') {
@@ -370,12 +367,10 @@ class RegisterApp {
 
     setupHoverTooltips() {
         const tooltipElements = document.querySelectorAll('.input-hint-tooltip');
-
         tooltipElements.forEach(element => {
             element.addEventListener('mouseenter', () => {
                 this.showHoverTooltip(element);
             });
-
             element.addEventListener('mouseleave', () => {
                 setTimeout(() => {
                     this.hideHoverTooltip(element);
@@ -387,55 +382,39 @@ class RegisterApp {
     showHoverTooltip(element) {
         clearTimeout(this.hoverTimeout);
         this.hoverTooltipElement = element;
-
         this.hoverTimeout = setTimeout(() => {
-            if (!this.hoverTooltipElement || this.hoverTooltipElement !== element) {
-                return;
-            }
-
+            if (!this.hoverTooltipElement || this.hoverTooltipElement !== element) return;
             this.hideAllHoverTooltips();
-
             const tooltipText = element.getAttribute('data-tooltip');
             if (!tooltipText) return;
-
             const tooltip = document.createElement('div');
             tooltip.className = 'hover-tooltip';
             tooltip.textContent = tooltipText;
-
             const rect = element.getBoundingClientRect();
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
             let top = rect.bottom + scrollTop + 8;
             let left = rect.left + scrollLeft + rect.width / 2;
-
             document.body.appendChild(tooltip);
-
             const tooltipRect = tooltip.getBoundingClientRect();
-
-            // Корректируем позицию по горизонтали
             if (left + tooltipRect.width / 2 > window.innerWidth + scrollLeft) {
                 left = window.innerWidth + scrollLeft - tooltipRect.width / 2 - 10;
             }
             if (left - tooltipRect.width / 2 < scrollLeft) {
                 left = tooltipRect.width / 2 + scrollLeft + 10;
             }
-
             tooltip.style.position = 'absolute';
             tooltip.style.top = top + 'px';
             tooltip.style.left = left + 'px';
             tooltip.style.transform = 'translateX(-50%)';
             tooltip.style.zIndex = '10000';
             tooltip.style.opacity = '0';
-
             setTimeout(() => {
                 tooltip.style.transition = 'opacity 0.2s ease';
                 tooltip.style.opacity = '1';
                 tooltip.classList.add('show');
             }, 10);
-
             this.hoverTooltips.set(element, tooltip);
-
             setTimeout(() => {
                 if (this.hoverTooltips.has(element)) {
                     this.hideHoverTooltip(element);
@@ -450,9 +429,7 @@ class RegisterApp {
             if (tooltip && tooltip.parentNode) {
                 tooltip.style.opacity = '0';
                 setTimeout(() => {
-                    if (tooltip.parentNode) {
-                        tooltip.remove();
-                    }
+                    if (tooltip.parentNode) tooltip.remove();
                 }, 150);
             }
             this.hoverTooltips.delete(element);
@@ -465,9 +442,7 @@ class RegisterApp {
             if (tooltip && tooltip.parentNode) {
                 tooltip.style.opacity = '0';
                 setTimeout(() => {
-                    if (tooltip.parentNode) {
-                        tooltip.remove();
-                    }
+                    if (tooltip.parentNode) tooltip.remove();
                 }, 150);
             }
         });
@@ -535,10 +510,8 @@ class RegisterApp {
                 }
             }
         };
-
         Object.entries(fieldsConfig).forEach(([fieldId, { element, config }]) => {
             if (!element) return;
-
             element.addEventListener('focus', () => {
                 this.hideAllTooltips();
                 this.currentFocusedField = fieldId;
@@ -548,7 +521,6 @@ class RegisterApp {
                     }
                 }, 10);
             });
-
             element.addEventListener('blur', () => {
                 setTimeout(() => {
                     if (this.currentFocusedField === fieldId &&
@@ -559,7 +531,6 @@ class RegisterApp {
                     }
                 }, 200);
             });
-
             element.addEventListener('input', () => {
                 if (this.requirementTooltips.has(fieldId)) {
                     this.updateDynamicRequirements(fieldId, element, config);
@@ -574,21 +545,14 @@ class RegisterApp {
                 this.hideRequirements(id);
             }
         });
-
         const requirements = document.createElement('div');
         requirements.className = 'requirements-tooltip';
         requirements.dataset.field = fieldId;
-
         let html = `<div class="requirements-title">${config.title}</div>`;
-
         config.requirements.forEach(req => {
-            const isValid = req.type === 'example' ? true :
-                          this.checkRequirement(fieldId, req.type, inputElement.value);
-            const icon = req.type === 'example' ? 'lightbulb' :
-                       (isValid ? 'check' : 'circle');
-            const statusClass = req.type === 'example' ? 'example' :
-                              (isValid ? 'valid' : 'invalid');
-
+            const isValid = req.type === 'example' ? true : this.checkRequirement(fieldId, req.type, inputElement.value);
+            const icon = req.type === 'example' ? 'lightbulb' : (isValid ? 'check' : 'circle');
+            const statusClass = req.type === 'example' ? 'example' : (isValid ? 'valid' : 'invalid');
             html += `
                 <div class="requirement ${req.type} ${statusClass}">
                     <i class="fas fa-${icon}"></i>
@@ -596,37 +560,28 @@ class RegisterApp {
                 </div>
             `;
         });
-
         requirements.innerHTML = html;
-
         const rect = inputElement.getBoundingClientRect();
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
         requirements.style.position = 'absolute';
         requirements.style.top = (rect.bottom + scrollTop + 8) + 'px';
         requirements.style.left = rect.left + 'px';
         requirements.style.zIndex = '10001';
         requirements.style.opacity = '0';
-
         document.body.appendChild(requirements);
-
         setTimeout(() => {
             requirements.style.transition = 'opacity 0.2s ease';
             requirements.style.opacity = '1';
             requirements.classList.add('show');
         }, 10);
-
         this.requirementTooltips.set(fieldId, requirements);
-
         requirements.addEventListener('mouseenter', () => {
             requirements.dataset.hovering = 'true';
         });
-
         requirements.addEventListener('mouseleave', () => {
             requirements.dataset.hovering = 'false';
             setTimeout(() => {
-                if (requirements.dataset.hovering === 'false' &&
-                    document.activeElement !== inputElement) {
+                if (requirements.dataset.hovering === 'false' && document.activeElement !== inputElement) {
                     this.hideRequirements(fieldId);
                 }
             }, 100);
@@ -636,9 +591,7 @@ class RegisterApp {
     updateDynamicRequirements(fieldId, inputElement, config) {
         const requirements = this.requirementTooltips.get(fieldId);
         if (!requirements) return;
-
         const requirementElements = requirements.querySelectorAll('.requirement');
-
         config.requirements.forEach((req, index) => {
             if (req.type !== 'example') {
                 const requirementElement = requirementElements[index];
@@ -646,7 +599,6 @@ class RegisterApp {
                     const isValid = this.checkRequirement(fieldId, req.type, inputElement.value);
                     const icon = isValid ? 'check' : 'circle';
                     const statusClass = isValid ? 'valid' : 'invalid';
-
                     requirementElement.className = `requirement ${req.type} ${statusClass}`;
                     requirementElement.innerHTML = `
                         <i class="fas fa-${icon}"></i>
@@ -718,24 +670,15 @@ class RegisterApp {
 
     checkRequirement(fieldId, type, value) {
         switch (type) {
-            case 'required':
-                return value.trim().length > 0;
-            case 'max':
-                return value.length <= 30;
-            case 'length':
-                return value.length >= 6;
-            case 'chars':
-                return /^[A-Za-z0-9!@#$%^&*]*$/.test(value);
-            case 'format':
-                return value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-            case 'domain':
-                return value === '' || /@.+\..+/.test(value);
-            case 'russian':
-                return /^[А-Яа-яЁё\s\-]*$/.test(value);
-            case 'match':
-                return this.checkConfirmPassword();
-            default:
-                return true;
+            case 'required': return value.trim().length > 0;
+            case 'max': return value.length <= 30;
+            case 'length': return value.length >= 6;
+            case 'chars': return /^[A-Za-z0-9!@#$%^&*]*$/.test(value);
+            case 'format': return value === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            case 'domain': return value === '' || /@.+\..+/.test(value);
+            case 'russian': return /^[А-Яа-яЁё\s\-]*$/.test(value);
+            case 'match': return this.checkConfirmPassword();
+            default: return true;
         }
     }
 
@@ -751,9 +694,7 @@ class RegisterApp {
             if (tooltip && tooltip.parentNode) {
                 tooltip.style.opacity = '0';
                 setTimeout(() => {
-                    if (tooltip.parentNode) {
-                        tooltip.remove();
-                    }
+                    if (tooltip.parentNode) tooltip.remove();
                 }, 150);
             }
             this.requirementTooltips.delete(fieldId);
@@ -766,9 +707,7 @@ class RegisterApp {
             if (tooltip && tooltip.parentNode) {
                 tooltip.style.opacity = '0';
                 setTimeout(() => {
-                    if (tooltip.parentNode) {
-                        tooltip.remove();
-                    }
+                    if (tooltip.parentNode) tooltip.remove();
                 }, 150);
             }
         });
@@ -779,198 +718,131 @@ class RegisterApp {
 
     clearError(errorElementId) {
         const errorElement = document.getElementById(errorElementId);
-        if (errorElement) {
-            errorElement.textContent = '';
-        }
+        if (errorElement) errorElement.textContent = '';
     }
 
     setError(errorElementId, message) {
         const errorElement = document.getElementById(errorElementId);
-        if (errorElement) {
-            errorElement.textContent = message;
-        }
+        if (errorElement) errorElement.textContent = message;
     }
 
     validateEmail(showError = false) {
         const email = this.emailInput ? this.emailInput.value.trim() : '';
-
         if (!email) {
-            if (showError && this.emailTouched) {
-                this.setError('emailError', 'Введите email');
-            }
+            if (showError && this.emailTouched) this.setError('emailError', 'Введите email');
             return false;
         }
-
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            if (showError) {
-                this.setError('emailError', 'Введите корректный email адрес');
-            }
+            if (showError) this.setError('emailError', 'Введите корректный email адрес');
             return false;
         }
-
         if (email.length > 30) {
-            if (showError) {
-                this.setError('emailError', 'Email не должен превышать 30 символов');
-            }
+            if (showError) this.setError('emailError', 'Email не должен превышать 30 символов');
             return false;
         }
-
         return true;
     }
 
     validatePassword(showError = false) {
         const password = this.passwordInput ? this.passwordInput.value : '';
-
         if (!password) {
-            if (showError && this.passwordTouched) {
-                this.setError('passwordError', 'Введите пароль');
-            }
+            if (showError && this.passwordTouched) this.setError('passwordError', 'Введите пароль');
             return false;
         }
-
         if (password.length < 6) {
-            if (showError) {
-                this.setError('passwordError', 'Пароль должен содержать минимум 6 символов');
-            }
+            if (showError) this.setError('passwordError', 'Пароль должен содержать минимум 6 символов');
             return false;
         }
-
         if (password.length > 30) {
-            if (showError) {
-                this.setError('passwordError', 'Пароль не должен превышать 30 символов');
-            }
+            if (showError) this.setError('passwordError', 'Пароль не должен превышать 30 символов');
             return false;
         }
-
         return true;
     }
 
     validateConfirmPassword(showError = false) {
         const password = this.passwordInput ? this.passwordInput.value : '';
         const confirm = this.confirmPasswordInput ? this.confirmPasswordInput.value : '';
-
         if (!confirm) {
-            if (showError && this.confirmPasswordTouched) {
-                this.setError('confirmPasswordError', 'Подтвердите пароль');
-            }
+            if (showError && this.confirmPasswordTouched) this.setError('confirmPasswordError', 'Подтвердите пароль');
             return false;
         }
-
         if (password !== confirm) {
-            if (showError) {
-                this.setError('confirmPasswordError', 'Пароли не совпадают');
-            }
+            if (showError) this.setError('confirmPasswordError', 'Пароли не совпадают');
             return false;
         }
-
         return true;
     }
 
     validateFirstName(showError = false) {
         const name = this.firstNameInput ? this.firstNameInput.value.trim() : '';
-
         if (!name) {
-            if (showError && this.firstNameTouched) {
-                this.setError('firstNameError', 'Введите имя');
-            }
+            if (showError && this.firstNameTouched) this.setError('firstNameError', 'Введите имя');
             return false;
         }
-
         if (!/^[А-Яа-яЁё\s\-]+$/.test(name)) {
-            if (showError) {
-                this.setError('firstNameError', 'Только русские буквы, дефисы и пробелы');
-            }
+            if (showError) this.setError('firstNameError', 'Только русские буквы, дефисы и пробелы');
             return false;
         }
-
         if (name.length > 30) {
-            if (showError) {
-                this.setError('firstNameError', 'Имя не должно превышать 30 символов');
-            }
+            if (showError) this.setError('firstNameError', 'Имя не должно превышать 30 символов');
             return false;
         }
-
         return true;
     }
 
     validateLastName(showError = false) {
         const name = this.lastNameInput ? this.lastNameInput.value.trim() : '';
-
         if (!name) {
-            if (showError && this.lastNameTouched) {
-                this.setError('lastNameError', 'Введите фамилию');
-            }
+            if (showError && this.lastNameTouched) this.setError('lastNameError', 'Введите фамилию');
             return false;
         }
-
         if (!/^[А-Яа-яЁё\s\-]+$/.test(name)) {
-            if (showError) {
-                this.setError('lastNameError', 'Только русские буквы, дефисы и пробелы');
-            }
+            if (showError) this.setError('lastNameError', 'Только русские буквы, дефисы и пробелы');
             return false;
         }
-
         if (name.length > 30) {
-            if (showError) {
-                this.setError('lastNameError', 'Фамилия не должна превышать 30 символов');
-            }
+            if (showError) this.setError('lastNameError', 'Фамилия не должна превышать 30 символов');
             return false;
         }
-
         return true;
     }
 
     validateMiddleName(showError = false) {
         const name = this.middleNameInput ? this.middleNameInput.value.trim() : '';
-
         if (!name) return true;
-
         if (!/^[А-Яа-яЁё\s\-]+$/.test(name)) {
-            if (showError) {
-                this.setError('middleNameError', 'Только русские буквы, дефисы и пробелы');
-            }
+            if (showError) this.setError('middleNameError', 'Только русские буквы, дефисы и пробелы');
             return false;
         }
-
         if (name.length > 30) {
-            if (showError) {
-                this.setError('middleNameError', 'Отчество не должно превышать 30 символов');
-            }
+            if (showError) this.setError('middleNameError', 'Отчество не должно превышать 30 символов');
             return false;
         }
-
         return true;
     }
 
     validateExperience(showError = false) {
         const value = this.experienceInput ? this.experienceInput.value.trim() : '';
-
         if (!value) return true;
-
         const num = parseInt(value);
         if (isNaN(num) || num < 0 || num > 100) {
-            if (showError) {
-                this.setError('experienceError', 'Стаж должен быть от 0 до 100 лет');
-            }
+            if (showError) this.setError('experienceError', 'Стаж должен быть от 0 до 100 лет');
             return false;
         }
-
         return true;
     }
 
     validateForm(showErrors = false) {
         let isValid = true;
-
         if (!this.validateEmail(showErrors)) isValid = false;
         if (!this.validatePassword(showErrors)) isValid = false;
         if (!this.validateConfirmPassword(showErrors)) isValid = false;
         if (!this.validateFirstName(showErrors)) isValid = false;
         if (!this.validateLastName(showErrors)) isValid = false;
-
         this.validateMiddleName(showErrors);
         this.validateExperience(showErrors);
-
         return isValid;
     }
 
@@ -990,20 +862,29 @@ class RegisterApp {
         if (!this.validateForm(true)) {
             const firstError = document.querySelector('.form-error:not(:empty)');
             if (firstError) {
-                firstError.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             return;
         }
 
-        // Обновляем скрытые инпуты перед отправкой (только если есть выбранные специализации)
+        // ✅ ГАРАНТИРУЕМ НАЛИЧИЕ CSRF-ТОКЕНА В ФОРМЕ
+        let csrfInput = this.registerForm.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (!csrfInput) {
+            const token = this.getCSRFToken();
+            if (token) {
+                csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = token;
+                this.registerForm.appendChild(csrfInput);
+            }
+        }
+
+        // Обновляем скрытые инпуты для специализаций
         const container = document.querySelector('.multi-select-container');
         if (container) {
             const existingHidden = container.querySelectorAll('input[type="hidden"]');
             existingHidden.forEach(h => h.remove());
-
             this.selectedSpecializations.forEach(value => {
                 const hidden = document.createElement('input');
                 hidden.type = 'hidden';
@@ -1033,7 +914,6 @@ class RegisterApp {
     }
 }
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     try {
         window.registerApp = new RegisterApp();
