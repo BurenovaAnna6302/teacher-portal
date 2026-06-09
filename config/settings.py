@@ -14,31 +14,50 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 # Режим отладки – на сервере всегда False
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-# Разрешённые хосты – задаются через переменную окружения (на сервере – список доменов)
-# Обратите внимание: в переменной ALLOWED_HOSTS должны быть перечислены все домены, включая платформенный
+# Разрешённые хосты
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(',')
 
-# ✅ Доверенные источники для CSRF-защиты (обязательно для HTTPS)
+# ✅ Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://burenkovaanna6302-teacher-portal-a1f8.twc1.net',
     'https://явтемпе.рф',
     'https://www.явтемпе.рф',
 ]
 
-# Дополнительные настройки CSRF и сессий для корректной работы на HTTPS
-CSRF_COOKIE_SECURE = True          # Куки CSRF только по HTTPS
-CSRF_COOKIE_HTTPONLY = False       # Чтобы JavaScript мог читать токен (если нужно)
-CSRF_COOKIE_SAMESITE = 'Lax'       # Защита от межсайтовой подделки
+# ✅ КЛЮЧЕВЫЕ НАСТРОЙКИ ДЛЯ ПРОКСИ (Timeweb Cloud)
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-SESSION_COOKIE_SECURE = True       # Куки сессии только по HTTPS
+# Настройки CSRF и сессий
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Коды для двухфакторной аутентификации администратора
+# ✅ Логирование CSRF-ошибок (чтобы видеть точную причину)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.security.csrf': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
+# Коды для двухфакторной аутентификации
 ADMIN_SECRET_CODE = os.getenv('ADMIN_SECRET_CODE', '')
 ADMIN_BACKUP_CODE = os.getenv('ADMIN_BACKUP_CODE', '')
 
-# Приложения
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,19 +65,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'main',
-    'about',
-    'news',
-    'events',
-    'materials',
-    'documents',
-    'surveys',
-    'members',
-    'teachers',
-    'account',
-    'admin_panel',
-    'success_practices',
+    'main', 'about', 'news', 'events', 'materials', 'documents',
+    'surveys', 'members', 'teachers', 'account', 'admin_panel', 'success_practices',
 ]
 
 MIDDLEWARE = [
@@ -94,22 +102,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# База данных
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
 
-# Сессии
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_AGE = 1209600
 
-# Интернационализация
 LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-# Статические файлы (CSS, JS, изображения)
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
@@ -127,17 +131,14 @@ STATICFILES_DIRS = [
     BASE_DIR / 'success_practices/static',
 ]
 
-# Медиафайлы
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Ограничения на загрузку
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760   # 10 MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760   # 10 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# URL для логина и редиректов
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/account/profile/'
 LOGOUT_REDIRECT_URL = '/'
