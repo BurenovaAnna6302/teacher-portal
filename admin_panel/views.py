@@ -598,21 +598,17 @@ def event_edit(request, event_id):
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Получаем мероприятие из БД
     event = get_object_or_404(RealEvent, id=event_id)
 
-    # Получаем справочники
     audiences = TargetAudience.objects.all().order_by('name')
     formats = EventFormat.objects.all().order_by('name')
     activity_types = ActivityType.objects.all().order_by('name')
     subjects = Subject.objects.all().order_by('name')
 
-    # Получаем фото мероприятия
     existing_photos = event.photos.all()[:6]
 
     if request.method == 'POST':
         try:
-            # Получаем данные из формы
             title = request.POST.get('title', '').strip()
             short_description = request.POST.get('short_description', '').strip()
             detailed_description = request.POST.get('full_description', '').strip()
@@ -623,7 +619,6 @@ def event_edit(request, event_id):
             format_id = request.POST.get('format', '')
             audience_id = request.POST.get('target_audience', '')
 
-            # Валидация
             if not title:
                 messages.error(request, 'Название мероприятия обязательно')
                 return render(request, 'admin_panel/events/form.html', {
@@ -635,11 +630,9 @@ def event_edit(request, event_id):
                     'existing_photos': existing_photos,
                 })
 
-            # Парсим дату и время
             from datetime import datetime
             dt = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
 
-            # Обновляем мероприятие
             event.title = title
             event.short_description = short_description
             event.detailed_description = detailed_description
@@ -652,28 +645,22 @@ def event_edit(request, event_id):
             event.target_audience_id = audience_id if audience_id else None
             event.save()
 
-            # Обработка удаления старых фото
+            # Удаление помеченных фото (без os.remove)
             photos_to_delete = request.POST.getlist('delete_photos')
             for photo_id in photos_to_delete:
                 try:
                     photo = EventPhoto.objects.get(id=photo_id, event=event)
-                    if photo.photo:
-                        if os.path.isfile(photo.photo.path):
-                            os.remove(photo.photo.path)
-                    photo.delete()
+                    photo.delete()   # Django сам удалит файл из локальной папки или S3
                 except EventPhoto.DoesNotExist:
                     pass
 
-            # Обработка новых фото
+            # Добавление новых фото
             new_photos = request.FILES.getlist('photos')
             current_photos_count = event.photos.count()
 
             for photo_file in new_photos:
                 if current_photos_count < 6:
-                    EventPhoto.objects.create(
-                        event=event,
-                        photo=photo_file
-                    )
+                    EventPhoto.objects.create(event=event, photo=photo_file)
                     current_photos_count += 1
                 else:
                     messages.warning(request, 'Максимум 6 фото. Лишние фото не сохранены.')
@@ -685,7 +672,7 @@ def event_edit(request, event_id):
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении мероприятия: {str(e)}')
 
-    # Подготавливаем данные для шаблона
+    # GET-запрос: подготовка данных для формы
     from django.utils import timezone
     now = timezone.now()
     is_upcoming = event.date > now.date() or (event.date == now.date() and event.time > now.time())
@@ -709,7 +696,6 @@ def event_edit(request, event_id):
         'updated_at': event.updated_at.strftime('%d.%m.%Y %H:%M') if event.updated_at else '',
     }
 
-    # Подготавливаем данные о существующих фото
     photos_data = []
     for photo in existing_photos:
         if photo.photo:
@@ -740,11 +726,8 @@ def event_delete(request, event_id):
     if request.method == 'POST':
         event = get_object_or_404(RealEvent, id=event_id)
 
-        # Удаляем связанные фото
+        # Удаляем связанные фото — photo.delete() сам удалит файл
         for photo in event.photos.all():
-            if photo.photo:
-                if os.path.isfile(photo.photo.path):
-                    os.remove(photo.photo.path)
             photo.delete()
 
         event.delete()
