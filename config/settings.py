@@ -17,6 +17,13 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 # Разрешённые хосты – задаются через переменную окружения (на сервере – список доменов)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# ✅ Добавлено: доверенные источники для CSRF-защиты (обязательно для HTTPS)
+CSRF_TRUSTED_ORIGINS = [
+    'https://burenkovaanna6302-teacher-portal-a1f8.twc1.net',
+    'https://явтемпе.рф',           # ваш будущий домен
+    'https://www.явтемпе.рф',       # если будете использовать www
+]
+
 # Коды для двухфакторной аутентификации администратора
 ADMIN_SECRET_CODE = os.getenv('ADMIN_SECRET_CODE', '')
 ADMIN_BACKUP_CODE = os.getenv('ADMIN_BACKUP_CODE', '')
@@ -46,7 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← добавить эту строку
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,15 +85,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # База данных – используем единую строку подключения DATABASE_URL
-# На локальной машине она берётся из .env, на сервере – из переменных окружения Timeweb Cloud
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
 
-# Сессии (настройки можно оставить как есть)
+# Сессии
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False      # Если включите HTTPS на сервере, поставьте True
+SESSION_COOKIE_SECURE = False      # При включенном HTTPS поставьте True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_NAME = 'sessionid'
 SESSION_COOKIE_AGE = 1209600
@@ -99,7 +105,7 @@ USE_TZ = True
 
 # Статические файлы (CSS, JS, изображения)
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'   # Сюда собирается статика для продакшена
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
     BASE_DIR / 'main/static',
@@ -115,7 +121,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'success_practices/static',
 ]
 
-# Медиафайлы (загружаемые пользователями)
+# Медиафайлы
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
