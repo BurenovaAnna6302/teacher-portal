@@ -380,35 +380,28 @@ def survey_statistics(request, survey_id):
     })
 
 
-
 # ========== МЕРОПРИЯТИЯ ==========
+
 def event_list(request):
     """Список мероприятий из реальной БД"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Получаем фильтры из GET-параметров
     activity_filter = request.GET.get('activity_type')
     format_filter = request.GET.get('format')
     audience_filter = request.GET.get('audience')
     status_filter = request.GET.get('status')
 
-    # Базовый запрос
     events_queryset = RealEvent.objects.all().select_related(
         'target_audience', 'format', 'activity_type', 'subject'
     ).prefetch_related('photos').order_by('date', 'time')
 
-    # Применяем фильтры
     if activity_filter and activity_filter != '':
         events_queryset = events_queryset.filter(activity_type__name__icontains=activity_filter)
-
     if format_filter and format_filter != '':
         events_queryset = events_queryset.filter(format__name__icontains=format_filter)
-
     if audience_filter and audience_filter != '':
         events_queryset = events_queryset.filter(target_audience__name__icontains=audience_filter)
-
-    # Фильтр по статусу (предстоящие/завершенные)
     if status_filter and status_filter != '':
         from django.utils import timezone
         now = timezone.now()
@@ -419,10 +412,8 @@ def event_list(request):
             events_queryset = events_queryset.filter(date__lt=now.date()) | \
                               events_queryset.filter(date=now.date(), time__lt=now.time())
 
-    # Пагинация - 8 элементов на страницу
     page = request.GET.get('page', 1)
     paginator = Paginator(events_queryset, 8)
-
     try:
         page_obj = paginator.page(page)
     except PageNotAnInteger:
@@ -430,20 +421,15 @@ def event_list(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
-    # Получаем все справочники из БД для фильтров
     db_activity_types = ActivityType.objects.all().order_by('name')
     db_formats = EventFormat.objects.all().order_by('name')
     db_audiences = TargetAudience.objects.all().order_by('name')
     db_subjects = Subject.objects.all().order_by('name')
 
-    # Подготавливаем данные для шаблона
     events_data = []
     for event in page_obj:
-        # Получаем фото (первое для превью)
         first_photo = event.photos.first()
-        photo_url = None
-        if first_photo and first_photo.photo:
-            photo_url = first_photo.photo.url
+        photo_url = first_photo.photo.url if first_photo and first_photo.photo else None
 
         from django.utils import timezone
         now = timezone.now()
@@ -495,10 +481,10 @@ def event_list(request):
         'db_audiences': db_audiences,
         'db_subjects': db_subjects,
         'current_filters': {
-            'activity_type': activity_filter if activity_filter else '',
-            'format': format_filter if format_filter else '',
-            'audience': audience_filter if audience_filter else '',
-            'status': status_filter if status_filter else '',
+            'activity_type': activity_filter or '',
+            'format': format_filter or '',
+            'audience': audience_filter or '',
+            'status': status_filter or '',
         },
         'page_title': 'Мероприятия',
         'admin_name': request.session.get('admin_name', 'Администратор'),
@@ -511,15 +497,22 @@ def event_create(request):
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Получаем реальные справочники из БД
     audiences = TargetAudience.objects.all().order_by('name')
     formats = EventFormat.objects.all().order_by('name')
     activity_types = ActivityType.objects.all().order_by('name')
     subjects = Subject.objects.all().order_by('name')
 
     if request.method == 'POST':
+        # === ДИАГНОСТИКА: выводим всё, что пришло в request.FILES ===
+        print("\n" + "=" * 60)
+        print("📸 event_create: проверка файлов")
+        print("  request.FILES:", request.FILES)
+        print("  keys:", list(request.FILES.keys()))
+        for key in request.FILES.keys():
+            print(f"  {key}: {request.FILES.getlist(key)}")
+        print("=" * 60 + "\n")
+
         try:
-            # Получаем данные из формы
             title = request.POST.get('title', '').strip()
             short_description = request.POST.get('short_description', '').strip()
             detailed_description = request.POST.get('full_description', '').strip()
@@ -530,9 +523,8 @@ def event_create(request):
             format_id = request.POST.get('format', '')
             audience_id = request.POST.get('target_audience', '')
 
-            # Валидация
-            if not title:
-                messages.error(request, 'Название мероприятия обязательно')
+            if not title or not date_time:
+                messages.error(request, 'Название и дата мероприятия обязательны')
                 return render(request, 'admin_panel/events/form.html', {
                     'audiences': audiences,
                     'formats': formats,
@@ -540,20 +532,9 @@ def event_create(request):
                     'subjects': subjects,
                 })
 
-            if not date_time:
-                messages.error(request, 'Дата и время проведения обязательны')
-                return render(request, 'admin_panel/events/form.html', {
-                    'audiences': audiences,
-                    'formats': formats,
-                    'activity_types': activity_types,
-                    'subjects': subjects,
-                })
-
-            # Парсим дату и время
             from datetime import datetime
             dt = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
 
-            # Создаем мероприятие
             event = RealEvent.objects.create(
                 title=title,
                 short_description=short_description,
@@ -568,19 +549,23 @@ def event_create(request):
                 is_published=True
             )
 
-            # Обработка загруженных фото (максимум 6)
+            # Сохраняем фото (если есть)
             photos = request.FILES.getlist('photos')
-            for i, photo_file in enumerate(photos[:6]):
-                EventPhoto.objects.create(
-                    event=event,
-                    photo=photo_file
-                )
+            if photos:
+                print(f"📸 Получено {len(photos)} фото для сохранения")
+                for i, photo_file in enumerate(photos[:6]):
+                    EventPhoto.objects.create(event=event, photo=photo_file)
+                    print(f"   - сохранено фото {i+1}: {photo_file.name}")
+            else:
+                print("⚠️ Нет фото в request.FILES")
 
             messages.success(request, 'Мероприятие успешно создано')
             return redirect('admin_panel:event_list')
 
         except Exception as e:
-            messages.error(request, f'Ошибка при создании мероприятия: {str(e)}')
+            messages.error(request, f'Ошибка: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/events/form.html', {
         'audiences': audiences,
@@ -604,10 +589,18 @@ def event_edit(request, event_id):
     formats = EventFormat.objects.all().order_by('name')
     activity_types = ActivityType.objects.all().order_by('name')
     subjects = Subject.objects.all().order_by('name')
-
     existing_photos = event.photos.all()[:6]
 
     if request.method == 'POST':
+        # === ДИАГНОСТИКА: выводим всё, что пришло в request.FILES ===
+        print("\n" + "=" * 60)
+        print("📸 event_edit: проверка файлов")
+        print("  request.FILES:", request.FILES)
+        print("  keys:", list(request.FILES.keys()))
+        for key in request.FILES.keys():
+            print(f"  {key}: {request.FILES.getlist(key)}")
+        print("=" * 60 + "\n")
+
         try:
             title = request.POST.get('title', '').strip()
             short_description = request.POST.get('short_description', '').strip()
@@ -645,32 +638,39 @@ def event_edit(request, event_id):
             event.target_audience_id = audience_id if audience_id else None
             event.save()
 
-            # Удаление помеченных фото (без os.remove)
+            # Удаление отмеченных фото
             photos_to_delete = request.POST.getlist('delete_photos')
             for photo_id in photos_to_delete:
                 try:
                     photo = EventPhoto.objects.get(id=photo_id, event=event)
-                    photo.delete()   # Django сам удалит файл из локальной папки или S3
+                    photo.delete()
+                    print(f"🗑️ Удалено фото {photo_id}")
                 except EventPhoto.DoesNotExist:
                     pass
 
             # Добавление новых фото
             new_photos = request.FILES.getlist('photos')
-            current_photos_count = event.photos.count()
-
-            for photo_file in new_photos:
-                if current_photos_count < 6:
-                    EventPhoto.objects.create(event=event, photo=photo_file)
-                    current_photos_count += 1
-                else:
-                    messages.warning(request, 'Максимум 6 фото. Лишние фото не сохранены.')
-                    break
+            if new_photos:
+                print(f"📸 Получено {len(new_photos)} новых фото")
+                current_photos_count = event.photos.count()
+                for photo_file in new_photos:
+                    if current_photos_count < 6:
+                        EventPhoto.objects.create(event=event, photo=photo_file)
+                        current_photos_count += 1
+                        print(f"   - сохранено фото: {photo_file.name}")
+                    else:
+                        messages.warning(request, 'Максимум 6 фото. Лишние не сохранены.')
+                        break
+            else:
+                print("⚠️ Нет новых фото в request.FILES")
 
             messages.success(request, 'Мероприятие успешно обновлено')
             return redirect('admin_panel:event_list')
 
         except Exception as e:
-            messages.error(request, f'Ошибка при обновлении мероприятия: {str(e)}')
+            messages.error(request, f'Ошибка при обновлении: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     # GET-запрос: подготовка данных для формы
     from django.utils import timezone
@@ -725,16 +725,13 @@ def event_delete(request, event_id):
 
     if request.method == 'POST':
         event = get_object_or_404(RealEvent, id=event_id)
-
-        # Удаляем связанные фото — photo.delete() сам удалит файл
+        # Удаляем связанные фото
         for photo in event.photos.all():
             photo.delete()
-
         event.delete()
         messages.success(request, 'Мероприятие успешно удалено')
 
     return redirect('admin_panel:event_list')
-
 
 # ========== НОВОСТИ ==========
 def news_list(request):

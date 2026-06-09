@@ -183,39 +183,18 @@
         font-size: 16px;
     }
 
-    /* ===== Загрузка фото ===== */
-    .image-upload-area {
-        border: 2px dashed var(--admin-border);
-        border-radius: var(--admin-radius-md);
-        padding: 25px 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        margin-bottom: 15px;
-        background: var(--admin-bg-light);
-    }
-
-    .image-upload-area:hover {
-        border-color: var(--admin-primary);
-        background: var(--admin-primary-light);
-    }
-
-    .image-upload-icon {
-        font-size: 40px;
-        color: var(--admin-primary);
-        margin-bottom: 10px;
-        opacity: 0.5;
-    }
-
-    .upload-text {
-        font-weight: 600;
-        color: var(--admin-primary);
-        margin-bottom: 5px;
-    }
-
-    .upload-hint {
+    /* ===== Загрузка фото (упрощённая) ===== */
+    .photo-limit-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 12px;
         color: var(--admin-text-gray);
+        margin-top: 15px;
+        padding: 8px 12px;
+        background: var(--admin-bg-light);
+        border-radius: var(--admin-radius-sm);
+        border: 1px solid var(--admin-border);
     }
 
     .image-preview-grid {
@@ -261,26 +240,6 @@
 
     .preview-item:hover .preview-remove {
         opacity: 1;
-    }
-
-    .photo-limit-hint {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: var(--admin-text-gray);
-        margin-top: 15px;
-        padding: 8px 12px;
-        background: var(--admin-bg-light);
-        border-radius: var(--admin-radius-sm);
-        border: 1px solid var(--admin-border);
-    }
-
-    .photo-count {
-        font-size: 13px;
-        color: var(--admin-text-gray);
-        margin-top: 15px;
-        font-weight: 500;
     }
 
     /* ===== Кнопки ===== */
@@ -469,17 +428,15 @@
                     <div id="deletePhotosContainer"></div>
                     {% endif %}
 
-                    <div class="image-upload-area" id="uploadArea">
-                        <div class="image-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                        <div class="upload-text">Нажмите для загрузки</div>
-                        <div class="upload-hint">JPG, PNG до 5 МБ, до 6 фото</div>
-                        <input type="file" id="photosInput" name="photos" style="display: none;" accept="image/jpeg,image/png,image/jpg" multiple>
+                    <!-- Упрощённая загрузка новых фото (без сложного JS) -->
+                    <div class="form-group">
+                        <label>Добавить новые фото (до 6)</label>
+                        <input type="file" name="photos" multiple accept="image/jpeg,image/png,image/jpg" class="form-control">
+                        <small class="form-text text-muted">Можно выбрать до 6 фотографий, JPG/PNG до 5 МБ</small>
                     </div>
 
-                    <div class="photo-limit-hint"><i class="fas fa-info-circle"></i>Можно загрузить до 6 фотографий</div>
-                    <div class="image-preview-grid" id="newPhotosPreview"></div>
-                    <div class="photo-count" id="photoCount">
-                        Загружено: {{ existing_photos|length|default:0 }}/6
+                    <div class="photo-limit-hint">
+                        <i class="fas fa-info-circle"></i> Можно загрузить до 6 фотографий
                     </div>
                 </div>
 
@@ -519,89 +476,11 @@
             textarea.addEventListener('input', update);
             update();
         }
-
         updateCharCounter('title', 'titleCounter', 100);
         updateCharCounter('short_description', 'shortDescCounter', 250);
         updateCharCounter('full_description', 'fullDescCounter', 5000);
 
-        // Переменные для новых фото (сохраняем список файлов, которые реально отправятся)
-        let selectedFiles = []; // массив File объектов
-        const photosInput = document.getElementById('photosInput');
-        const newPhotosPreview = document.getElementById('newPhotosPreview');
-        const photoCountSpan = document.getElementById('photoCount');
-        const existingCount = {{ existing_photos|length|default:0 }};
-
-        function updatePhotoCount() {
-            const total = existingCount + selectedFiles.length;
-            photoCountSpan.textContent = `Загружено: ${total}/6`;
-        }
-
-        function renderPreviews() {
-            newPhotosPreview.innerHTML = '';
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const file = selectedFiles[i];
-                const reader = new FileReader();
-                const previewItem = document.createElement('div');
-                previewItem.className = 'preview-item';
-                previewItem.setAttribute('data-index', i);
-                reader.onload = (function(f, idx) {
-                    return function(e) {
-                        previewItem.innerHTML = `
-                            <img src="${e.target.result}" alt="Превью">
-                            <button type="button" class="preview-remove" data-index="${idx}"><i class="fas fa-times"></i></button>
-                        `;
-                    };
-                })(file, i);
-                reader.readAsDataURL(file);
-                newPhotosPreview.appendChild(previewItem);
-            }
-            // Назначить обработчики удаления
-            document.querySelectorAll('#newPhotosPreview .preview-remove').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    const idx = parseInt(this.getAttribute('data-index'));
-                    if (!isNaN(idx)) {
-                        selectedFiles.splice(idx, 1);
-                        renderPreviews(); // перерисуем
-                        updatePhotoCount();
-                        // Обновить input.files (не обязательно, но для синхронизации)
-                        const dataTransfer = new DataTransfer();
-                        selectedFiles.forEach(f => dataTransfer.items.add(f));
-                        photosInput.files = dataTransfer.files;
-                    }
-                    e.stopPropagation();
-                });
-            });
-        }
-
-        // Обработчик выбора файлов
-        photosInput.addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            if (existingCount + selectedFiles.length + files.length > 6) {
-                alert('Можно загрузить максимум 6 фотографий');
-                return;
-            }
-            // Фильтр по размеру
-            for (let file of files) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert(`Файл "${file.name}" слишком большой. Максимальный размер 5 МБ`);
-                    return;
-                }
-            }
-            selectedFiles = selectedFiles.concat(files);
-            renderPreviews();
-            updatePhotoCount();
-            // Обновить input.files
-            const dataTransfer = new DataTransfer();
-            selectedFiles.forEach(f => dataTransfer.items.add(f));
-            photosInput.files = dataTransfer.files;
-        });
-
-        // Клик по области загрузки
-        document.getElementById('uploadArea').addEventListener('click', function() {
-            photosInput.click();
-        });
-
-        // Удаление существующих фото (отметка на удаление)
+        // Удаление существующих фото
         window.markForDelete = function(photoId, btn) {
             if (confirm('Удалить это фото?')) {
                 const container = document.getElementById('deletePhotosContainer');
@@ -614,9 +493,6 @@
                 previewItem.style.opacity = '0.5';
                 previewItem.style.pointerEvents = 'none';
                 btn.style.display = 'none';
-                const newCount = existingCount - 1;
-                const total = newCount + selectedFiles.length;
-                photoCountSpan.textContent = `Загружено: ${total}/6`;
             }
         };
 
