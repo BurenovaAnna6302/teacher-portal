@@ -17,7 +17,7 @@ db.sqlite3
 
 # Статика и медиа
 staticfiles/
-media/
+
 collected_static/
 
 # Логи
