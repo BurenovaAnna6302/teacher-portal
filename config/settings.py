@@ -172,7 +172,7 @@ AWS_S3_ENDPOINT_URL = 'https://s3.twcstorage.ru'
 
 # КЛЮЧЕВАЯ НАСТРОЙКА: заставляет использовать формат s3.twcstorage.ru/bucket-name/file.jpg
 # вместо bucket-name.s3.twcstorage.ru/file.jpg (который вызывает ERR_CONNECTION_RESET)
-AWS_S3_ADDRESSING_STYLE = 'virtualhost'
+AWS_S3_ADDRESSING_STYLE = 'path'
 
 # Публичный доступ для всех загружаемых объектов
 AWS_DEFAULT_ACL = 'public-read'
@@ -185,8 +185,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 
 # Медиа URL (django-storages сгенерирует его корректно благодаря addressing_style='path')
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.twcstorage.ru'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+MEDIA_URL = f'https://s3.twcstorage.ru/{AWS_STORAGE_BUCKET_NAME}/'
 
 # Локальная папка для медиа (не используется при S3, но оставляем для совместимости)
 MEDIA_ROOT = BASE_DIR / 'media'
