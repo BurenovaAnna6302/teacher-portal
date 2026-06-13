@@ -78,24 +78,36 @@ def check_admin_code(request):
 
             if entered_code == admin_secret_code or entered_code == admin_backup_code:
                 request.session['admin_code_verified'] = True
+                request.session['is_admin'] = True      # ← ДОБАВЛЕНО: гарантируем is_admin
                 request.session.set_expiry(1800)
+                request.session.save()                  # ← ДОБАВЛЕНО: принудительное сохранение
 
                 return JsonResponse({
                     'success': True,
                     'redirect_url': reverse('admin_panel:admin_login')
                 })
             else:
-                return JsonResponse({'success': False, 'error': 'Неверный код доступа'})
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Неверный код доступа'
+                })
         except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': 'Ошибка формата данных'})
+            return JsonResponse({
+                'success': False,
+                'error': 'Ошибка формата данных'
+            })
         except Exception as e:
-            return JsonResponse({'success': False, 'error': f'Ошибка при обработке запроса: {str(e)}'})
+            return JsonResponse({
+                'success': False,
+                'error': f'Ошибка при обработке запроса: {str(e)}'
+            })
 
     return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})
 
 
 def admin_login(request):
     """Вход в админ-панель (по email и паролю)"""
+
     if request.session.get('admin_authenticated'):
         return redirect('admin_panel:dashboard')
 
@@ -107,20 +119,38 @@ def admin_login(request):
 
         try:
             admin_user = AdminUser.objects.get(email=email, is_active=True)
+
             if admin_user.check_password(password):
+                # Устанавливаем все необходимые флаги в сессии
                 request.session['admin_authenticated'] = True
-                request.session['is_admin'] = True
+                request.session['is_admin'] = True  # ← КРИТИЧЕСКИ ВАЖНО!
                 request.session['admin_id'] = admin_user.id
                 request.session['admin_name'] = admin_user.name
                 request.session['admin_email'] = admin_user.email
+
+                # Очищаем данные педагога, если он был авторизован ранее
+                if 'user_id' in request.session:
+                    del request.session['user_id']
+                if 'user_authenticated' in request.session:
+                    del request.session['user_authenticated']
+                if 'user_email' in request.session:
+                    del request.session['user_email']
+                if 'user_data' in request.session:
+                    del request.session['user_data']
+                if 'profile_data' in request.session:
+                    del request.session['profile_data']
+
+                # Принудительно сохраняем сессию
+                request.session.save()
+
                 return redirect('admin_panel:dashboard')
             else:
                 return render(request, 'admin_panel/login.html', {'error': 'Неверный пароль', 'email': email})
         except AdminUser.DoesNotExist:
-            return render(request, 'admin_panel/login.html', {'error': 'Администратор с таким email не найден', 'email': email})
+            return render(request, 'admin_panel/login.html',
+                          {'error': 'Администратор с таким email не найден', 'email': email})
 
     return render(request, 'admin_panel/login.html')
-
 
 def admin_logout(request):
     """Выход из админки"""
@@ -2340,8 +2370,7 @@ def practice_create(request):
                 messages.error(request, 'Категория обязательна')
                 return render(request, 'admin_panel/practices/form.html', {'categories': categories})
 
-            # ИСПРАВЛЕНО: Создаем практику и сразу передаем файл (если он есть),
-            # чтобы избежать лишнего запроса к БД и S3 через practice.save()
+            # Создаём практику сразу с файлом
             practice = Practice.objects.create(
                 title=title,
                 short_description=short_description,
@@ -2353,6 +2382,9 @@ def practice_create(request):
                 is_published=True,
                 file=request.FILES.get('file')
             )
+
+            # ← СБРОС КЭША: чтобы новая практика сразу появилась в каталоге
+            cache.clear()
 
             messages.success(request, f'Практика "{title}" успешно создана')
             return redirect('admin_panel:practices_list')
@@ -2367,7 +2399,6 @@ def practice_create(request):
         'page_title': 'Создание практики',
         'admin_name': request.session.get('admin_name', 'Администратор'),
     })
-
 
 @csrf_exempt
 def practice_edit(request, practice_id):
@@ -2408,20 +2439,21 @@ def practice_edit(request, practice_id):
             practice.audience = audience if audience else None
             practice.format_type = format_type if format_type else None
             practice.difficulty = difficulty if difficulty else None
-            practice.is_published = True
+            practice.is_published = True  # всегда опубликовано
 
-            # ИСПРАВЛЕНО: Корректное удаление файла из S3 через django-storages
             if remove_file and practice.file:
                 practice.file.delete()  # Удаляет файл из S3
                 practice.file = None
 
-            # ИСПРАВЛЕНО: Корректная замена файла в S3
             if 'file' in request.FILES:
                 if practice.file:
                     practice.file.delete()  # Удаляет старый файл из S3
                 practice.file = request.FILES['file']
 
             practice.save()
+
+            # ← СБРОС КЭША: чтобы изменения сразу появились в каталоге
+            cache.clear()
 
             messages.success(request, f'Практика "{title}" успешно обновлена')
             return redirect('admin_panel:practices_list')
@@ -2463,11 +2495,15 @@ def practice_delete(request, practice_id):
     if request.method == 'POST':
         practice = get_object_or_404(Practice, id=practice_id)
 
-        # ИСПРАВЛЕНО: Корректное удаление файла из S3 перед удалением записи из БД
+        # Корректное удаление файла из S3
         if practice.file:
             practice.file.delete()  # Удаляет файл из S3 через django-storages
 
         practice.delete()
+
+        # ← СБРОС КЭША: чтобы удалённая практика сразу исчезла из каталога
+        cache.clear()
+
         messages.success(request, 'Практика успешно удалена')
 
     return redirect('admin_panel:practices_list')
