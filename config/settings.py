@@ -14,12 +14,22 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 # Режим отладки – на сервере всегда False
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-# Разрешённые хосты (из переменной окружения, без пробелов)
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')]
+# Разрешённые хосты (все домены приложения, без пробелов)
+ALLOWED_HOSTS = [
+    'я-в-темпе.рф',
+    'ja-v-tempe.ru',
+    'ya-v-tempe.ru',
+    'явтемпе.рф',
+    'burenovaanna6302-teacher-portal-a1f8.twc1.net',
+    'localhost',
+    '127.0.0.1',
+]
 
 # Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
+    'https://я-в-темпе.рф',
     'https://ja-v-tempe.ru',
+    'https://ya-v-tempe.ru',
     'https://явтемпе.рф',
     'https://burenovaanna6302-teacher-portal-a1f8.twc1.net',
 ]
