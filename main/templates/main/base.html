@@ -31,7 +31,6 @@
     <meta property="og:title" content="{% block og_title %}Ассоциация молодых педагогов Поволжского образовательного округа{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Объединение молодых педагогов до 35 лет. Методические материалы, мероприятия, опросы и успешные практики.{% endblock %}">
     <meta property="og:url" content="https://ya-v-tempe.ru{{ request.path }}">
-
     <meta property="og:locale" content="ru_RU">
 
     <!-- ===== TWITTER CARD ===== -->
@@ -121,9 +120,10 @@
                 <a href="{% url 'surveys:surveys' %}" class="nav-link">Опросы</a>
             </nav>
 
-            <!-- Правая часть - авторизация -->
+            <!-- Правая часть - авторизация (ИСПРАВЛЕНО) -->
             <div class="header-auth">
-                {% if request.session.is_admin %}
+                {# ПРОВЕРЯЕМ АДМИНА ПО admin_authenticated #}
+                {% if request.session.admin_authenticated %}
                     <a href="{% url 'admin_panel:dashboard' %}" class="admin-user-info-link">
                         <div class="admin-user-info">
                             <div class="admin-avatar">
@@ -140,6 +140,8 @@
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Выйти</span>
                     </a>
+
+                {# ЕСЛИ НЕТ АДМИНА, ПРОВЕРЯЕМ ПЕДАГОГА #}
                 {% elif request.session.user_id %}
                     {% with user_data=request.session.user_data %}
                     <a href="{% url 'account:profile' %}" class="teacher-info-link">
@@ -161,6 +163,8 @@
                         <span>Выйти</span>
                     </a>
                     {% endwith %}
+
+                {# ИНАЧЕ ГОСТЬ #}
                 {% else %}
                     <a href="{% url 'teachers:login' %}" class="btn-login">Вход</a>
                     <a href="{% url 'teachers:register' %}" class="btn-register">Регистрация</a>
@@ -173,7 +177,7 @@
             </button>
         </div>
 
-        <!-- Mobile Navigation -->
+        <!-- Mobile Navigation (ИСПРАВЛЕНО) -->
         <div class="mobile-nav" id="mobileNav" aria-hidden="true">
             <div class="mobile-nav-header">
                 <span>Меню</span>
@@ -200,7 +204,8 @@
 
                 <a href="{% url 'surveys:surveys' %}" class="mobile-nav-link">Опросы</a>
 
-                {% if request.session.is_admin %}
+                {# ПРОВЕРЯЕМ АДМИНА ПО admin_authenticated #}
+                {% if request.session.admin_authenticated %}
                 <div class="mobile-admin-info">
                     <a href="{% url 'admin_panel:dashboard' %}" class="mobile-admin-user-link">
                         <div class="mobile-admin-user">
@@ -218,6 +223,8 @@
                         <i class="fas fa-sign-out-alt"></i> Выйти
                     </a>
                 </div>
+
+                {# ЕСЛИ НЕТ АДМИНА, ПРОВЕРЯЕМ ПЕДАГОГА #}
                 {% elif request.session.user_id %}
                     {% with user_data=request.session.user_data %}
                     <div class="mobile-teacher-info">
@@ -240,6 +247,8 @@
                         </a>
                     </div>
                     {% endwith %}
+
+                {# ИНАЧЕ ГОСТЬ #}
                 {% else %}
                 <div class="mobile-auth-buttons">
                     <a href="{% url 'teachers:login' %}" class="btn-mobile-login">Войти</a>
@@ -251,6 +260,18 @@
     </header>
 
     <main class="site-main">
+        <!-- БЛОК ДЛЯ СООБЩЕНИЙ (только для админки) -->
+        {% if messages and '/dashboard/' in request.path %}
+        <div class="messages-container container mt-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 
