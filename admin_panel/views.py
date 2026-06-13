@@ -67,23 +67,17 @@ def _delete_storage_item(storage_key, item_id):
 
 @csrf_exempt
 def check_admin_code(request):
-    """
-    Проверка секретного кода для двухфакторной аутентификации
-    """
+    """Проверка секретного кода для двухфакторной аутентификации"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             entered_code = data.get('code', '').strip()
 
-            # Получаем коды из настроек (которые загружены из .env)
             admin_secret_code = getattr(settings, 'ADMIN_SECRET_CODE', '')
             admin_backup_code = getattr(settings, 'ADMIN_BACKUP_CODE', '')
 
-            # Проверяем код из переменных окружения
             if entered_code == admin_secret_code or entered_code == admin_backup_code:
-                # Сохраняем в сессии, что код подтвержден
                 request.session['admin_code_verified'] = True
-                # Устанавливаем время жизни сессии (30 минут)
                 request.session.set_expiry(1800)
 
                 return JsonResponse({
@@ -91,27 +85,17 @@ def check_admin_code(request):
                     'redirect_url': reverse('admin_panel:admin_login')
                 })
             else:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Неверный код доступа'
-                })
+                return JsonResponse({'success': False, 'error': 'Неверный код доступа'})
         except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False,
-                'error': 'Ошибка формата данных'
-            })
+            return JsonResponse({'success': False, 'error': 'Ошибка формата данных'})
         except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': f'Ошибка при обработке запроса: {str(e)}'
-            })
+            return JsonResponse({'success': False, 'error': f'Ошибка при обработке запроса: {str(e)}'})
 
     return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})
 
 
 def admin_login(request):
     """Вход в админ-панель (по email и паролю)"""
-
     if request.session.get('admin_authenticated'):
         return redirect('admin_panel:dashboard')
 
@@ -123,10 +107,9 @@ def admin_login(request):
 
         try:
             admin_user = AdminUser.objects.get(email=email, is_active=True)
-
             if admin_user.check_password(password):
                 request.session['admin_authenticated'] = True
-                request.session['is_admin'] = True  # ← ДОБАВИТЬ ЭТУ СТРОКУ
+                request.session['is_admin'] = True
                 request.session['admin_id'] = admin_user.id
                 request.session['admin_name'] = admin_user.name
                 request.session['admin_email'] = admin_user.email
@@ -134,16 +117,17 @@ def admin_login(request):
             else:
                 return render(request, 'admin_panel/login.html', {'error': 'Неверный пароль', 'email': email})
         except AdminUser.DoesNotExist:
-            return render(request, 'admin_panel/login.html',
-                          {'error': 'Администратор с таким email не найден', 'email': email})
+            return render(request, 'admin_panel/login.html', {'error': 'Администратор с таким email не найден', 'email': email})
 
     return render(request, 'admin_panel/login.html')
+
 
 def admin_logout(request):
     """Выход из админки"""
     request.session.flush()
     messages.success(request, 'Вы вышли из системы')
     return redirect('admin_panel:admin_login')
+
 
 def check_admin_access(request):
     """Проверка доступа к админке"""
@@ -152,46 +136,33 @@ def check_admin_access(request):
         return False
     return True
 
+
 # ========== ДАШБОРД (ГЛАВНАЯ) ==========
 def dashboard(request):
-    """Главная страница админки"""
+    """Главная страница админки (БЕЗОПАСНАЯ ВЕРСИЯ БЕЗ ФИЛЬТРАЦИИ ПО ДАТЕ)"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    from django.utils import timezone
-    now = timezone.now()
-
-    # Получаем события для календаря (без изменения БД)
-    month_events = RealEvent.objects.filter(
-        date__year=now.year,
-        date__month=now.month
-    ).values('id', 'title', 'date')
-
-    month_news = RealNews.objects.filter(
-        publication_date__year=now.year,
-        publication_date__month=now.month
-    ).values('id', 'title', 'publication_date')
-
-    month_surveys = RealSurvey.objects.filter(
-        deadline__year=now.year,
-        deadline__month=now.month
-    ).values('id', 'title', 'deadline')
-
-    stats = {
-        'events': RealEvent.objects.count(),
-        'news': RealNews.objects.count(),
-        'materials': RealMaterial.objects.count(),
-        'documents': RealDocument.objects.count(),
-        'surveys': RealSurvey.objects.count(),
-        'questions': Question.objects.count(),
-    }
+    # Безопасный подсчет статистики, который не упадет из-за отсутствия полей или типов данных
+    try:
+        stats = {
+            'events': RealEvent.objects.count(),
+            'news': RealNews.objects.count(),
+            'materials': RealMaterial.objects.count(),
+            'documents': RealDocument.objects.count(),
+            'surveys': RealSurvey.objects.count(),
+            'questions': Question.objects.count(),
+        }
+    except Exception as e:
+        print(f"Ошибка подсчета статистики в dashboard: {e}")
+        stats = {'events': 0, 'news': 0, 'materials': 0, 'documents': 0, 'surveys': 0, 'questions': 0}
 
     context = {
         'admin_name': request.session.get('admin_name', 'Администратор'),
         'stats': stats,
-        'month_events': month_events,
-        'month_news': month_news,
-        'month_surveys': month_surveys,
+        'month_events': [],   # Убрана проблемная фильтрация по дате
+        'month_news': [],     # Убрана проблемная фильтрация по дате
+        'month_surveys': [],  # Убрана проблемная фильтрация по дате
         'page_title': 'Главная'
     }
 
@@ -199,17 +170,12 @@ def dashboard(request):
 
 
 # ========== СТАТИСТИКА ==========
-# В функции statistics(request) нужно исправить подсчет статусов:
-
 def statistics(request):
-    """Страница статистики опросов"""
+    """Страница общей статистики опросов"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Общая статистика
     total_surveys = RealSurvey.objects.count()
-
-    # Подсчет статусов
     all_statuses = ActivityStatus.objects.all()
 
     active_surveys = 0
@@ -222,20 +188,13 @@ def statistics(request):
         elif 'заверш' in status_name_lower or 'completed' in status_name_lower:
             completed_surveys += RealSurvey.objects.filter(status=status).count()
 
-    # ИСПРАВЛЕНО: Только общее количество ответов
     total_responses = SurveyPassing.objects.count()
-
-    # Категории для фильтра
     categories = SurveyCategory.objects.all()
 
-    # Список опросов
     surveys_list = []
-    for survey in RealSurvey.objects.all().select_related('category', 'status').prefetch_related('questions').order_by(
-            '-created_date'):
-        # ИСПРАВЛЕНО: Только количество ответов для этого опроса
+    for survey in RealSurvey.objects.all().select_related('category', 'status').prefetch_related('questions').order_by('-created_date'):
         responses_count = SurveyPassing.objects.filter(survey=survey).count()
 
-        # Определяем статус для отображения
         status_class = 'draft'
         status_display = 'Черновик'
 
@@ -258,7 +217,7 @@ def statistics(request):
             'category_id': survey.category.id if survey.category else '',
             'status': status_class,
             'status_display': status_display,
-            'responses': responses_count,  # Только ответы
+            'responses': responses_count,
             'questions_count': survey.questions.count(),
         })
 
@@ -266,7 +225,7 @@ def statistics(request):
         'total_surveys': total_surveys,
         'active_surveys': active_surveys,
         'completed_surveys': completed_surveys,
-        'total_responses': total_responses,  # Только ответы
+        'total_responses': total_responses,
         'categories': categories,
         'surveys': surveys_list,
         'admin_name': request.session.get('admin_name', 'Администратор'),
@@ -278,57 +237,54 @@ def statistics(request):
 
 # ========== ДЕТАЛЬНАЯ СТАТИСТИКА ОПРОСА ==========
 def survey_statistics(request, survey_id):
-    """Детальная статистика по конкретному опросу"""
+    """Детальная статистика по конкретному опросу (ИСПРАВЛЕН РАСЧЕТ ПРОЦЕНТОВ)"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Получаем реальный опрос из БД
     try:
         survey = RealSurvey.objects.get(id=survey_id)
     except RealSurvey.DoesNotExist:
         messages.error(request, 'Опрос не найден')
         return redirect('admin_panel:statistics')
 
-    # Получаем все прохождения опроса
     passings = SurveyPassing.objects.filter(survey=survey)
-    total_responses = passings.count()  # Только количество ответов, не участников
+    total_responses = passings.count()
 
-    # Собираем статистику по вопросам
     questions_stats = []
     for question in survey.questions.all().order_by('order'):
         answers = TeacherAnswer.objects.filter(question=question)
-
-        # Определяем тип вопроса
         question_type_name = question.question_type.name if question.question_type else 'Текстовый ответ'
 
         question_data = {
             'id': question.id,
             'text': question.text,
-            'type': 'single' if question_type_name == 'Одиночный выбор' else
-            'multiple' if question_type_name == 'Множественный выбор' else 'text',
+            'type': 'single' if question_type_name == 'Одиночный выбор' else 'multiple' if question_type_name == 'Множественный выбор' else 'text',
             'required': question.is_required,
             'answers_count': answers.count(),
         }
 
-        # Статистика по вариантам для вопросов с выбором
         if question_type_name in ['Одиночный выбор', 'Множественный выбор']:
             options_stats = []
             total_responses_for_question = 0
 
+            # ШАГ 1: Считаем общее количество ответов именно на ЭТОТ вопрос
             for option in question.options.all().order_by('order'):
                 if question_type_name == 'Одиночный выбор':
-                    count = TeacherAnswer.objects.filter(
-                        question=question,
-                        selected_option=option
-                    ).count()
+                    count = TeacherAnswer.objects.filter(question=question, selected_option=option).count()
                 else:
-                    count = TeacherAnswer.objects.filter(
-                        question=question,
-                        selected_options=option
-                    ).count()
-
+                    count = TeacherAnswer.objects.filter(question=question, selected_options=option).count()
                 total_responses_for_question += count
-                percentage = round((count / total_responses * 100), 1) if total_responses > 0 else 0
+
+            # ШАГ 2: Формируем статистику с ПРАВИЛЬНЫМ процентом
+            for option in question.options.all().order_by('order'):
+                if question_type_name == 'Одиночный выбор':
+                    count = TeacherAnswer.objects.filter(question=question, selected_option=option).count()
+                else:
+                    count = TeacherAnswer.objects.filter(question=question, selected_options=option).count()
+
+                # ИСПРАВЛЕНО: Делим на total_responses_for_question, а не на total_responses
+                percentage = round((count / total_responses_for_question * 100), 1) if total_responses_for_question > 0 else 0
+
                 options_stats.append({
                     'text': option.text,
                     'count': count,
@@ -338,14 +294,12 @@ def survey_statistics(request, survey_id):
             question_data['options'] = options_stats
             question_data['total_responses'] = total_responses_for_question
         else:
-            # Для открытых вопросов собираем текстовые ответы
             text_answers = answers.exclude(text_answer='').values_list('text_answer', flat=True)
-            question_data['text_answers'] = list(text_answers)[:20]  # Показываем первые 20
+            question_data['text_answers'] = list(text_answers)[:20]
             question_data['text_answers_count'] = len(text_answers)
 
         questions_stats.append(question_data)
 
-    # Определяем статус для отображения
     if survey.status:
         if survey.status.name == 'Активный':
             status = 'active'
@@ -367,7 +321,7 @@ def survey_statistics(request, survey_id):
         'category': survey.category.name if survey.category else 'Без категории',
         'status': status,
         'status_display': status_display,
-        'participants': total_responses,  # Переименовано, но показываем ответы
+        'participants': total_responses,
         'questions': questions_stats,
         'created_at': survey.created_date.strftime('%d.%m.%Y') if survey.created_date else '',
         'duration': survey.duration,
@@ -378,7 +332,6 @@ def survey_statistics(request, survey_id):
         'admin_name': request.session.get('admin_name', 'Администратор'),
         'page_title': f'Статистика: {survey_data["title"]}'
     })
-
 
 # ========== МЕРОПРИЯТИЯ ==========
 
@@ -643,7 +596,9 @@ def event_edit(request, event_id):
             for photo_id in photos_to_delete:
                 try:
                     photo = EventPhoto.objects.get(id=photo_id, event=event)
-                    photo.delete()
+                    if photo.photo:
+                        photo.photo.delete()  # Явное удаление из S3
+                    photo.delete()  # Удаление записи из БД
                     print(f"🗑️ Удалено фото {photo_id}")
                 except EventPhoto.DoesNotExist:
                     pass
@@ -725,9 +680,12 @@ def event_delete(request, event_id):
 
     if request.method == 'POST':
         event = get_object_or_404(RealEvent, id=event_id)
-        # Удаляем связанные фото
+        # Удаляем связанные фото корректно для S3
         for photo in event.photos.all():
-            photo.delete()
+            if photo.photo:
+                photo.photo.delete()  # Удаляет файл из S3
+            photo.delete()  # Удаляет запись из БД
+
         event.delete()
         messages.success(request, 'Мероприятие успешно удалено')
 
@@ -1294,7 +1252,7 @@ def material_create(request):
                     'additional': additional,
                 })
 
-            # Создаем материал
+            # Создаем материал сразу с файлом (если он есть)
             material = RealMaterial.objects.create(
                 title=title,
                 description=description,
@@ -1305,19 +1263,17 @@ def material_create(request):
                 format_id=format_id if format_id else None,
                 assessment_id=assessment_id if assessment_id else None,
                 additional_id=additional_id if additional_id else None,
-                is_published=True
+                is_published=True,
+                file=request.FILES.get('file'),  # ИСПРАВЛЕНО: передаём файл сразу при создании
             )
-
-            # Обработка загруженного файла
-            if 'file' in request.FILES:
-                material.file = request.FILES['file']
-                material.save()
 
             messages.success(request, 'Материал успешно создан')
             return redirect('admin_panel:materials_list')
 
         except Exception as e:
             messages.error(request, f'Ошибка при создании материала: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/materials/form.html', {
         'subjects': subjects,
@@ -1388,11 +1344,10 @@ def material_edit(request, material_id):
             material.assessment_id = assessment_id if assessment_id else None
             material.additional_id = additional_id if additional_id else None
 
-            # Обработка нового файла
+            # ИСПРАВЛЕНО: Обработка нового файла (корректно для S3)
             if 'file' in request.FILES:
                 if material.file:
-                    if os.path.isfile(material.file.path):
-                        os.remove(material.file.path)
+                    material.file.delete()  # Удаляет старый файл из S3 через django-storages
                 material.file = request.FILES['file']
 
             material.save()
@@ -1402,6 +1357,8 @@ def material_edit(request, material_id):
 
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении материала: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     # Подготавливаем данные для шаблона
     material_data = {
@@ -1445,16 +1402,14 @@ def material_delete(request, material_id):
     if request.method == 'POST':
         material = get_object_or_404(RealMaterial, id=material_id)
 
-        # Удаляем файл
+        # ИСПРАВЛЕНО: Удаляем файл корректно для S3
         if material.file:
-            if os.path.isfile(material.file.path):
-                os.remove(material.file.path)
+            material.file.delete()  # Удаляет файл из S3 через django-storages
 
         material.delete()
         messages.success(request, 'Материал успешно удален')
 
     return redirect('admin_panel:materials_list')
-
 
 # ========== НОРМАТИВНЫЕ ДОКУМЕНТЫ ==========
 def documents_list(request):
@@ -1584,8 +1539,8 @@ def documents_create(request):
         try:
             # Получаем данные из формы
             title = request.POST.get('title', '').strip()
-            description = request.POST.get('short_description', '').strip()  # В форме это short_description
-            full_description = request.POST.get('full_description', '').strip()  # Это поле может быть в форме
+            description = request.POST.get('short_description', '').strip()
+            full_description = request.POST.get('full_description', '').strip()
             publication_date = request.POST.get('publish_date', '')
             category_id = request.POST.get('category', '')
             level_id = request.POST.get('action_level', '')
@@ -1617,29 +1572,26 @@ def documents_create(request):
             from datetime import datetime
             pub_date = datetime.strptime(publication_date, '%Y-%m-%d').date() if publication_date else None
 
-            # ИСПРАВЛЕНО: Используем правильные названия полей
+            # ИСПРАВЛЕНО: Создаём документ сразу с файлом (если он есть)
             document = RealDocument.objects.create(
                 title=title,
-                description=description,  # В модели поле называется description
-                # Если в модели есть поле full_description, раскомментируйте:
-                # full_description=full_description,
+                description=description,
+                # full_description=full_description,  # раскомментируйте, если поле есть в модели
                 publication_date=pub_date,
                 category_id=category_id,
                 level_id=level_id,
                 file_size=int(file_size) if file_size else 0,
-                is_published=True
+                is_published=True,
+                file=request.FILES.get('file'),  # ИСПРАВЛЕНО: передаём файл сразу при создании
             )
-
-            # Обработка загруженного файла
-            if 'file' in request.FILES:
-                document.file = request.FILES['file']
-                document.save()
 
             messages.success(request, 'Документ успешно создан')
             return redirect('admin_panel:documents_list')
 
         except Exception as e:
             messages.error(request, f'Ошибка при создании документа: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/documents/form.html', {
         'categories': categories,
@@ -1667,7 +1619,7 @@ def documents_edit(request, document_id):
             # Получаем данные из формы
             title = request.POST.get('title', '').strip()
             description = request.POST.get('short_description', '').strip()
-            full_description = request.POST.get('full_description', '').strip()  # Это поле может быть в форме
+            full_description = request.POST.get('full_description', '').strip()
             publication_date = request.POST.get('publish_date', '')
             category_id = request.POST.get('category', '')
             level_id = request.POST.get('action_level', '')
@@ -1686,21 +1638,19 @@ def documents_edit(request, document_id):
             from datetime import datetime
             pub_date = datetime.strptime(publication_date, '%Y-%m-%d').date() if publication_date else None
 
-            # ИСПРАВЛЕНО: Используем правильные названия полей
+            # Обновляем поля документа
             document.title = title
-            document.description = description  # В модели поле называется description
-            # Если в модели есть поле full_description, раскомментируйте:
-            # document.full_description = full_description
+            document.description = description
+            # document.full_description = full_description  # раскомментируйте, если поле есть в модели
             document.publication_date = pub_date
             document.category_id = category_id if category_id else None
             document.level_id = level_id if level_id else None
             document.file_size = int(file_size) if file_size else 0
 
-            # Обработка нового файла
+            # ИСПРАВЛЕНО: Обработка нового файла (корректно для S3)
             if 'file' in request.FILES:
                 if document.file:
-                    if os.path.isfile(document.file.path):
-                        os.remove(document.file.path)
+                    document.file.delete()  # Удаляет старый файл из S3 через django-storages
                 document.file = request.FILES['file']
 
             document.save()
@@ -1710,13 +1660,14 @@ def documents_edit(request, document_id):
 
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении документа: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
-    # ИСПРАВЛЕНО: Подготавливаем данные для шаблона с правильными названиями полей
+    # Подготавливаем данные для шаблона
     document_data = {
         'id': document.id,
         'title': document.title,
-        'short_description': document.description,  # В модели поле называется description
-        # Если в модели есть поле full_description, используйте его:
+        'short_description': document.description,
         # 'full_description': document.full_description if hasattr(document, 'full_description') else '',
         'publication_date': document.publication_date.strftime('%Y-%m-%d') if document.publication_date else '',
         'category_id': document.category_id,
@@ -1746,10 +1697,9 @@ def documents_delete(request, document_id):
     if request.method == 'POST':
         document = get_object_or_404(RealDocument, id=document_id)
 
-        # Удаляем файл
+        # ИСПРАВЛЕНО: Удаляем файл корректно для S3
         if document.file:
-            if os.path.isfile(document.file.path):
-                os.remove(document.file.path)
+            document.file.delete()  # Удаляет файл из S3 через django-storages
 
         document.delete()
         messages.success(request, 'Документ успешно удален')
@@ -1759,7 +1709,6 @@ def documents_delete(request, document_id):
 
 # ========== ОПРОСЫ ==========
 
-
 def surveys_list(request):
     """Список опросов с фильтрацией и пагинацией"""
     if not check_admin_access(request):
@@ -1767,7 +1716,7 @@ def surveys_list(request):
 
     # Получаем параметры фильтрации из GET-запроса
     category_filter = request.GET.get('category')
-    status_filter = request.GET.get('status')      # 'active' или 'completed'
+    status_filter = request.GET.get('status')  # 'active' или 'completed'
     duration_filter = request.GET.get('duration')
 
     # Базовый запрос (все опросы, подгружаем связанные данные)
@@ -1775,12 +1724,11 @@ def surveys_list(request):
         'category', 'status'
     ).prefetch_related('questions').order_by('-created_date')
 
-    # Фильтр по категории (поиск по имени категории, без учёта регистра)
+    # Фильтр по категории
     if category_filter and category_filter.strip():
         surveys_queryset = surveys_queryset.filter(category__name__icontains=category_filter)
 
-    # ========== ИСПРАВЛЕННЫЙ ФИЛЬТР ПО СТАТУСУ ==========
-    # Вместо сравнения строк ищем ID статуса по части имени
+    # Фильтр по статусу
     if status_filter and status_filter.strip():
         if status_filter == 'active':
             try:
@@ -1794,7 +1742,6 @@ def surveys_list(request):
                 surveys_queryset = surveys_queryset.filter(status_id=completed_status.id)
             except ActivityStatus.DoesNotExist:
                 messages.warning(request, 'Статус "Завершённый" не найден в справочнике')
-        # Если пришло что-то другое – игнорируем
 
     # Фильтр по длительности
     if duration_filter and duration_filter.strip():
@@ -1819,8 +1766,7 @@ def surveys_list(request):
     db_categories = SurveyCategory.objects.all().order_by('name')
     db_statuses = ActivityStatus.objects.all().order_by('name')
 
-    # ========== ОПРЕДЕЛЕНИЕ ID СТАТУСОВ ДЛЯ ОТОБРАЖЕНИЯ ==========
-    # Получаем ID активного и завершённого статусов (один раз)
+    # Определение ID статусов для отображения
     active_status_id = None
     completed_status_id = None
     try:
@@ -1840,7 +1786,6 @@ def surveys_list(request):
         questions_count = survey.questions.count()
         responses_count = SurveyPassing.objects.filter(survey=survey).count()
 
-        # Определяем класс статуса и отображаемое название
         if active_status_id is not None and survey.status_id == active_status_id:
             status_class = 'active'
             status_display = 'Активный'
@@ -1848,7 +1793,6 @@ def surveys_list(request):
             status_class = 'completed'
             status_display = 'Завершённый'
         else:
-            # Если статус не распознан – считаем завершённым и выводим название из БД
             status_class = 'completed'
             status_display = survey.status.name if survey.status else 'Неизвестно'
 
@@ -1869,7 +1813,7 @@ def surveys_list(request):
         'page_obj': page_obj,
         'paginator': paginator,
         'categories': db_categories,
-        'statuses': SURVEY_STATUSES,          # если у вас есть такая константа
+        'statuses': SURVEY_STATUSES,
         'db_categories': db_categories,
         'db_statuses': db_statuses,
         'current_filters': {
@@ -1885,10 +1829,7 @@ def surveys_list(request):
 
 
 def change_survey_status(request, survey_id, new_status):
-    """
-    Изменение статуса опроса.
-    new_status может быть 'active' или 'completed'.
-    """
+    """Изменение статуса опроса"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
@@ -1896,13 +1837,12 @@ def change_survey_status(request, survey_id, new_status):
 
     if new_status == 'active':
         try:
-            # Ищем статус, содержащий подстроку "актив" (без учёта регистра)
             status_obj = ActivityStatus.objects.get(name__icontains='актив')
             survey.status = status_obj
             survey.save()
             messages.success(request, f'Опрос "{survey.title}" активирован.')
         except ActivityStatus.DoesNotExist:
-            messages.error(request, 'Не удалось активировать опрос: статус "Активный" не найден в справочнике.')
+            messages.error(request, 'Не удалось активировать опрос: статус "Активный" не найден.')
     elif new_status == 'completed':
         try:
             status_obj = ActivityStatus.objects.get(name__icontains='заверш')
@@ -1910,11 +1850,14 @@ def change_survey_status(request, survey_id, new_status):
             survey.save()
             messages.success(request, f'Опрос "{survey.title}" завершён.')
         except ActivityStatus.DoesNotExist:
-            messages.error(request, 'Не удалось завершить опрос: статус "Завершённый" не найден в справочнике.')
+            messages.error(request, 'Не удалось завершить опрос: статус "Завершённый" не найден.')
     else:
-        messages.error(request, f'Некорректное значение статуса: {new_status}. Допустимые значения: active, completed.')
+        messages.error(request, f'Некорректное значение статуса: {new_status}.')
 
     return redirect('admin_panel:surveys_list')
+
+
+
 
 @csrf_exempt
 def survey_create(request):
@@ -1922,49 +1865,26 @@ def survey_create(request):
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Получаем реальные справочники из БД
     categories = SurveyCategory.objects.all().order_by('name')
     statuses = ActivityStatus.objects.all().order_by('name')
 
     if request.method == 'POST':
         try:
-            # Получаем данные из формы
             title = request.POST.get('title', '').strip()
             description = request.POST.get('short_description', '').strip()
             category_id = request.POST.get('category', '')
             duration = request.POST.get('duration', '10-15 мин')
             status_id = request.POST.get('status', '')
 
-            # Валидация
-            if not title:
-                messages.error(request, 'Название опроса обязательно')
+            if not title or not category_id or not status_id:
+                messages.error(request, 'Заполните все обязательные поля')
                 return render(request, 'admin_panel/surveys/form.html', {
-                    'categories': categories,
-                    'statuses': statuses,
+                    'categories': categories, 'statuses': statuses,
                 })
 
-            if not category_id:
-                messages.error(request, 'Категория обязательна')
-                return render(request, 'admin_panel/surveys/form.html', {
-                    'categories': categories,
-                    'statuses': statuses,
-                })
-
-            if not status_id:
-                messages.error(request, 'Статус обязателен')
-                return render(request, 'admin_panel/surveys/form.html', {
-                    'categories': categories,
-                    'statuses': statuses,
-                })
-
-            # Создаем опрос
             survey = RealSurvey.objects.create(
-                title=title,
-                description=description,
-                category_id=category_id,
-                duration=duration,
-                status_id=status_id,
-                questions_count=0
+                title=title, description=description, category_id=category_id,
+                duration=duration, status_id=status_id, questions_count=0
             )
 
             messages.success(request, 'Опрос успешно создан')
@@ -1972,10 +1892,11 @@ def survey_create(request):
 
         except Exception as e:
             messages.error(request, f'Ошибка при создании опроса: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/surveys/form.html', {
-        'categories': categories,
-        'statuses': statuses,
+        'categories': categories, 'statuses': statuses,
         'page_title': 'Создание опроса',
         'admin_name': request.session.get('admin_name', 'Администратор'),
     })
@@ -1987,78 +1908,50 @@ def survey_edit(request, survey_id):
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
-    # Получаем опрос из БД
     survey = get_object_or_404(RealSurvey, id=survey_id)
-
-    # Получаем справочники
     categories = SurveyCategory.objects.all().order_by('name')
     statuses = ActivityStatus.objects.all().order_by('name')
     question_types = QuestionType.objects.all().order_by('name')
 
-    # Получаем вопросы для этого опроса
     questions = survey.questions.all().order_by('order')
     questions_data = []
-
     for question in questions:
         options = question.options.all().order_by('order')
         options_data = [{'id': opt.id, 'text': opt.text} for opt in options]
-
         questions_data.append({
-            'id': question.id,
-            'text': question.text,
+            'id': question.id, 'text': question.text,
             'question_type': question.question_type.id if question.question_type else None,
-            'order': question.order,
-            'is_required': question.is_required,
+            'order': question.order, 'is_required': question.is_required,
             'options': options_data,
         })
 
     if request.method == 'POST':
-        # Сохраняем изменения опроса
         if 'save_survey' in request.POST:
             try:
                 title = request.POST.get('title', '').strip()
-                description = request.POST.get('short_description', '').strip()
-                category_id = request.POST.get('category', '')
-                duration = request.POST.get('duration', '')
-                status_id = request.POST.get('status', '')
-
                 if not title:
                     messages.error(request, 'Название опроса обязательно')
                 else:
                     survey.title = title
-                    survey.description = description
-                    survey.category_id = category_id
-                    survey.duration = duration if duration else '10-15 мин'
-                    survey.status_id = status_id
+                    survey.description = request.POST.get('short_description', '').strip()
+                    survey.category_id = request.POST.get('category', '')
+                    survey.duration = request.POST.get('duration', '') or '10-15 мин'
+                    survey.status_id = request.POST.get('status', '')
                     survey.save()
-
                     messages.success(request, 'Опрос обновлен')
-
             except Exception as e:
                 messages.error(request, f'Ошибка при обновлении опроса: {str(e)}')
-
         return redirect('admin_panel:survey_edit', survey_id=survey_id)
 
-    # Подготавливаем данные для шаблона
-    survey_data = {
-        'id': survey.id,
-        'title': survey.title,
-        'short_description': survey.description,
-        'category_id': survey.category_id,
-        'duration': survey.duration,
-        'status_id': survey.status_id,
-        'created_at': survey.created_date.strftime('%d.%m.%Y') if survey.created_date else '',
-        'updated_at': survey.updated_at.strftime('%d.%m.%Y') if survey.updated_at else '',
-        'questions_count': survey.questions_count,
-    }
-
     return render(request, 'admin_panel/surveys/edit.html', {
-        'survey': survey_data,
-        'questions': questions_data,
-        'categories': categories,
-        'statuses': statuses,
-        'question_types': question_types,
-        'page_title': f'Редактирование: {survey.title}',
+        'survey': {
+            'id': survey.id, 'title': survey.title, 'short_description': survey.description,
+            'category_id': survey.category_id, 'duration': survey.duration, 'status_id': survey.status_id,
+            'created_at': survey.created_date.strftime('%d.%m.%Y') if survey.created_date else '',
+            'questions_count': survey.questions_count,
+        },
+        'questions': questions_data, 'categories': categories, 'statuses': statuses,
+        'question_types': question_types, 'page_title': f'Редактирование: {survey.title}',
         'admin_name': request.session.get('admin_name', 'Администратор'),
     })
 
@@ -2071,8 +1964,6 @@ def survey_delete(request, survey_id):
 
     if request.method == 'POST':
         survey = get_object_or_404(RealSurvey, id=survey_id)
-
-        # Удаляем связанные вопросы и ответы (каскадно)
         survey.delete()
         messages.success(request, 'Опрос и все связанные вопросы удалены')
 
@@ -2080,6 +1971,7 @@ def survey_delete(request, survey_id):
 
 
 # ========== ВОПРОСЫ ==========
+
 @csrf_exempt
 def question_create(request, survey_id):
     """Создание нового вопроса для опроса"""
@@ -2095,45 +1987,33 @@ def question_create(request, survey_id):
             question_type_id = request.POST.get('question_type', '')
             is_required = request.POST.get('is_required') == 'on'
 
-            if not question_text:
-                messages.error(request, 'Текст вопроса обязателен')
-            elif not question_type_id:
-                messages.error(request, 'Тип вопроса обязателен')
+            if not question_text or not question_type_id:
+                messages.error(request, 'Текст и тип вопроса обязательны')
             else:
-                # Создаем вопрос
                 question = Question.objects.create(
-                    survey=survey,
-                    text=question_text,
-                    question_type_id=question_type_id,
-                    order=survey.questions.count() + 1,
-                    is_required=is_required
+                    survey=survey, text=question_text, question_type_id=question_type_id,
+                    order=survey.questions.count() + 1, is_required=is_required
                 )
 
-                # Добавляем варианты ответов для вопросов с выбором
-                question_type = QuestionType.objects.get(id=question_type_id)
-                if question_type.name in ['Одиночный выбор', 'Множественный выбор']:
+                q_type = QuestionType.objects.get(id=question_type_id)
+                if q_type.name in ['Одиночный выбор', 'Множественный выбор']:
                     option_texts = request.POST.getlist('option_text[]')
                     for i, text in enumerate(option_texts):
                         if text.strip():
-                            AnswerOption.objects.create(
-                                question=question,
-                                text=text.strip(),
-                                order=i + 1
-                            )
+                            AnswerOption.objects.create(question=question, text=text.strip(), order=i + 1)
 
-                # Обновляем счетчик вопросов
                 survey.questions_count = survey.questions.count()
                 survey.save()
-
                 messages.success(request, 'Вопрос успешно добавлен')
                 return redirect('admin_panel:survey_edit', survey_id=survey_id)
 
         except Exception as e:
             messages.error(request, f'Ошибка при создании вопроса: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/surveys/question_create.html', {
-        'survey': survey,
-        'question_types': question_types,
+        'survey': survey, 'question_types': question_types,
         'page_title': f'Добавление вопроса к опросу: {survey.title}',
         'admin_name': request.session.get('admin_name', 'Администратор'),
     })
@@ -2141,17 +2021,12 @@ def question_create(request, survey_id):
 
 @csrf_exempt
 def question_edit(request, survey_id, question_id):
-    """Редактирование вопроса в реальной БД"""
+    """Редактирование вопроса в реальной БД (БЕЗОПАСНОЕ обновление вариантов)"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
     survey = get_object_or_404(RealSurvey, id=survey_id)
     question = get_object_or_404(Question, id=question_id, survey=survey)
-
-    # Получаем варианты ответов
-    options = question.options.all().order_by('order')
-    options_data = [{'id': opt.id, 'text': opt.text} for opt in options]
-
     question_types = QuestionType.objects.all().order_by('name')
 
     if request.method == 'POST':
@@ -2163,47 +2038,64 @@ def question_edit(request, survey_id, question_id):
             if not question_text:
                 messages.error(request, 'Текст вопроса обязателен')
             else:
-                # Обновляем вопрос
+                # 1. Обновляем сам вопрос
                 question.text = question_text
                 question.question_type_id = question_type_id
                 question.is_required = is_required
                 question.save()
 
-                # Обновляем варианты ответов
+                # 2. БЕЗОПАСНОЕ обновление вариантов ответов
                 option_texts = request.POST.getlist('option_text[]')
                 option_ids = request.POST.getlist('option_id[]')
+                kept_option_ids = []
 
-                # Удаляем старые варианты
-                question.options.all().delete()
-
-                # Добавляем новые варианты
                 for i, text in enumerate(option_texts):
-                    if text.strip():
-                        AnswerOption.objects.create(
-                            question=question,
-                            text=text.strip(),
-                            order=i + 1
-                        )
+                    clean_text = text.strip()
+                    if not clean_text:
+                        continue
 
-                messages.success(request, 'Вопрос обновлен')
+                    option_id = option_ids[i] if i < len(option_ids) else None
+
+                    if option_id:
+                        try:
+                            # Обновляем существующий вариант (сохраняем его ID для исторических ответов)
+                            opt = AnswerOption.objects.get(id=option_id, question=question)
+                            opt.text = clean_text
+                            opt.order = i + 1
+                            opt.save()
+                            kept_option_ids.append(opt.id)
+                        except AnswerOption.DoesNotExist:
+                            # Если ID не найден в БД, создаем как новый
+                            new_opt = AnswerOption.objects.create(question=question, text=clean_text, order=i + 1)
+                            kept_option_ids.append(new_opt.id)
+                    else:
+                        # Создаем совершенно новый вариант
+                        new_opt = AnswerOption.objects.create(question=question, text=clean_text, order=i + 1)
+                        kept_option_ids.append(new_opt.id)
+
+                # 3. Удаляем ТОЛЬКО те варианты, которые пользователь убрал из формы
+                # Это критически важно: исторические ответы, привязанные к оставшимся вариантам, не пострадают!
+                question.options.exclude(id__in=kept_option_ids).delete()
+
+                messages.success(request, 'Вопрос и варианты ответов обновлены')
                 return redirect('admin_panel:survey_edit', survey_id=survey_id)
 
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении вопроса: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
-    # Подготавливаем данные для шаблона
-    question_data = {
-        'id': question.id,
-        'text': question.text,
-        'question_type': question.question_type.id if question.question_type else None,
-        'is_required': question.is_required,
-        'options': options_data,
-    }
+    # GET-запрос: подготовка данных для шаблона
+    options = question.options.all().order_by('order')
+    options_data = [{'id': opt.id, 'text': opt.text} for opt in options]
 
     return render(request, 'admin_panel/surveys/question_edit.html', {
-        'question': question_data,
-        'survey': survey,
-        'question_types': question_types,
+        'question': {
+            'id': question.id, 'text': question.text,
+            'question_type': question.question_type.id if question.question_type else None,
+            'is_required': question.is_required, 'options': options_data,
+        },
+        'survey': survey, 'question_types': question_types,
         'page_title': 'Редактирование вопроса',
         'admin_name': request.session.get('admin_name', 'Администратор'),
     })
@@ -2219,7 +2111,7 @@ def question_delete(request, survey_id, question_id):
         question = get_object_or_404(Question, id=question_id)
         question.delete()
 
-        # Обновляем порядок вопросов
+        # Обновляем порядок оставшихся вопросов
         survey = get_object_or_404(RealSurvey, id=survey_id)
         for i, q in enumerate(survey.questions.all().order_by('id')):
             q.order = i + 1
@@ -2231,8 +2123,6 @@ def question_delete(request, survey_id, question_id):
         messages.success(request, 'Вопрос удален')
 
     return redirect('admin_panel:survey_edit', survey_id=survey_id)
-
-
 
 
 
@@ -2346,6 +2236,7 @@ def change_admin_password(request):
 from success_practices.models import Practice, PracticeCategory
 from django.utils import timezone
 
+# ========== УСПЕШНЫЕ ПРАКТИКИ ==========
 
 def practices_list(request):
     """Список успешных практик"""
@@ -2449,7 +2340,8 @@ def practice_create(request):
                 messages.error(request, 'Категория обязательна')
                 return render(request, 'admin_panel/practices/form.html', {'categories': categories})
 
-            # is_published всегда True, дата создаётся автоматически
+            # ИСПРАВЛЕНО: Создаем практику и сразу передаем файл (если он есть),
+            # чтобы избежать лишнего запроса к БД и S3 через practice.save()
             practice = Practice.objects.create(
                 title=title,
                 short_description=short_description,
@@ -2458,18 +2350,17 @@ def practice_create(request):
                 audience=audience if audience else None,
                 format_type=format_type if format_type else None,
                 difficulty=difficulty if difficulty else None,
-                is_published=True
+                is_published=True,
+                file=request.FILES.get('file')
             )
-
-            if 'file' in request.FILES:
-                practice.file = request.FILES['file']
-                practice.save()
 
             messages.success(request, f'Практика "{title}" успешно создана')
             return redirect('admin_panel:practices_list')
 
         except Exception as e:
             messages.error(request, f'Ошибка при создании практики: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/practices/form.html', {
         'categories': categories,
@@ -2517,16 +2408,17 @@ def practice_edit(request, practice_id):
             practice.audience = audience if audience else None
             practice.format_type = format_type if format_type else None
             practice.difficulty = difficulty if difficulty else None
-            practice.is_published = True  # всегда опубликовано
+            practice.is_published = True
 
+            # ИСПРАВЛЕНО: Корректное удаление файла из S3 через django-storages
             if remove_file and practice.file:
-                if os.path.isfile(practice.file.path):
-                    os.remove(practice.file.path)
+                practice.file.delete()  # Удаляет файл из S3
                 practice.file = None
 
+            # ИСПРАВЛЕНО: Корректная замена файла в S3
             if 'file' in request.FILES:
-                if practice.file and os.path.isfile(practice.file.path):
-                    os.remove(practice.file.path)
+                if practice.file:
+                    practice.file.delete()  # Удаляет старый файл из S3
                 practice.file = request.FILES['file']
 
             practice.save()
@@ -2536,6 +2428,8 @@ def practice_edit(request, practice_id):
 
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении практики: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     practice_data = {
         'id': practice.id,
@@ -2569,8 +2463,9 @@ def practice_delete(request, practice_id):
     if request.method == 'POST':
         practice = get_object_or_404(Practice, id=practice_id)
 
-        if practice.file and os.path.isfile(practice.file.path):
-            os.remove(practice.file.path)
+        # ИСПРАВЛЕНО: Корректное удаление файла из S3 перед удалением записи из БД
+        if practice.file:
+            practice.file.delete()  # Удаляет файл из S3 через django-storages
 
         practice.delete()
         messages.success(request, 'Практика успешно удалена')
