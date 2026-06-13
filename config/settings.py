@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from storages.backends.s3boto3 import S3Boto3Storage
 
 # Загружаем переменные из .env (только для локальной разработки)
 load_dotenv()
@@ -151,9 +152,7 @@ STATICFILES_DIRS = [
 ]
 
 # ===== Медиа (S3 Timeweb Cloud) =====
-from storages.backends.s3boto3 import S3Boto3Storage
-
-# Создаём свой storage с гарантированным public-read для всех загруженных файлов
+# Простой и надежный класс для публичных файлов
 class PublicS3Storage(S3Boto3Storage):
     bucket_name = 'teacher-portal-media'
     default_acl = 'public-read'
@@ -168,13 +167,16 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'teacher-portal-media'
 AWS_S3_REGION_NAME = 'ru-1'
 
-# Явно указываем endpoint Timeweb Cloud.
-# Библиотека django-storages автоматически сформирует правильный path-style URL.
+# Endpoint Timeweb Cloud
 AWS_S3_ENDPOINT_URL = 'https://s3.twcstorage.ru'
+
+# КЛЮЧЕВАЯ НАСТРОЙКА: заставляет использовать формат s3.twcstorage.ru/bucket-name/file.jpg
+# вместо bucket-name.s3.twcstorage.ru/file.jpg (который вызывает ERR_CONNECTION_RESET)
+AWS_S3_ADDRESSING_STYLE = 'path'
 
 # Публичный доступ для всех загружаемых объектов
 AWS_DEFAULT_ACL = 'public-read'
-AWS_QUERYSTRING_AUTH = False
+AWS_QUERYSTRING_AUTH = False  # Убирает длинные подписи ?X-Amz-... из URL
 
 # Параметры объектов (кэширование + ACL)
 AWS_S3_OBJECT_PARAMETERS = {
@@ -182,7 +184,7 @@ AWS_S3_OBJECT_PARAMETERS = {
     'ACL': 'public-read',
 }
 
-# Медиа URL теперь указывает на правильный path-style адрес, который подтвердила поддержка
+# Медиа URL (django-storages сгенерирует его корректно благодаря addressing_style='path')
 MEDIA_URL = f'https://s3.twcstorage.ru/{AWS_STORAGE_BUCKET_NAME}/'
 
 # Локальная папка для медиа (не используется при S3, но оставляем для совместимости)
@@ -198,22 +200,20 @@ LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/account/profile/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Хранилище для статических файлов (WhiteNoise)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# ===== НАСТРОЙКИ ХРАНИЛИЩ (STORAGES) =====
+# Современный и рекомендуемый способ настройки хранилищ в Django (4.2+)
+# Он заменяет устаревшие STATICFILES_STORAGE и DEFAULT_FILE_STORAGE
+STORAGES = {
+    "default": {
+        "BACKEND": "config.settings.PublicS3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
-# ===== КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ДЛЯ S3 =====
-# Указываем Django использовать наш кастомный S3 storage для всех медиа-файлов по умолчанию.
-# Путь 'config.settings' берется из названия вашей папки с settings.py (судя по config.urls)
-DEFAULT_FILE_STORAGE = 'config.settings.PublicS3Storage'
-
-# ПРИМЕЧАНИЕ: Если вы используете Django 4.2 или новее, вместо двух строк выше (STATICFILES_STORAGE и DEFAULT_FILE_STORAGE)
-# рекомендуется использовать современный словарь STORAGES. Если всё работает, можно оставить как есть.
-# Для Django 4.2+ это выглядело бы так:
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "config.settings.PublicS3Storage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
+# ПРИМЕЧАНИЕ: Если после сохранения вы получите ошибку "ImproperlyConfigured"
+# относительно STORAGES, значит у вас версия Django старее 4.2.
+# В этом случае удалите блок STORAGES выше и раскомментируйте эти две строки:
+# DEFAULT_FILE_STORAGE = 'config.settings.PublicS3Storage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
