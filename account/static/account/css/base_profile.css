@@ -1,5 +1,5 @@
-/* base_profile.css - БЕЗ блокирующих стилей */
-/* Версия: 1.3 (без блокировок) */
+/* base_profile.css - ИСПРАВЛЕННАЯ ВЕРСИЯ */
+/* Версия: 1.4 - Убраны блокирующие стили */
 
 /* ===== Variables ===== */
 :root {
@@ -27,11 +27,7 @@
 }
 
 /* ===== Base Styles ===== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+/* УДАЛЕНО: * { margin: 0; padding: 0; } — уже есть в основном шаблоне */
 
 body {
     font-family: 'Manrope', sans-serif;
@@ -50,7 +46,7 @@ body {
     padding: 16px 0;
     position: sticky;
     top: 0;
-    z-index: 100; /* УМЕНЬШЕН с 1000 */
+    z-index: 100;
     box-shadow: var(--shadow-sm);
 }
 
@@ -261,7 +257,7 @@ body {
     visibility: hidden;
     transform: translateY(-10px);
     transition: var(--transition);
-    z-index: 101; /* УВЕЛИЧЕН с 1001 */
+    z-index: 101;
 }
 
 .dropdown-menu.show {
@@ -327,12 +323,11 @@ body {
     background-color: var(--header-primary);
     color: white;
     border-radius: 50%;
-    display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     cursor: pointer;
-    z-index: 150; /* УМЕНЬШЕН с 999 */
+    z-index: 150;
     box-shadow: var(--shadow-xl);
     transition: var(--transition);
 }
@@ -358,7 +353,7 @@ body {
     height: 100vh;
     background-color: var(--mobile-nav-bg);
     box-shadow: var(--shadow-xl);
-    z-index: 200; /* УМЕНЬШЕН с 1002 */
+    z-index: 200;
     transition: right 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -514,37 +509,12 @@ body {
     font-size: 18px;
 }
 
-/* УДАЛИТЬ ВСЁ ЭТО - это блокирует клики! */
-/* Mobile Navigation Overlay - ВРЕДНЫЙ КОД */
-/*
-body.mobile-nav-open {
-    overflow: hidden;
-}
-
-.mobile-nav::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.mobile-nav.show::before {
-    opacity: 1;
-}
-*/
-
 /* ===== Main Content ===== */
 .profile-main {
     flex: 1;
     min-height: calc(100vh - 160px);
     position: relative;
-    z-index: 1; /* ВАЖНО: Контент поверх шапки */
+    z-index: 1;
 }
 
 /* ===== Footer Styles ===== */
@@ -769,22 +739,15 @@ body.mobile-nav-open {
     }
 }
 
-/* ===== КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ ===== */
-/* Убираем ВСЕ блокировки кликов */
+/* ===== БЕЗОПАСНЫЕ ИСПРАВЛЕНИЯ (без блокировок) ===== */
 
-/* 1. Убираем pointer-events из псевдоэлементов (если были) */
-::before,
-::after {
-    pointer-events: none !important;
-}
-
-/* 2. Обеспечиваем, чтобы контент был поверх шапки */
+/* Обеспечиваем, чтобы контент был поверх шапки */
 .profile-main > * {
     position: relative;
     z-index: 2;
 }
 
-/* 3. Убеждаемся, что все кликабельные элементы работают */
+/* Убеждаемся, что все кликабельные элементы работают */
 button,
 .btn,
 a,
@@ -793,60 +756,8 @@ a,
 .mobile-nav-link,
 .mobile-logout-btn,
 .social-link {
-    cursor: pointer !important;
+    cursor: pointer;
 }
 
-/* 4. Убираем возможные overlay */
-.overlay,
-.backdrop,
-.modal-backdrop {
-    display: none !important;
-}
-/* ===== Footer Styles (исправленные) ===== */
-.site-footer {
-    background: #FFFFFF;
-    border-top: 1px solid var(--color-border);
-    padding: 40px 0 20px;
-    margin-top: 60px;
-}
-
-/* ТОЧНО ТАКИЕ ЖЕ ОТСТУПЫ, КАК В .header-container */
-.footer-container {
-    width: 100%;
-    max-width: 1650px;
-    margin: 0 auto;
-    padding: 0 125px;
-    box-sizing: border-box;
-}
-
-@media (max-width: 1400px) {
-    .footer-container {
-        padding: 0 80px;
-    }
-}
-
-@media (max-width: 1200px) {
-    .footer-container {
-        padding: 0 60px;
-    }
-}
-
-@media (max-width: 992px) {
-    .footer-container {
-        padding: 0 40px;
-    }
-}
-
-@media (max-width: 768px) {
-    .footer-container {
-        padding: 0 24px;
-    }
-}
-
-/* Три колонки - первая шире из-за длинного текста */
-.footer-grid {
-    display: grid;
-    grid-template-columns: 2.5fr 1fr 1fr;  /* Первая колонка на 60% шире */
-    gap: 300px;
-    margin-bottom: 35px;
-}
+/* УДАЛЕНО: ::before, ::after { pointer-events: none !important; } — ЭТО ЛОМАЛО ВСЁ! */
+/* УДАЛЕНО: .overlay, .backdrop, .modal-backdrop { display: none !important; } — ЭТО ЛОМАЛО МОДАЛКИ! */
