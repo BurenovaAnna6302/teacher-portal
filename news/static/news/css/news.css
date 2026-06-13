@@ -1198,3 +1198,28 @@ select.form-select option:checked {
         max-height: 240px;
     }
 }
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    /* УДАЛЕНО: backdrop-filter: blur(4px); — именно он вызывает блюр */
+}
+
+.modal-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    background: var(--news-bg-white); /* или var(--practices-bg-white), var(--surveys-bg-white) */
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease;
+    border-left: 1px solid var(--news-border); /* или соответствующая переменная */
+    z-index: 2; /* ВАЖНО: выше overlay */
+}
