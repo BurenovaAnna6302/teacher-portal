@@ -217,3 +217,5 @@ STORAGES = {
 # В этом случае удалите блок STORAGES выше и раскомментируйте эти две строки:
 # DEFAULT_FILE_STORAGE = 'config.settings.PublicS3Storage'
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Запрещаем браузеру отправлять заголовок Referer при загрузке внешних ресурсов (включая S3)
+SECURE_REFERRER_POLICY = 'no-referrer'
