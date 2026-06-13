@@ -153,12 +153,28 @@ def admin_login(request):
 
     return render(request, 'admin_panel/login.html')
 
+
 def admin_logout(request):
     """Выход из админки"""
-    request.session.flush()
+    # Удаляем ключи администратора
+    request.session.pop('admin_authenticated', None)
+    request.session.pop('is_admin', None)
+    request.session.pop('admin_id', None)
+    request.session.pop('admin_name', None)
+    request.session.pop('admin_email', None)
+    request.session.pop('admin_code_verified', None)
+
+    # ОЧИЩАЕМ ВСЕ СООБЩЕНИЯ из сессии
+    from django.contrib.messages import get_messages
+    storage = get_messages(request)
+    storage.used = True  # Отмечаем все сообщения как прочитанные
+
+    # ИЛИ более простой способ - очистить storage напрямую
+    if '_messages' in request.session:
+        del request.session['_messages']
+
     messages.success(request, 'Вы вышли из системы')
     return redirect('admin_panel:admin_login')
-
 
 def check_admin_access(request):
     """Проверка доступа к админке"""
