@@ -14,15 +14,18 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 # Режим отладки – на сервере всегда False
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-# Разрешённые хосты
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
-                          'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(',')
+# Разрешённые хосты (включая все домены и их Punycode)
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,ja-v-tempe.ru,www.ja-v-tempe.ru,я-в-темпе.рф,www.я-в-темпе.рф,xn----7sbbfj2a2ag2cbb6r.xn--p1ai,www.xn----7sbbfj2a2ag2cbb6r.xn--p1ai').split(',')
 
 # Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://burenkovaanna6302-teacher-portal-a1f8.twc1.net',
-    'https://явтемпе.рф',
-    'https://www.явтемпе.рф',
+    'https://ja-v-tempe.ru',
+    'https://www.ja-v-tempe.ru',
+    'https://я-в-темпе.рф',
+    'https://www.я-в-темпе.рф',
+    'https://xn----7sbbfj2a2ag2cbb6r.xn--p1ai',
+    'https://www.xn----7sbbfj2a2ag2cbb6r.xn--p1ai',
 ]
 
 # КЛЮЧЕВЫЕ НАСТРОЙКИ ДЛЯ ПРОКСИ (Timeweb Cloud)
@@ -66,12 +69,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # Подключаем storages для S3
     'storages',
-
-    'main', 'about', 'news', 'events', 'materials', 'documents',
-    'surveys', 'members', 'teachers', 'account', 'admin_panel', 'success_practices',
+    'main',
+    'about',
+    'news',
+    'events',
+    'materials',
+    'documents',
+    'surveys',
+    'members',
+    'teachers',
+    'account',
+    'admin_panel',
+    'success_practices',
 ]
 
 MIDDLEWARE = [
@@ -158,7 +168,7 @@ AWS_QUERYSTRING_AUTH = False
 # Параметры объектов (кэширование + ACL)
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
-    'ACL': 'public-read',  # явно указываем ACL, перекрывая AWS_DEFAULT_ACL
+    'ACL': 'public-read',
 }
 
 # Медиа URL будет указывать на S3
@@ -168,7 +178,7 @@ MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ===== Ограничения загрузки =====
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760     # 10 МБ
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
