@@ -436,7 +436,7 @@ class MaterialsApp {
         });
     }
 
-    async openMaterialModal(materialId) {
+        async openMaterialModal(materialId) {
         const material = this.materials.find(m => m.id == materialId);
         if (!material) return;
 
@@ -541,6 +541,10 @@ class MaterialsApp {
                     <a href="${material.file_url || '#'}" class="modal-download-btn" target="_blank" ${!material.file_url ? 'disabled' : ''}>
                         <i class="fas fa-download"></i>
                         Скачать материал
+                    </a>
+                    <a href="${material.file_url || '#'}" class="modal-open-online-btn" target="_blank" ${!material.file_url ? 'disabled' : ''}>
+                        <i class="fas fa-external-link-alt"></i>
+                        Открыть онлайн
                     </a>
                 </div>
             </div>
