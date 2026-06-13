@@ -495,146 +495,218 @@
     font-size: 14px;
 }
 
-/* ===== Mobile Filters ===== */
-.mobile-filters-btn { display: none; }
-
-@media (max-width: 992px) {
-    .mobile-filters-btn {
-        display: flex;
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 90;
-        padding: 12px 24px;
-        background: var(--practices-primary);
-        color: white;
-        border: none;
-        border-radius: var(--practices-radius-lg);
-        font-size: 14px;
-        font-weight: 500;
-        box-shadow: var(--practices-shadow-xl);
-        cursor: pointer;
-        gap: 8px;
-        align-items: center;
-        transition: all 0.3s ease;
-    }
-    .mobile-filters-btn:hover {
-        background: var(--practices-primary-dark);
-        transform: translateY(-2px);
-    }
-}
-
-.mobile-filters-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 100;
-}
-.mobile-filters-modal.active { display: block; }
-.mobile-filters-modal .modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-}
-.mobile-filters-modal .modal-content {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 360px;
-    background: var(--practices-bg-white);
+/* ===== МОБИЛЬНЫЕ ФИЛЬТРЫ - АККОРДЕОНЫ ===== */
+.mobile-filters-accordion {
     display: flex;
     flex-direction: column;
-    animation: slideIn 0.3s ease;
-    border-left: 1px solid var(--practices-border);
+    gap: 8px;
 }
 
-@keyframes slideIn {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
+.mobile-filter-group {
+    background: var(--practices-bg-light, #F9FAFB);
+    border-radius: 8px;
+    border: 1px solid var(--practices-border, rgba(3, 45, 67, 0.1));
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
-.mobile-filters-modal .modal-header {
+.mobile-filter-group.expanded {
+    background: var(--practices-bg-white, #FFFFFF);
+    box-shadow: var(--practices-shadow-sm, 0 1px 2px rgba(3, 45, 67, 0.05));
+}
+
+/* Заголовок группы (кликабельный) */
+.mobile-filter-group-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--practices-border-light);
-    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
 }
-.mobile-filters-modal .modal-header h3 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--practices-primary);
-    margin: 0;
+
+.mobile-filter-group-header:hover {
+    background: var(--practices-primary-light, rgba(3, 45, 67, 0.08));
 }
-.mobile-filters-modal .modal-close {
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--practices-border);
-    background: var(--practices-bg-light);
-    border-radius: 50%;
+
+.mobile-filter-group.expanded .mobile-filter-group-header {
+    border-bottom: 1px solid var(--practices-border-light, rgba(3, 45, 67, 0.05));
+}
+
+.mobile-filter-group-title {
     display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--practices-text-dark, #1A1A1A);
+    flex: 1;
+}
+
+.mobile-filter-group-title i:first-child {
+    color: var(--practices-primary, #032D43);
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+}
+
+/* Бейдж с количеством выбранных */
+.filter-count-badge {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    color: var(--practices-text-gray);
-    transition: all 0.3s ease;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: var(--practices-primary, #032D43);
+    color: white;
+    border-radius: 11px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: auto;
+    margin-right: 8px;
 }
-.mobile-filters-modal .modal-close:hover {
-    background: var(--practices-primary-light);
-    color: var(--practices-primary);
-}
-.mobile-filters-modal .modal-filters {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    padding-right: 16px;
-}
-.mobile-filters-modal .modal-filters .filter-options {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 8px;
-}
-.mobile-filters-modal .modal-actions {
-    display: flex;
-    gap: 12px;
-    padding: 20px 24px;
-    border-top: 1px solid var(--practices-border-light);
+
+/* Стрелка раскрытия */
+.mobile-filter-toggle-icon {
+    color: var(--practices-text-gray, #6B7280);
+    font-size: 12px;
+    transition: transform 0.3s ease;
     flex-shrink: 0;
 }
-.btn-apply-filters,
-.btn-reset-modal {
-    flex: 1;
-    padding: 14px;
-    border-radius: var(--practices-radius-sm);
-    font-size: 14px;
-    font-weight: 500;
+
+.mobile-filter-group.expanded .mobile-filter-toggle-icon {
+    transform: rotate(180deg);
+    color: var(--practices-primary, #032D43);
+}
+
+/* Содержимое группы (список чекбоксов) */
+.mobile-filter-group-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 16px;
+}
+
+.mobile-filter-group.expanded .mobile-filter-group-content {
+    max-height: 400px;
+    padding: 12px 16px 16px;
+    overflow-y: auto;
+}
+
+/* Стили чекбоксов внутри аккордеона */
+.mobile-filter-group-content .filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.mobile-filter-group-content .filter-options::-webkit-scrollbar {
+    width: 4px;
+}
+
+.mobile-filter-group-content .filter-options::-webkit-scrollbar-thumb {
+    background: var(--practices-border, rgba(3, 45, 67, 0.1));
+    border-radius: 999px;
+}
+
+.mobile-filter-group-content .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid var(--practices-border);
+    transition: background 0.2s ease;
+    font-size: 14px;
 }
-.btn-apply-filters {
-    background: var(--practices-primary);
-    color: white;
-    border-color: var(--practices-primary);
+
+.mobile-filter-group-content .filter-option:hover {
+    background: var(--practices-primary-light, rgba(3, 45, 67, 0.08));
 }
-.btn-apply-filters:hover { background: var(--practices-primary-dark); }
-.btn-reset-modal {
-    background: var(--practices-bg-white);
-    color: var(--practices-text-gray);
+
+.mobile-filter-group-content .filter-option.active {
+    background: var(--practices-primary-light, rgba(3, 45, 67, 0.08));
 }
-.btn-reset-modal:hover {
-    border-color: var(--practices-primary);
-    color: var(--practices-primary);
-    background: var(--practices-primary-light);
+
+.mobile-filter-group-content .filter-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--practices-border, rgba(3, 45, 67, 0.1));
+    border-radius: 4px;
+    appearance: none;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.mobile-filter-group-content .filter-checkbox:checked {
+    background-color: var(--practices-primary, #032D43);
+    border-color: var(--practices-primary, #032D43);
+}
+
+.mobile-filter-group-content .filter-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.mobile-filter-group-content .filter-color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(3, 45, 67, 0.1);
+}
+
+/* Иконка-индикатор для форматов и уровней сложности */
+.mobile-filter-group-content .filter-icon-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.mobile-filter-group-content .filter-option-text {
+    font-size: 14px;
+    color: var(--practices-text-dark, #1A1A1A);
+    line-height: 1.4;
+    flex: 1;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 480px) {
+    .mobile-filter-group-header {
+        padding: 12px 14px;
+    }
+
+    .mobile-filter-group-title {
+        font-size: 13px;
+    }
+
+    .mobile-filter-group.expanded .mobile-filter-group-content {
+        max-height: 300px;
+    }
+
+    .mobile-filter-group-content .filter-options {
+        max-height: 240px;
+    }
 }
 
 /* ===== Practice Modal ===== */

@@ -471,104 +471,168 @@ class PracticesApp {
         this.scrollToTop();
     }
 
-    populateMobileFilters() {
+        populateMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
-        const categories = [...new Set(this.practices.map(p => p.category).filter(c => c))];
-        const audiences = ['young', 'experienced', 'all'];
-        const formats = ['single', 'methodological', 'school', 'municipal', 'regional'];
-        const difficulties = ['easy', 'medium', 'hard'];
+        // Собираем категории из практик
+        const categories = [...new Set(this.practices.map(p => p.category?.id).filter(Boolean))];
+        const categoriesData = categories.map(id => {
+            const practice = this.practices.find(p => p.category?.id === id);
+            return practice ? practice.category : null;
+        }).filter(Boolean);
 
-        const audienceLabels = {
-            'young': 'Молодые педагоги (до 3 лет)',
-            'experienced': 'Опытные педагоги',
-            'all': 'Все категории'
-        };
-        const formatLabels = {
-            'single': 'Опыт одного педагога',
-            'methodological': 'Опыт методического объединения',
-            'school': 'Школьный проект',
-            'municipal': 'Муниципальный опыт',
-            'regional': 'Региональный опыт'
-        };
-        const difficultyLabels = { 'easy': 'Лёгкий', 'medium': 'Средний', 'hard': 'Сложный' };
-        const difficultyIcons = { 'easy': 'fas fa-leaf', 'medium': 'fas fa-chart-simple', 'hard': 'fas fa-mountain' };
-        const difficultyColors = { 'easy': '#10b981', 'medium': '#f59e0b', 'hard': '#ef4444' };
-        const formatIcons = {
-            'single': 'fas fa-user',
-            'methodological': 'fas fa-building',
-            'school': 'fas fa-school',
-            'municipal': 'fas fa-city',
-            'regional': 'fas fa-map-marked-alt'
-        };
-        const formatColors = {
-            'single': '#3b82f6',
-            'methodological': '#10b981',
-            'school': '#f59e0b',
-            'municipal': '#ec4899',
-            'regional': '#8b5cf6'
+        // Захардкоженные значения с метками, иконками и цветами
+        const audiences = [
+            { value: 'young', label: 'Молодые педагоги (до 3 лет)' },
+            { value: 'experienced', label: 'Опытные педагоги' },
+            { value: 'all', label: 'Все категории' }
+        ];
+        const formats = [
+            { value: 'single', label: 'Опыт одного педагога', icon: 'fas fa-user', color: '#3b82f6' },
+            { value: 'methodological', label: 'Опыт методического объединения', icon: 'fas fa-building', color: '#10b981' },
+            { value: 'school', label: 'Школьный проект', icon: 'fas fa-school', color: '#f59e0b' },
+            { value: 'municipal', label: 'Муниципальный опыт', icon: 'fas fa-city', color: '#ec4899' },
+            { value: 'regional', label: 'Региональный опыт', icon: 'fas fa-map-marked-alt', color: '#8b5cf6' }
+        ];
+        const difficulties = [
+            { value: 'easy', label: 'Лёгкий', icon: 'fas fa-leaf', color: '#10b981' },
+            { value: 'medium', label: 'Средний', icon: 'fas fa-chart-simple', color: '#f59e0b' },
+            { value: 'hard', label: 'Сложный', icon: 'fas fa-mountain', color: '#ef4444' }
+        ];
+
+        // Универсальная функция генерации группы аккордеона
+        const generateFilterGroup = (title, category, items, icon, renderItem) => {
+            const selectedCount = this.filters[category].length;
+            const countBadge = selectedCount > 0
+                ? `<span class="filter-count-badge">${selectedCount}</span>`
+                : '';
+
+            return `
+                <div class="mobile-filter-group" data-category="${category}">
+                    <div class="mobile-filter-group-header" onclick="window.practicesApp.toggleFilterGroup(this)">
+                        <div class="mobile-filter-group-title">
+                            <i class="fas ${icon}"></i>
+                            <span>${title}</span>
+                            ${countBadge}
+                        </div>
+                        <i class="fas fa-chevron-down mobile-filter-toggle-icon"></i>
+                    </div>
+                    <div class="mobile-filter-group-content">
+                        <div class="filter-options">
+                            ${items.map(item => renderItem(item)).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
         };
 
         const filtersHTML = `
-            <div class="filters-list">
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По категориям</h4>
-                    <div class="filter-options">
-                        ${categories.map(cat => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox" data-category="category" value="${cat.id}" ${this.filters.category.includes(cat.id.toString()) ? 'checked' : ''}>
-                                <span class="filter-color-indicator" style="background-color: ${cat.icon_color};"></span>
-                                <span class="filter-option-text">${this.escapeHtml(cat.name)}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="filter-group">
-                    <h4 class="filter-group-title">Целевая аудитория</h4>
-                    <div class="filter-options">
-                        ${audiences.map(aud => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox" data-category="audience" value="${aud}" ${this.filters.audience.includes(aud) ? 'checked' : ''}>
-                                <span class="filter-option-text">${audienceLabels[aud]}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="filter-group">
-                    <h4 class="filter-group-title">Формат практики</h4>
-                    <div class="filter-options">
-                        ${formats.map(fmt => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox" data-category="format" value="${fmt}" ${this.filters.format.includes(fmt) ? 'checked' : ''}>
-                                <span class="filter-option-text">${formatLabels[fmt]}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="filter-group">
-                    <h4 class="filter-group-title">Уровень сложности</h4>
-                    <div class="filter-options">
-                        ${difficulties.map(diff => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox" data-category="difficulty" value="${diff}" ${this.filters.difficulty.includes(diff) ? 'checked' : ''}>
-                                <span class="filter-option-text">${difficultyLabels[diff]}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
+            <div class="mobile-filters-accordion">
+                ${generateFilterGroup('По категориям', 'category', categoriesData, 'fa-layer-group', cat => `
+                    <label class="filter-option">
+                        <input type="checkbox" class="filter-checkbox" data-category="category" value="${cat.id}" ${this.filters.category.includes(cat.id.toString()) ? 'checked' : ''}>
+                        <span class="filter-color-indicator" style="background-color: ${cat.icon_color};"></span>
+                        <span class="filter-option-text">${this.escapeHtml(cat.name)}</span>
+                    </label>
+                `)}
+                ${generateFilterGroup('Целевая аудитория', 'audience', audiences, 'fa-users', aud => `
+                    <label class="filter-option">
+                        <input type="checkbox" class="filter-checkbox" data-category="audience" value="${aud.value}" ${this.filters.audience.includes(aud.value) ? 'checked' : ''}>
+                        <span class="filter-option-text">${aud.label}</span>
+                    </label>
+                `)}
+                ${generateFilterGroup('Формат практики', 'format', formats, 'fa-chalkboard-user', fmt => `
+                    <label class="filter-option">
+                        <input type="checkbox" class="filter-checkbox" data-category="format" value="${fmt.value}" ${this.filters.format.includes(fmt.value) ? 'checked' : ''}>
+                        <span class="filter-icon-indicator" style="background-color: ${fmt.color}20; color: ${fmt.color};">
+                            <i class="${fmt.icon}"></i>
+                        </span>
+                        <span class="filter-option-text">${fmt.label}</span>
+                    </label>
+                `)}
+                ${generateFilterGroup('Уровень сложности', 'difficulty', difficulties, 'fa-signal', diff => `
+                    <label class="filter-option">
+                        <input type="checkbox" class="filter-checkbox" data-category="difficulty" value="${diff.value}" ${this.filters.difficulty.includes(diff.value) ? 'checked' : ''}>
+                        <span class="filter-icon-indicator" style="background-color: ${diff.color}20; color: ${diff.color};">
+                            <i class="${diff.icon}"></i>
+                        </span>
+                        <span class="filter-option-text">${diff.label}</span>
+                    </label>
+                `)}
             </div>
         `;
 
         modalFilters.innerHTML = filtersHTML;
 
+        // Привязываем обработчики к чекбоксам
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
-            const category = checkbox.dataset.category;
-            const value = checkbox.value;
-            checkbox.checked = this.filters[category].includes(value);
+            checkbox.addEventListener('change', (e) => {
+                const category = e.target.dataset.category;
+                const value = e.target.value;
+
+                if (e.target.checked) {
+                    if (!this.filters[category].includes(value)) {
+                        this.filters[category].push(value);
+                    }
+                } else {
+                    this.filters[category] = this.filters[category].filter(v => v !== value);
+                }
+
+                // Обновляем счётчик в заголовке группы
+                this.updateFilterGroupCount(category);
+            });
+        });
+
+        // Раскрываем первую группу по умолчанию
+        const firstGroup = modalFilters.querySelector('.mobile-filter-group');
+        if (firstGroup) {
+            firstGroup.classList.add('expanded');
+        }
+    }
+
+    // Новый метод: раскрытие/сворачивание группы фильтров
+    toggleFilterGroup(headerElement) {
+        const group = headerElement.closest('.mobile-filter-group');
+        if (!group) return;
+
+        // Закрываем все другие группы (аккордеон)
+        const allGroups = group.parentElement.querySelectorAll('.mobile-filter-group');
+        allGroups.forEach(g => {
+            if (g !== group) {
+                g.classList.remove('expanded');
+            }
+        });
+
+        // Переключаем текущую группу
+        group.classList.toggle('expanded');
+    }
+
+    // Новый метод: обновление счётчика выбранных значений
+    updateFilterGroupCount(category) {
+        const group = document.querySelector(`.mobile-filter-group[data-category="${category}"]`);
+        if (!group) return;
+
+        const count = this.filters[category].length;
+        const titleElement = group.querySelector('.mobile-filter-group-title');
+
+        // Удаляем старый бейдж, если есть
+        const oldBadge = titleElement.querySelector('.filter-count-badge');
+        if (oldBadge) oldBadge.remove();
+
+        // Добавляем новый бейдж, если есть выбранные значения
+        if (count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'filter-count-badge';
+            badge.textContent = count;
+            titleElement.appendChild(badge);
+        }
+    }
+
+    // Новый метод: обновление всех счётчиков
+    updateAllFilterGroupCounts() {
+        Object.keys(this.filters).forEach(category => {
+            this.updateFilterGroupCount(category);
         });
     }
 
@@ -585,13 +649,32 @@ class PracticesApp {
 
         this.filters = newFilters;
         this.syncMainFilters();
+        this.updateAllFilterGroupCounts();
     }
 
     clearMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
+
+        // Снимаем все галочки
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             checkbox.checked = false;
+        });
+
+        // Сбрасываем фильтры
+        this.filters = { category: [], audience: [], format: [], difficulty: [] };
+
+        // Обновляем все счётчики (удаляем бейджи)
+        this.updateAllFilterGroupCounts();
+
+        // Сворачиваем все группы, кроме первой
+        const allGroups = modalFilters.querySelectorAll('.mobile-filter-group');
+        allGroups.forEach((group, index) => {
+            if (index === 0) {
+                group.classList.add('expanded');
+            } else {
+                group.classList.remove('expanded');
+            }
         });
     }
 
@@ -599,7 +682,7 @@ class PracticesApp {
         document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             const category = checkbox.dataset.category;
             const value = checkbox.value;
-            checkbox.checked = this.filters[category].includes(value);
+            checkbox.checked = this.filters[category]?.includes(value) || false;
         });
         this.updateFilterStyles();
     }

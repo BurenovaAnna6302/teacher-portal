@@ -423,66 +423,80 @@ class NewsApp {
         this.updateFilterStyles();
     }
 
-    populateMobileFilters() {
+        populateMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
-        const filtersHTML = `
-            <div class="filters-list">
-                <!-- Status Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По статусу информации</h4>
-                    <div class="filter-options">
-                        ${Object.values(this.statuses).map(status => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox"
-                                       data-category="status" value="${status.id}">
-                                <span class="filter-color-indicator" style="background-color: ${status.color};"></span>
-                                <span class="filter-option-text">${status.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
+        // Функция для генерации HTML группы фильтров с чекбоксами
+        const generateFilterGroup = (title, category, items, icon, colorField = 'color') => {
+            const selectedCount = this.filters[category].length;
+            const countBadge = selectedCount > 0
+                ? `<span class="filter-count-badge">${selectedCount}</span>`
+                : '';
 
-                <!-- Target Direction Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По целевой аудитории</h4>
-                    <div class="filter-options">
-                        ${Object.values(this.targetDirections).map(target => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox"
-                                       data-category="target" value="${target.id}">
-                                <span class="filter-option-text">${target.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Content Orientation Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По направленности</h4>
-                    <div class="filter-options">
-                        ${Object.values(this.contentOrientations).map(content => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox"
-                                       data-category="content" value="${content.id}">
-                                <span class="filter-option-text">${content.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Date Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">Дата публикации</h4>
-                    <div class="date-filter-wrapper">
-                        <div class="date-input-group">
-                            <input type="date" id="mobileDateFrom" class="date-input" value="${this.filters.dateFrom || ''}">
-                            <i class="fas fa-calendar-alt date-icon"></i>
+            return `
+                <div class="mobile-filter-group" data-category="${category}">
+                    <div class="mobile-filter-group-header" onclick="window.newsApp.toggleFilterGroup(this)">
+                        <div class="mobile-filter-group-title">
+                            <i class="fas ${icon}"></i>
+                            <span>${title}</span>
+                            ${countBadge}
                         </div>
-                        <div class="date-input-group">
-                            <input type="date" id="mobileDateTo" class="date-input" value="${this.filters.dateTo || ''}">
-                            <i class="fas fa-calendar-alt date-icon"></i>
+                        <i class="fas fa-chevron-down mobile-filter-toggle-icon"></i>
+                    </div>
+                    <div class="mobile-filter-group-content">
+                        <div class="filter-options">
+                            ${Object.values(items).map(item => `
+                                <label class="filter-option">
+                                    <input type="checkbox" class="filter-checkbox"
+                                           data-category="${category}" value="${item.id}"
+                                           ${this.filters[category].includes(item.id.toString()) ? 'checked' : ''}>
+                                    ${item[colorField] ? `<span class="filter-color-indicator" style="background-color: ${item[colorField]};"></span>` : ''}
+                                    <span class="filter-option-text">${this.escapeHtml(item.name)}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // Специальная группа для дат (не чекбоксы)
+        const dateCount = (this.filters.dateFrom || this.filters.dateTo) ? 1 : 0;
+        const dateBadge = dateCount > 0 ? `<span class="filter-count-badge">${dateCount}</span>` : '';
+
+        const filtersHTML = `
+            <div class="mobile-filters-accordion">
+                ${generateFilterGroup('По статусу информации', 'status', this.statuses, 'fa-info-circle', 'color')}
+                ${generateFilterGroup('По целевой аудитории', 'target', this.targetDirections, 'fa-users', null)}
+                ${generateFilterGroup('По направленности', 'content', this.contentOrientations, 'fa-bullseye', null)}
+
+                <!-- Группа с датами (не аккордеон с чекбоксами) -->
+                <div class="mobile-filter-group" data-category="date">
+                    <div class="mobile-filter-group-header" onclick="window.newsApp.toggleFilterGroup(this)">
+                        <div class="mobile-filter-group-title">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Дата публикации</span>
+                            ${dateBadge}
+                        </div>
+                        <i class="fas fa-chevron-down mobile-filter-toggle-icon"></i>
+                    </div>
+                    <div class="mobile-filter-group-content">
+                        <div class="mobile-date-filter-wrapper">
+                            <div class="mobile-date-field">
+                                <label class="mobile-date-label">С даты:</label>
+                                <div class="mobile-date-input-wrapper">
+                                    <input type="date" id="mobileDateFrom" class="mobile-date-input" value="${this.filters.dateFrom || ''}">
+                                    <i class="fas fa-calendar-alt mobile-date-icon"></i>
+                                </div>
+                            </div>
+                            <div class="mobile-date-field">
+                                <label class="mobile-date-label">По дату:</label>
+                                <div class="mobile-date-input-wrapper">
+                                    <input type="date" id="mobileDateTo" class="mobile-date-input" value="${this.filters.dateTo || ''}">
+                                    <i class="fas fa-calendar-alt mobile-date-icon"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -491,12 +505,126 @@ class NewsApp {
 
         modalFilters.innerHTML = filtersHTML;
 
-        // Устанавливаем состояния чекбоксов
+        // Привязываем обработчики к чекбоксам
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
-            const category = checkbox.dataset.category;
-            const value = checkbox.value;
-            checkbox.checked = this.filters[category].includes(value);
+            checkbox.addEventListener('change', (e) => {
+                const category = e.target.dataset.category;
+                const value = e.target.value;
+
+                if (e.target.checked) {
+                    if (!this.filters[category].includes(value)) {
+                        this.filters[category].push(value);
+                    }
+                } else {
+                    this.filters[category] = this.filters[category].filter(v => v !== value);
+                }
+
+                // Обновляем счётчик в заголовке группы
+                this.updateFilterGroupCount(category);
+            });
         });
+
+        // Обработчики для полей дат
+        const mobileDateFrom = modalFilters.querySelector('#mobileDateFrom');
+        const mobileDateTo = modalFilters.querySelector('#mobileDateTo');
+
+        if (mobileDateFrom) {
+            mobileDateFrom.addEventListener('change', () => {
+                this.updateDateFilterBadge();
+            });
+        }
+
+        if (mobileDateTo) {
+            mobileDateTo.addEventListener('change', () => {
+                this.updateDateFilterBadge();
+            });
+        }
+
+        // Раскрываем первую группу по умолчанию
+        const firstGroup = modalFilters.querySelector('.mobile-filter-group');
+        if (firstGroup) {
+            firstGroup.classList.add('expanded');
+        }
+    }
+
+    // Новый метод: раскрытие/сворачивание группы фильтров
+    toggleFilterGroup(headerElement) {
+        const group = headerElement.closest('.mobile-filter-group');
+        if (!group) return;
+
+        // Закрываем все другие группы (аккордеон)
+        const allGroups = group.parentElement.querySelectorAll('.mobile-filter-group');
+        allGroups.forEach(g => {
+            if (g !== group) {
+                g.classList.remove('expanded');
+            }
+        });
+
+        // Переключаем текущую группу
+        group.classList.toggle('expanded');
+    }
+
+    // Новый метод: обновление счётчика выбранных значений
+    updateFilterGroupCount(category) {
+        const group = document.querySelector(`.mobile-filter-group[data-category="${category}"]`);
+        if (!group) return;
+
+        const count = this.filters[category].length;
+        const titleElement = group.querySelector('.mobile-filter-group-title');
+
+        // Удаляем старый бейдж, если есть
+        const oldBadge = titleElement.querySelector('.filter-count-badge');
+        if (oldBadge) oldBadge.remove();
+
+        // Добавляем новый бейдж, если есть выбранные значения
+        if (count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'filter-count-badge';
+            badge.textContent = count;
+            titleElement.appendChild(badge);
+        }
+    }
+
+    // Новый метод: обновление бейджа для дат
+    updateDateFilterBadge() {
+        const modalFilters = document.querySelector('.modal-filters');
+        if (!modalFilters) return;
+
+        const dateFrom = modalFilters.querySelector('#mobileDateFrom')?.value;
+        const dateTo = modalFilters.querySelector('#mobileDateTo')?.value;
+        const hasDate = dateFrom || dateTo;
+
+        const group = modalFilters.querySelector('.mobile-filter-group[data-category="date"]');
+        if (!group) return;
+
+        const titleElement = group.querySelector('.mobile-filter-group-title');
+        const oldBadge = titleElement.querySelector('.filter-count-badge');
+        if (oldBadge) oldBadge.remove();
+
+        if (hasDate) {
+            const badge = document.createElement('span');
+            badge.className = 'filter-count-badge';
+            badge.textContent = '✓';
+            titleElement.appendChild(badge);
+        }
+    }
+
+    // Новый метод: обновление всех счётчиков
+    updateAllFilterGroupCounts() {
+        Object.keys(this.filters).forEach(category => {
+            if (Array.isArray(this.filters[category])) {
+                this.updateFilterGroupCount(category);
+            }
+        });
+        this.updateDateFilterBadge();
+    }
+
+    // Экранирование HTML
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     applyMobileFilters() {
@@ -512,13 +640,10 @@ class NewsApp {
             dateTo: null
         };
 
-        modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+        modalFilters.querySelectorAll('.filter-checkbox:checked').forEach(checkbox => {
             const category = checkbox.dataset.category;
             const value = checkbox.value;
-
-            if (checkbox.checked) {
-                newFilters[category].push(value);
-            }
+            newFilters[category].push(value);
         });
 
         newFilters.dateFrom = modalFilters.querySelector('#mobileDateFrom')?.value || null;
@@ -527,6 +652,7 @@ class NewsApp {
         // Применяем фильтры
         this.filters = newFilters;
         this.syncMainFilters();
+        this.updateAllFilterGroupCounts();
         this.currentPage = 1;
     }
 
@@ -534,27 +660,53 @@ class NewsApp {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
+        // Снимаем все галочки
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             checkbox.checked = false;
         });
 
+        // Сбрасываем даты
         const dateFrom = modalFilters.querySelector('#mobileDateFrom');
         const dateTo = modalFilters.querySelector('#mobileDateTo');
         if (dateFrom) dateFrom.value = '';
         if (dateTo) dateTo.value = '';
+
+        // Сбрасываем фильтры
+        this.filters = {
+            status: [],
+            target: [],
+            content: [],
+            dateFrom: null,
+            dateTo: null
+        };
+
+        // Обновляем все счётчики (удаляем бейджи)
+        this.updateAllFilterGroupCounts();
+
+        // Сворачиваем все группы, кроме первой
+        const allGroups = modalFilters.querySelectorAll('.mobile-filter-group');
+        allGroups.forEach((group, index) => {
+            if (index === 0) {
+                group.classList.add('expanded');
+            } else {
+                group.classList.remove('expanded');
+            }
+        });
     }
 
     syncMainFilters() {
         document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             const category = checkbox.dataset.category;
             const value = checkbox.value;
-            checkbox.checked = this.filters[category].includes(value);
+            checkbox.checked = this.filters[category]?.includes(value) || false;
         });
 
         const dateFrom = document.getElementById('dateFrom');
         const dateTo = document.getElementById('dateTo');
         if (dateFrom) dateFrom.value = this.filters.dateFrom || '';
         if (dateTo) dateTo.value = this.filters.dateTo || '';
+
+        this.updateFilterStyles();
     }
 
     formatDate(dateString) {
