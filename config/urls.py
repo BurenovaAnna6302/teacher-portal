@@ -15,9 +15,8 @@ def yandex_verification(request):
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
-    <body>
-        cb2afd2e28a99dbc
-    </body>
+     <body>Verification: cb2afd2e28a99dbc</body>
+    
 </html>"""
     return HttpResponse(html_content, content_type='text/html; charset=utf-8')
 
