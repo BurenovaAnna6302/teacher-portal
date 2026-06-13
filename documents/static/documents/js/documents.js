@@ -389,64 +389,134 @@ class DocumentsApp {
         this.scrollToTop();
     }
 
-    populateMobileFilters() {
+        populateMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
+        // Функция для генерации HTML группы фильтров
+        const generateFilterGroup = (title, category, items, icon) => {
+            const selectedCount = this.filters[category].length;
+            const countBadge = selectedCount > 0
+                ? `<span class="filter-count-badge">${selectedCount}</span>`
+                : '';
+
+            return `
+                <div class="mobile-filter-group" data-category="${category}">
+                    <div class="mobile-filter-group-header" onclick="window.documentsApp.toggleFilterGroup(this)">
+                        <div class="mobile-filter-group-title">
+                            <i class="fas ${icon}"></i>
+                            <span>${title}</span>
+                            ${countBadge}
+                        </div>
+                        <i class="fas fa-chevron-down mobile-filter-toggle-icon"></i>
+                    </div>
+                    <div class="mobile-filter-group-content">
+                        <div class="filter-options">
+                            ${Object.values(items).map(item => `
+                                <label class="filter-option">
+                                    <input type="checkbox" class="filter-checkbox"
+                                           data-category="${category}" value="${item.id}"
+                                           ${this.filters[category].includes(item.id.toString()) ? 'checked' : ''}>
+                                    ${category === 'category' && item.bg_color ? `<span class="filter-color-indicator" style="background-color: ${item.bg_color};"></span>` : ''}
+                                    <span class="filter-option-text">${this.escapeHtml(item.name)}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
         const filtersHTML = `
-            <div class="filters-list">
-                <!-- Category Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По категории</h4>
-                    <div class="filter-options">
-                        ${Object.values(this.categories).map(category => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox"
-                                       data-category="category" value="${category.id}"
-                                       ${this.filters.category.includes(category.id.toString()) ? 'checked' : ''}>
-                                <span class="filter-color-indicator" style="background-color: ${category.bg_color};"></span>
-                                <span class="filter-option-text">${category.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Level Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По уровню</h4>
-                    <div class="filter-options">
-                        ${Object.values(this.levels).map(level => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox"
-                                       data-category="level" value="${level.id}"
-                                       ${this.filters.level.includes(level.id.toString()) ? 'checked' : ''}>
-                                <span class="filter-option-text">${level.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Year Filter -->
-                <div class="filter-group">
-                    <h4 class="filter-group-title">По году</h4>
-                    <div class="filter-options">
-                        ${Object.values(this.years).map(year => `
-                            <label class="filter-option">
-                                <input type="checkbox" class="filter-checkbox"
-                                       data-category="year" value="${year.id}"
-                                       ${this.filters.year.includes(year.id.toString()) ? 'checked' : ''}>
-                                <span class="filter-option-text">${year.name}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
+            <div class="mobile-filters-accordion">
+                ${generateFilterGroup('По категории', 'category', this.categories, 'fa-folder')}
+                ${generateFilterGroup('По уровню действия', 'level', this.levels, 'fa-layer-group')}
+                ${generateFilterGroup('По году принятия', 'year', this.years, 'fa-calendar-alt')}
             </div>
         `;
 
         modalFilters.innerHTML = filtersHTML;
+
+        // Привязываем обработчики к чекбоксам
+        modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const category = e.target.dataset.category;
+                const value = e.target.value;
+
+                if (e.target.checked) {
+                    if (!this.filters[category].includes(value)) {
+                        this.filters[category].push(value);
+                    }
+                } else {
+                    this.filters[category] = this.filters[category].filter(v => v !== value);
+                }
+
+                // Обновляем счётчик в заголовке группы
+                this.updateFilterGroupCount(category);
+            });
+        });
+
+        // Раскрываем первую группу по умолчанию
+        const firstGroup = modalFilters.querySelector('.mobile-filter-group');
+        if (firstGroup) {
+            firstGroup.classList.add('expanded');
+        }
     }
 
-    applyMobileFilters() {
+    // Новый метод: раскрытие/сворачивание группы фильтров
+    toggleFilterGroup(headerElement) {
+        const group = headerElement.closest('.mobile-filter-group');
+        if (!group) return;
+
+        // Закрываем все другие группы (аккордеон)
+        const allGroups = group.parentElement.querySelectorAll('.mobile-filter-group');
+        allGroups.forEach(g => {
+            if (g !== group) {
+                g.classList.remove('expanded');
+            }
+        });
+
+        // Переключаем текущую группу
+        group.classList.toggle('expanded');
+    }
+
+    // Новый метод: обновление счётчика выбранных значений
+    updateFilterGroupCount(category) {
+        const group = document.querySelector(`.mobile-filter-group[data-category="${category}"]`);
+        if (!group) return;
+
+        const count = this.filters[category].length;
+        const titleElement = group.querySelector('.mobile-filter-group-title');
+
+        // Удаляем старый бейдж, если есть
+        const oldBadge = titleElement.querySelector('.filter-count-badge');
+        if (oldBadge) oldBadge.remove();
+
+        // Добавляем новый бейдж, если есть выбранные значения
+        if (count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'filter-count-badge';
+            badge.textContent = count;
+            titleElement.appendChild(badge);
+        }
+    }
+
+    // Новый метод: обновление всех счётчиков
+    updateAllFilterGroupCounts() {
+        Object.keys(this.filters).forEach(category => {
+            this.updateFilterGroupCount(category);
+        });
+    }
+
+    // Экранирование HTML
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+        applyMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
@@ -467,14 +537,36 @@ class DocumentsApp {
 
         this.filters = newFilters;
         this.syncMainFilters();
+        this.updateAllFilterGroupCounts();
     }
 
-    clearMobileFilters() {
+        clearMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
+        // Снимаем все галочки
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             checkbox.checked = false;
+        });
+
+        // Сбрасываем фильтры
+        this.filters = {
+            category: [],
+            level: [],
+            year: []
+        };
+
+        // Обновляем все счётчики (удаляем бейджи)
+        this.updateAllFilterGroupCounts();
+
+        // Сворачиваем все группы, кроме первой
+        const allGroups = modalFilters.querySelectorAll('.mobile-filter-group');
+        allGroups.forEach((group, index) => {
+            if (index === 0) {
+                group.classList.add('expanded');
+            } else {
+                group.classList.remove('expanded');
+            }
         });
     }
 

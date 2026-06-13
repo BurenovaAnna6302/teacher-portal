@@ -1007,3 +1007,204 @@
         font-size: 18px !important;
     }
 }
+/* ===== МОБИЛЬНЫЕ ФИЛЬТРЫ - АККОРДЕОНЫ ===== */
+.mobile-filters-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-filter-group {
+    background: var(--documents-bg-light, #F9FAFB);
+    border-radius: 8px;
+    border: 1px solid rgba(3, 45, 67, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-filter-group.expanded {
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(3, 45, 67, 0.05);
+}
+
+/* Заголовок группы (кликабельный) */
+.mobile-filter-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.mobile-filter-group-header:hover {
+    background: rgba(3, 45, 67, 0.08);
+}
+
+.mobile-filter-group.expanded .mobile-filter-group-header {
+    border-bottom: 1px solid rgba(3, 45, 67, 0.05);
+}
+
+.mobile-filter-group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1A1A1A;
+    flex: 1;
+}
+
+.mobile-filter-group-title i:first-child {
+    color: #032D43;
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+}
+
+/* Бейдж с количеством выбранных */
+.filter-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: #032D43;
+    color: white;
+    border-radius: 11px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: auto;
+    margin-right: 8px;
+}
+
+/* Стрелка раскрытия */
+.mobile-filter-toggle-icon {
+    color: #6B7280;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.mobile-filter-group.expanded .mobile-filter-toggle-icon {
+    transform: rotate(180deg);
+    color: #032D43;
+}
+
+/* Содержимое группы (список чекбоксов) */
+.mobile-filter-group-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 16px;
+}
+
+.mobile-filter-group.expanded .mobile-filter-group-content {
+    max-height: 400px;
+    padding: 12px 16px 16px;
+    overflow-y: auto;
+}
+
+/* Стили чекбоксов внутри аккордеона */
+.mobile-filter-group-content .filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.mobile-filter-group-content .filter-options::-webkit-scrollbar {
+    width: 4px;
+}
+
+.mobile-filter-group-content .filter-options::-webkit-scrollbar-thumb {
+    background: rgba(3, 45, 67, 0.1);
+    border-radius: 999px;
+}
+
+.mobile-filter-group-content .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 14px;
+}
+
+.mobile-filter-group-content .filter-option:hover {
+    background: rgba(3, 45, 67, 0.08);
+}
+
+.mobile-filter-group-content .filter-option.active {
+    background: rgba(3, 45, 67, 0.08);
+}
+
+.mobile-filter-group-content .filter-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(3, 45, 67, 0.1);
+    border-radius: 4px;
+    appearance: none;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.mobile-filter-group-content .filter-checkbox:checked {
+    background-color: #032D43;
+    border-color: #032D43;
+}
+
+.mobile-filter-group-content .filter-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.mobile-filter-group-content .filter-color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(3, 45, 67, 0.1);
+}
+
+.mobile-filter-group-content .filter-option-text {
+    font-size: 14px;
+    color: #1A1A1A;
+    line-height: 1.4;
+    flex: 1;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 480px) {
+    .mobile-filter-group-header {
+        padding: 12px 14px;
+    }
+
+    .mobile-filter-group-title {
+        font-size: 13px;
+    }
+
+    .mobile-filter-group.expanded .mobile-filter-group-content {
+        max-height: 300px;
+    }
+
+    .mobile-filter-group-content .filter-options {
+        max-height: 240px;
+    }
+}
