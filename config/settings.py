@@ -144,8 +144,7 @@ USE_TZ = True
 # ===== Статика =====
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# Папки статики внутри приложений (main/static, news/static и т.д.)
-# Django находит автоматически благодаря django.contrib.staticfiles.
+# Папки статики внутри приложений Django находит автоматически.
 # Здесь оставляем только глобальную папку проекта.
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
@@ -154,7 +153,7 @@ STATICFILES_DIRS = [
 # ===== Медиа (S3 Timeweb Cloud) =====
 from storages.backends.s3boto3 import S3Boto3Storage
 
-# Создаём свой storage с ACL public-read для всех загруженных файлов
+# Создаём свой storage с гарантированным public-read для всех загруженных файлов
 class PublicS3Storage(S3Boto3Storage):
     bucket_name = 'teacher-portal-media'
     default_acl = 'public-read'
@@ -168,10 +167,10 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'teacher-portal-media'
 AWS_S3_REGION_NAME = 'ru-1'
-AWS_S3_ENDPOINT_URL = 'https://s3.twcstorage.ru'
 
-# Правильный домен для формирования публичных ссылок
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.twcstorage.ru'
+# Явно указываем endpoint Timeweb Cloud.
+# Библиотека django-storages автоматически сформирует правильный path-style URL.
+AWS_S3_ENDPOINT_URL = 'https://s3.twcstorage.ru'
 
 # Публичный доступ для всех загружаемых объектов
 AWS_DEFAULT_ACL = 'public-read'
@@ -183,15 +182,15 @@ AWS_S3_OBJECT_PARAMETERS = {
     'ACL': 'public-read',
 }
 
-# Медиа URL будет указывать на S3
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+# Медиа URL теперь указывает на правильный path-style адрес, который подтвердила поддержка
+MEDIA_URL = f'https://s3.twcstorage.ru/{AWS_STORAGE_BUCKET_NAME}/'
 
-# Локальная папка для медиа (не используется при S3, но оставляем)
+# Локальная папка для медиа (не используется при S3, но оставляем для совместимости)
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ===== Ограничения загрузки =====
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 MB
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -199,4 +198,22 @@ LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/account/profile/'
 LOGOUT_REDIRECT_URL = '/'
 
+# Хранилище для статических файлов (WhiteNoise)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ===== КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ДЛЯ S3 =====
+# Указываем Django использовать наш кастомный S3 storage для всех медиа-файлов по умолчанию.
+# Путь 'config.settings' берется из названия вашей папки с settings.py (судя по config.urls)
+DEFAULT_FILE_STORAGE = 'config.settings.PublicS3Storage'
+
+# ПРИМЕЧАНИЕ: Если вы используете Django 4.2 или новее, вместо двух строк выше (STATICFILES_STORAGE и DEFAULT_FILE_STORAGE)
+# рекомендуется использовать современный словарь STORAGES. Если всё работает, можно оставить как есть.
+# Для Django 4.2+ это выглядело бы так:
+# STORAGES = {
+#     "default": {
+#         "BACKEND": "config.settings.PublicS3Storage",
+#     },
+#     "staticfiles": {
+#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+#     },
+# }
