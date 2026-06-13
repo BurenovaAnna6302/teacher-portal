@@ -756,7 +756,7 @@ def news_list(request):
     if content_type_filter and content_type_filter != '':
         news_queryset = news_queryset.filter(content_type__name__icontains=content_type_filter)
 
-    if audience_filter and audience_filter != '':
+    if audience_filter and content_type_filter != '':
         news_queryset = news_queryset.filter(target_audience__name__icontains=audience_filter)
 
     # Сортировка
@@ -915,6 +915,8 @@ def news_create(request):
 
         except Exception as e:
             messages.error(request, f'Ошибка при создании новости: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'admin_panel/news/form.html', {
         'target_audiences': target_audiences,
@@ -940,7 +942,7 @@ def news_edit(request, news_id):
     info_statuses = InfoStatus.objects.all().order_by('name')
 
     # Получаем фото новости
-    existing_photos = news.photos.all()[:3]
+    existing_photos_qs = news.photos.all()[:3]
 
     if request.method == 'POST':
         try:
@@ -956,12 +958,30 @@ def news_edit(request, news_id):
             # Валидация
             if not title:
                 messages.error(request, 'Заголовок новости обязателен')
+                # Подготавливаем данные о существующих фото для возврата в форму
+                photos_data = []
+                for photo in existing_photos_qs:
+                    if photo.photo:
+                        photos_data.append({
+                            'id': photo.id,
+                            'url': photo.photo.url,
+                            'filename': os.path.basename(photo.photo.name),
+                        })
                 return render(request, 'admin_panel/news/form.html', {
-                    'news': news,
+                    'news': {
+                        'id': news.id,
+                        'title': news.title,
+                        'short_description': news.short_description,
+                        'detailed_description': news.detailed_description,
+                        'publish_date': news.publication_date.strftime('%Y-%m-%d'),
+                        'status_id': news.info_status_id,
+                        'content_type_id': news.content_type_id,
+                        'target_audience_id': news.target_audience_id,
+                    },
                     'target_audiences': target_audiences,
                     'content_types': content_types,
                     'info_statuses': info_statuses,
-                    'existing_photos': existing_photos,
+                    'existing_photos': photos_data,
                 })
 
             # Обновляем новость
@@ -982,10 +1002,11 @@ def news_edit(request, news_id):
             for photo_id in photos_to_delete:
                 try:
                     photo = NewsPhoto.objects.get(id=photo_id, news=news)
+                    # ИСПРАВЛЕНО: Используем photo.photo.delete() вместо os.remove()
+                    # Это корректно работает как с локальными файлами, так и с S3
                     if photo.photo:
-                        if os.path.isfile(photo.photo.path):
-                            os.remove(photo.photo.path)
-                    photo.delete()
+                        photo.photo.delete()  # Удаляет файл из S3 через django-storages
+                    photo.delete()  # Удаляет запись из БД
                 except NewsPhoto.DoesNotExist:
                     pass
 
@@ -1009,6 +1030,8 @@ def news_edit(request, news_id):
 
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении новости: {str(e)}')
+            import traceback
+            traceback.print_exc()
 
     # Подготавливаем данные для шаблона
     news_data = {
@@ -1026,7 +1049,7 @@ def news_edit(request, news_id):
 
     # Подготавливаем данные о существующих фото
     photos_data = []
-    for photo in existing_photos:
+    for photo in existing_photos_qs:
         if photo.photo:
             photos_data.append({
                 'id': photo.id,
@@ -1054,12 +1077,11 @@ def news_delete(request, news_id):
     if request.method == 'POST':
         news = get_object_or_404(RealNews, id=news_id)
 
-        # Удаляем связанные фото
+        # ИСПРАВЛЕНО: Удаляем связанные фото корректно для S3
         for photo in news.photos.all():
             if photo.photo:
-                if os.path.isfile(photo.photo.path):
-                    os.remove(photo.photo.path)
-            photo.delete()
+                photo.photo.delete()  # Удаляет файл из S3 через django-storages
+            photo.delete()  # Удаляет запись из БД
 
         news.delete()
         messages.success(request, 'Новость успешно удалена')

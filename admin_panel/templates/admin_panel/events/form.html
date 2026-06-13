@@ -79,6 +79,10 @@
         margin-bottom: 25px;
     }
 
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
     .form-label {
         display: block;
         font-size: 14px;
@@ -103,6 +107,16 @@
         background: white;
         transition: all 0.2s;
         box-sizing: border-box;
+    }
+
+    .form-control:hover {
+        border-color: var(--admin-text-gray);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--admin-primary);
+        box-shadow: 0 0 0 3px rgba(3, 45, 67, 0.1);
     }
 
     textarea.form-control {
@@ -133,11 +147,20 @@
         }
     }
 
+    /* ===== Счетчик символов ===== */
     .char-counter {
         text-align: right;
         font-size: 12px;
         color: var(--admin-text-light);
         margin-top: 5px;
+    }
+
+    .char-counter.warning {
+        color: var(--admin-warning);
+    }
+
+    .char-counter.error {
+        color: var(--admin-danger);
     }
 
     /* ===== Сайдбар ===== */
@@ -183,20 +206,46 @@
         font-size: 16px;
     }
 
-    /* ===== Загрузка фото (упрощённая) ===== */
-    .photo-limit-hint {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: var(--admin-text-gray);
-        margin-top: 15px;
-        padding: 8px 12px;
+    /* ===== Загрузка фото ===== */
+    .image-upload-area {
+        border: 2px dashed var(--admin-border);
+        border-radius: var(--admin-radius-md);
+        padding: 25px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 15px;
         background: var(--admin-bg-light);
-        border-radius: var(--admin-radius-sm);
-        border: 1px solid var(--admin-border);
     }
 
+    .image-upload-area:hover {
+        border-color: var(--admin-primary);
+        background: var(--admin-primary-light);
+    }
+
+    .image-upload-icon {
+        font-size: 40px;
+        color: var(--admin-primary);
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .image-upload-area:hover .image-upload-icon {
+        opacity: 1;
+    }
+
+    .upload-text {
+        font-weight: 600;
+        color: var(--admin-primary);
+        margin-bottom: 5px;
+    }
+
+    .upload-hint {
+        font-size: 12px;
+        color: var(--admin-text-gray);
+    }
+
+    /* ===== Превью фото ===== */
     .image-preview-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -242,7 +291,68 @@
         opacity: 1;
     }
 
-    /* ===== Кнопки ===== */
+    .photo-limit-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--admin-text-gray);
+        margin-top: 15px;
+        padding: 8px 12px;
+        background: var(--admin-bg-light);
+        border-radius: var(--admin-radius-sm);
+        border: 1px solid var(--admin-border);
+    }
+
+    .photo-limit-hint i {
+        color: var(--admin-warning);
+    }
+
+    .photo-count {
+        font-size: 13px;
+        color: var(--admin-text-gray);
+        margin-top: 15px;
+        font-weight: 500;
+    }
+
+    /* ===== Существующие фото ===== */
+    .existing-photos-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--admin-text-dark);
+        margin-bottom: 15px;
+    }
+
+    #deletePhotosContainer {
+        margin-top: 10px;
+    }
+
+    /* ===== Информация в сайдбаре ===== */
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--admin-border);
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: var(--admin-text-gray);
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--admin-text-dark);
+    }
+
+    /* ===== Кнопки действий ===== */
     .form-actions {
         display: flex;
         justify-content: flex-end;
@@ -288,30 +398,7 @@
         border-color: var(--admin-danger);
         color: var(--admin-danger);
         background: rgba(239, 68, 68, 0.05);
-    }
-
-    .info-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px dashed var(--admin-border);
-    }
-
-    .info-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .info-label {
-        font-weight: 500;
-        color: var(--admin-text-gray);
-    }
-
-    .info-value {
-        font-weight: 600;
-        color: var(--admin-text-dark);
+        transform: translateY(-2px);
     }
 </style>
 {% endblock %}
@@ -415,28 +502,53 @@
                 <div class="sidebar-section">
                     <h3 class="sidebar-title"><i class="fas fa-image"></i>Фотографии</h3>
 
+                    <!-- Существующие фото (при редактировании) -->
                     {% if existing_photos %}
                     <div class="existing-photos-title">Текущие фото:</div>
-                    <div class="image-preview-grid" id="existingPhotosGrid">
+                    <div class="image-preview-grid">
                         {% for photo in existing_photos %}
                         <div class="preview-item" data-photo-id="{{ photo.id }}">
                             <img src="{{ photo.url }}" alt="Фото мероприятия">
-                            <button type="button" class="preview-remove" onclick="markForDelete('{{ photo.id }}', this)"><i class="fas fa-times"></i></button>
+                            <button type="button" class="preview-remove" onclick="markForDelete('{{ photo.id }}', this)">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                         {% endfor %}
                     </div>
                     <div id="deletePhotosContainer"></div>
                     {% endif %}
 
-                    <!-- Упрощённая загрузка новых фото (без сложного JS) -->
-                    <div class="form-group">
-                        <label>Добавить новые фото (до 6)</label>
-                        <input type="file" name="photos" multiple accept="image/jpeg,image/png,image/jpg" class="form-control">
-                        <small class="form-text text-muted">Можно выбрать до 6 фотографий, JPG/PNG до 5 МБ</small>
+                    <!-- Загрузка новых фото -->
+                    <div class="image-upload-area" onclick="document.getElementById('photosInput').click()">
+                        <div class="image-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Нажмите для загрузки</div>
+                        <div class="upload-hint">JPG, PNG до 5 МБ</div>
+                        <input type="file"
+                               id="photosInput"
+                               name="photos"
+                               style="display: none;"
+                               accept="image/jpeg,image/png,image/jpg"
+                               multiple
+                               onchange="previewPhotos(this)">
                     </div>
 
                     <div class="photo-limit-hint">
-                        <i class="fas fa-info-circle"></i> Можно загрузить до 6 фотографий
+                        <i class="fas fa-info-circle"></i>
+                        Можно загрузить до 6 фотографий
+                    </div>
+
+                    <!-- Превью новых фото -->
+                    <div class="image-preview-grid" id="photoPreview"></div>
+
+                    <!-- Счетчик фото -->
+                    <div class="photo-count" id="photoCount">
+                        {% if existing_photos %}
+                            Загружено: {{ existing_photos|length }}/6
+                        {% else %}
+                            Загружено: 0/6
+                        {% endif %}
                     </div>
                 </div>
 
@@ -463,58 +575,183 @@
 
 {% block extra_js %}
 <script>
-    (function() {
-        // Счетчики символов
-        function updateCharCounter(textareaId, counterId, maxLength) {
-            const textarea = document.getElementById(textareaId);
-            const counter = document.getElementById(counterId);
-            if (!textarea || !counter) return;
-            function update() {
-                const len = textarea.value.length;
-                counter.textContent = len;
+    // Счетчики символов
+    function updateCharCounter(textareaId, counterId, maxLength) {
+        const textarea = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+
+        function update() {
+            const length = textarea.value.length;
+            counter.textContent = length;
+
+            if (length > maxLength * 0.9) {
+                counter.classList.add('warning');
+                counter.classList.remove('error');
+            } else if (length > maxLength) {
+                counter.classList.remove('warning');
+                counter.classList.add('error');
+            } else {
+                counter.classList.remove('warning', 'error');
             }
-            textarea.addEventListener('input', update);
-            update();
         }
+
+        textarea.addEventListener('input', update);
+        update();
+    }
+
+    // Предпросмотр фото
+    function previewPhotos(input) {
+        const preview = document.getElementById('photoPreview');
+        const existingPhotosCount = {{ existing_photos|length|default:0 }};
+        const photoCountEl = document.getElementById('photoCount');
+
+        preview.innerHTML = '';
+
+        if (input.files) {
+            const totalPhotos = existingPhotosCount + input.files.length;
+
+            if (totalPhotos > 6) {
+                alert('Можно загрузить максимум 6 фотографий');
+                input.value = '';
+                return;
+            }
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`Файл "${file.name}" слишком большой. Максимальный размер 5 МБ`);
+                    continue;
+                }
+
+                const reader = new FileReader();
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+
+                reader.onload = function(e) {
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="Превью">
+                        <button type="button" class="preview-remove" onclick="removeNewPhoto(this, ${i})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                };
+
+                reader.readAsDataURL(file);
+                preview.appendChild(previewItem);
+            }
+
+            photoCountEl.textContent = `Загружено: ${totalPhotos}/6`;
+        }
+    }
+
+    // Удаление нового фото
+    function removeNewPhoto(button, index) {
+        button.closest('.preview-item').remove();
+
+        const input = document.getElementById('photosInput');
+        const dt = new DataTransfer();
+
+        for (let i = 0; i < input.files.length; i++) {
+            if (i !== index) {
+                dt.items.add(input.files[i]);
+            }
+        }
+
+        input.files = dt.files;
+
+        const existingPhotosCount = {{ existing_photos|length|default:0 }};
+        const photoCountEl = document.getElementById('photoCount');
+        photoCountEl.textContent = `Загружено: ${existingPhotosCount + input.files.length}/6`;
+    }
+
+    // Отметка фото на удаление
+    function markForDelete(photoId, button) {
+        if (confirm('Удалить это фото?')) {
+            const container = document.getElementById('deletePhotosContainer');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'delete_photos';
+            input.value = photoId;
+            container.appendChild(input);
+
+            const previewItem = button.closest('.preview-item');
+            previewItem.style.opacity = '0.5';
+            previewItem.style.pointerEvents = 'none';
+            button.style.display = 'none';
+
+            const photoCountEl = document.getElementById('photoCount');
+            const currentText = photoCountEl.textContent;
+            const match = currentText.match(/(\d+)\/(\d+)/);
+            if (match) {
+                const current = parseInt(match[1]);
+                photoCountEl.textContent = `Загружено: ${current - 1}/6`;
+            }
+        }
+    }
+
+    // Валидация формы
+    function validateForm() {
+        const title = document.getElementById('title').value.trim();
+        const shortDesc = document.getElementById('short_description').value.trim();
+        const fullDesc = document.getElementById('full_description').value.trim();
+        const dateTime = document.getElementById('date_time').value;
+        const location = document.getElementById('location').value.trim();
+        const subject = document.getElementById('subject_area').value;
+        const activityType = document.getElementById('activity_type').value;
+        const format = document.getElementById('format').value;
+        const audience = document.getElementById('target_audience').value;
+
+        if (!title) {
+            alert('Название мероприятия обязательно');
+            return false;
+        }
+        if (!shortDesc) {
+            alert('Краткое описание обязательно');
+            return false;
+        }
+        if (!fullDesc) {
+            alert('Подробное описание обязательно');
+            return false;
+        }
+        if (!dateTime) {
+            alert('Дата и время проведения обязательны');
+            return false;
+        }
+        if (!location) {
+            alert('Место проведения обязательно');
+            return false;
+        }
+        if (!subject) {
+            alert('Выберите предметную область');
+            return false;
+        }
+        if (!activityType) {
+            alert('Выберите тип активности');
+            return false;
+        }
+        if (!format) {
+            alert('Выберите формат проведения');
+            return false;
+        }
+        if (!audience) {
+            alert('Выберите целевую аудиторию');
+            return false;
+        }
+        return true;
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
         updateCharCounter('title', 'titleCounter', 100);
         updateCharCounter('short_description', 'shortDescCounter', 250);
         updateCharCounter('full_description', 'fullDescCounter', 5000);
 
-        // Удаление существующих фото
-        window.markForDelete = function(photoId, btn) {
-            if (confirm('Удалить это фото?')) {
-                const container = document.getElementById('deletePhotosContainer');
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'delete_photos';
-                input.value = photoId;
-                container.appendChild(input);
-                const previewItem = btn.closest('.preview-item');
-                previewItem.style.opacity = '0.5';
-                previewItem.style.pointerEvents = 'none';
-                btn.style.display = 'none';
-            }
-        };
-
-        // Валидация формы перед отправкой
         const form = document.getElementById('eventForm');
         form.addEventListener('submit', function(e) {
-            const title = document.getElementById('title').value.trim();
-            const shortDesc = document.getElementById('short_description').value.trim();
-            const fullDesc = document.getElementById('full_description').value.trim();
-            const dateTime = document.getElementById('date_time').value;
-            const location = document.getElementById('location').value.trim();
-            const subject = document.getElementById('subject_area').value;
-            const activityType = document.getElementById('activity_type').value;
-            const format = document.getElementById('format').value;
-            const audience = document.getElementById('target_audience').value;
-
-            if (!title || !shortDesc || !fullDesc || !dateTime || !location || !subject || !activityType || !format || !audience) {
-                alert('Пожалуйста, заполните все обязательные поля.');
+            if (!validateForm()) {
                 e.preventDefault();
-                return false;
             }
-            return true;
         });
 
         // Предзаполнение даты (если пусто)
@@ -531,6 +768,6 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             dateTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
         }
-    })();
+    });
 </script>
 {% endblock %}
