@@ -16,8 +16,7 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 # Разрешённые хосты
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
-                          'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(
-    ',')
+                          'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,явтемпе.рф,www.явтемпе.рф').split(',')
 
 # Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
@@ -139,40 +138,33 @@ STATICFILES_DIRS = [
     BASE_DIR / 'success_practices/static',
 ]
 
-# ===== Медиа (загружаемые пользователями файлы) – НАСТРОЙКИ ДЛЯ TIMEWEB CLOUD S3 =====
+# ===== Медиа (S3 Timeweb Cloud) =====
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-# Данные для подключения к S3 (получить в панели Timeweb Cloud)
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')           # ваш S3 Access Key
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')   # ваш S3 Secret Key
-AWS_STORAGE_BUCKET_NAME = 'teacher-portal-media'             # имя бакета
-AWS_S3_REGION_NAME = 'ru-1'                                  # регион бакета
-AWS_S3_ENDPOINT_URL = 'https://s3.twcstorage.ru'             # эндпоинт Timeweb
+# Данные для подключения к S3 (из переменных окружения)
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = 'teacher-portal-media'
+AWS_S3_REGION_NAME = 'ru-1'
+AWS_S3_ENDPOINT_URL = 'https://s3.twcstorage.ru'
 
-# ✅ КЛЮЧЕВОЙ ПАРАМЕТР – правильный домен для публичных ссылок
-# Файл будет доступен по адресу:
-# https://teacher-portal-media.s3.twcstorage.ru/events/photos/имя_файла.jpg
+# Правильный домен для формирования публичных ссылок
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.twcstorage.ru'
 
-# Доступ к объектам – публичное чтение (если бакет разрешает)
+# Публичный доступ для всех загружаемых объектов
 AWS_DEFAULT_ACL = 'public-read'
-AWS_QUERYSTRING_AUTH = False   # отключаем подписанные URL (проще для отладки)
+AWS_QUERYSTRING_AUTH = False
 
-# Кэширование на 1 день
+# Параметры объектов (кэширование + ACL)
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
+    'ACL': 'public-read',  # явно указываем ACL, перекрывая AWS_DEFAULT_ACL
 }
 
-# Медиа URL будет указывать на S3 (используется в шаблонах для photo.url)
+# Медиа URL будет указывать на S3
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
-# Если по каким-то причинам публичное чтение недоступно, закомментируйте строку
-# AWS_DEFAULT_ACL и раскомментируйте строки ниже – тогда будут использоваться
-# подписанные URL (временные ссылки, действительные 1 час)
-# AWS_QUERYSTRING_AUTH = True
-# AWS_QUERYSTRING_EXPIRE = 3600
-
-# Локальная папка для медиа (не используется при S3, но оставляем на всякий случай)
+# Локальная папка для медиа (не используется при S3, но оставляем)
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ===== Ограничения загрузки =====
