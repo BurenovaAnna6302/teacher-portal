@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime
 import json
 import os
+from django.core.cache import cache
 from .constants import *
 
 # Импортируем реальные модели из всех приложений
@@ -2488,22 +2489,35 @@ def practice_edit(request, practice_id):
 
 @csrf_exempt
 def practice_delete(request, practice_id):
-    """Удаление практики"""
+    """Удаление практики (безопасная версия)"""
     if not check_admin_access(request):
         return redirect('admin_panel:admin_login')
 
     if request.method == 'POST':
-        practice = get_object_or_404(Practice, id=practice_id)
+        # ИСПОЛЬЗУЕМ filter().first() ВМЕСТО get_object_or_404
+        # Это не вызовет ошибку 404, если практика уже удалена
+        practice = Practice.objects.filter(id=practice_id).first()
 
-        # Корректное удаление файла из S3
-        if practice.file:
-            practice.file.delete()  # Удаляет файл из S3 через django-storages
+        if practice:
+            # Безопасно удаляем файл из S3, если он есть
+            try:
+                if practice.file:
+                    practice.file.delete(save=False)
+            except Exception as e:
+                # Если файл не удалось удалить из S3 — не страшно, продолжаем
+                import logging
+                logging.warning(f'Не удалось удалить файл практики {practice_id} из S3: {e}')
 
-        practice.delete()
+            # Удаляем саму практику
+            practice.delete()
 
-        # ← СБРОС КЭША: чтобы удалённая практика сразу исчезла из каталога
-        cache.clear()
+            # Сбрасываем кэш, чтобы практика сразу исчезла из каталога
+            cache.clear()
 
-        messages.success(request, 'Практика успешно удалена')
+            messages.success(request, 'Практика успешно удалена')
+        else:
+            # Если практика уже не существует — просто сообщаем об этом
+            messages.warning(request, 'Практика уже была удалена или не существует')
+            cache.clear()  # На всякий случай тоже сбрасываем кэш
 
     return redirect('admin_panel:practices_list')

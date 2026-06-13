@@ -6,8 +6,20 @@ from django.http import HttpResponse
 
 
 # Простая функция для верификации Яндекса (отдаём просто текст)
+from django.http import HttpResponse
+
+
 def yandex_verification(request):
-    return HttpResponse('cb2afd2e28a99dbc', content_type='text/plain')
+    """Файл верификации для Яндекс.Вебмастера"""
+    html_content = """<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        cb2afd2e28a99dbc
+    </body>
+</html>"""
+    return HttpResponse(html_content, content_type='text/html; charset=utf-8')
 
 
 urlpatterns = [
