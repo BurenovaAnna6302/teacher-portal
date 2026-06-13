@@ -523,7 +523,7 @@ class LoginApp {
         }
     }
 
-    handleSubmit(e) {
+        handleSubmit(e) {
         if (e) e.preventDefault();
         if (this.isSubmitting) return;
         this.isSubmitting = true;
@@ -543,7 +543,7 @@ class LoginApp {
 
         const formData = new FormData(this.loginForm);
 
-        // ✅ ПРАВИЛЬНОЕ ПОЛУЧЕНИЕ CSRF-ТОКЕНА
+        // Получение CSRF-токена
         let csrfToken = this.getCSRFToken();
         if (!csrfToken) {
             const csrfInput = this.loginForm.querySelector('[name=csrfmiddlewaretoken]');
@@ -558,24 +558,53 @@ class LoginApp {
             },
             body: formData,
         })
-        .then(response => {
-            // ✅ ОБРАБОТКА ОШИБКИ CSRF
+        .then(async response => {
+            // ✅ ИСПРАВЛЕНО: Правильная обработка разных статусов ответа
+
+            // 1. Ошибка CSRF (403) — всегда показываем как общую ошибку
             if (response.status === 403) {
                 throw new Error('Ошибка проверки безопасности. Обновите страницу и попробуйте снова.');
             }
+
+            // 2. Всегда пытаемся прочитать JSON (даже при статусе 400)
+            let data;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error(`Ошибка сервера: ${response.status}. Не удалось прочитать ответ.`);
+                }
+            } else {
+                // Если ответ не JSON — это реальная ошибка сервера
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+
+            // 3. Если бэкенд вернул JSON с ошибками (статус 400) — обрабатываем как обычный ответ
+            if (response.status === 400 && data.errors) {
+                return data; // Передаём дальше в следующий .then()
+            }
+
+            // 4. Серверные ошибки (500 и т.д.)
             if (!response.ok) {
                 throw new Error(`Ошибка сервера: ${response.status}`);
             }
-            return response.json();
+
+            return data;
         })
         .then(data => {
             this.hideLoading();
             this.isSubmitting = false;
+
             if (data.success) {
+                // Успешный вход — редирект
                 window.location.href = data.redirect_url;
             } else if (data.errors) {
+                // ✅ ИСПРАВЛЕНО: Теперь ошибки с бэкенда корректно отображаются под полями
                 if (data.errors.email) this.setError('emailError', data.errors.email);
                 if (data.errors.password) this.setError('passwordError', data.errors.password);
+
+                // Скроллим к первой ошибке
                 const firstError = document.querySelector('.form-error:not(:empty)');
                 if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {

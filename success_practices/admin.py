@@ -1,11 +1,23 @@
 from django.contrib import admin
+from django.core.cache import cache  # <-- ДОБАВЛЕНО: импорт кэша
 from .models import PracticeCategory, Practice
+
 
 @admin.register(PracticeCategory)
 class PracticeCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'icon', 'icon_color', 'sort_order']
     list_editable = ['sort_order']
     fields = ['name', 'icon', 'icon_color', 'sort_order']
+
+    # АВТОМАТИЧЕСКАЯ ОЧИСТКА КЭША ПРИ СОХРАНЕНИИ
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        cache.clear()
+
+    # АВТОМАТИЧЕСКАЯ ОЧИСТКА КЭША ПРИ УДАЛЕНИИ
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        cache.clear()
 
 
 @admin.register(Practice)
@@ -28,3 +40,13 @@ class PracticeAdmin(admin.ModelAdmin):
             'fields': ('created_date', 'is_published')
         }),
     )
+
+    # АВТОМАТИЧЕСКАЯ ОЧИСТКА КЭША ПРИ СОХРАНЕНИИ
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        cache.clear()
+
+    # АВТОМАТИЧЕСКАЯ ОЧИСТКА КЭША ПРИ УДАЛЕНИИ
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        cache.clear()
