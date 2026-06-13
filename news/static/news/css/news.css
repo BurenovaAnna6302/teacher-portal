@@ -1198,7 +1198,55 @@ select.form-select option:checked {
         max-height: 240px;
     }
 }
-.modal-overlay {
+/* ===== Mobile Filters ===== */
+.mobile-filters-btn {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .mobile-filters-btn {
+        display: flex;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 90;
+        padding: 12px 24px;
+        background: var(--news-primary);
+        color: white;
+        border: none;
+        border-radius: var(--news-radius-lg);
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: var(--news-shadow-xl);
+        cursor: pointer;
+        gap: 8px;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-filters-btn:hover {
+        background: var(--news-primary-dark);
+        transform: translateY(-2px);
+    }
+}
+
+/* Mobile Filters Modal */
+.mobile-filters-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+}
+
+.mobile-filters-modal.active {
+    display: block;
+}
+
+/* Overlay (затемнение фона) - БЕЗ backdrop-filter */
+.mobile-filters-modal .modal-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -1206,20 +1254,163 @@ select.form-select option:checked {
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 1;
-    /* УДАЛЕНО: backdrop-filter: blur(4px); — именно он вызывает блюр */
 }
 
-.modal-content {
+/* Содержимое модального окна */
+.mobile-filters-modal .modal-content {
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     width: 360px;
-    background: var(--news-bg-white); /* или var(--practices-bg-white), var(--surveys-bg-white) */
+    max-width: 90vw;
+    background: var(--news-bg-white);
     padding: 0;
     display: flex;
     flex-direction: column;
     animation: slideIn 0.3s ease;
-    border-left: 1px solid var(--news-border); /* или соответствующая переменная */
-    z-index: 2; /* ВАЖНО: выше overlay */
+    border-left: 1px solid var(--news-border);
+    z-index: 2;
+    pointer-events: auto;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.mobile-filters-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--news-border-light);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 3;
+}
+
+.mobile-filters-modal .modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--news-primary);
+    margin: 0;
+}
+
+.mobile-filters-modal .modal-close {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--news-border);
+    background: var(--news-bg-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--news-text-gray);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 4;
+}
+
+.mobile-filters-modal .modal-close:hover {
+    background: var(--news-primary-light);
+    color: var(--news-primary);
+}
+
+/* Прокручиваемая область фильтров */
+.mobile-filters-modal .modal-filters {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    padding-right: 16px;
+    position: relative;
+    z-index: 2;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mobile-filters-modal .modal-filters .filter-options {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.mobile-filters-modal .modal-filters .filter-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mobile-filters-modal .modal-filters .filter-options::-webkit-scrollbar-thumb {
+    background: var(--news-border);
+    border-radius: var(--news-radius-full);
+}
+
+/* Кнопки действий внизу */
+.mobile-filters-modal .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid var(--news-border-light);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 3;
+    background: var(--news-bg-white);
+}
+
+.mobile-filters-modal .btn-apply-filters,
+.mobile-filters-modal .btn-reset-modal {
+    flex: 1;
+    padding: 14px;
+    border-radius: var(--news-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--news-border);
+    position: relative;
+    z-index: 4;
+}
+
+.mobile-filters-modal .btn-apply-filters {
+    background: var(--news-primary);
+    color: white;
+    border-color: var(--news-primary);
+}
+
+.mobile-filters-modal .btn-apply-filters:hover {
+    background: var(--news-primary-dark);
+}
+
+.mobile-filters-modal .btn-reset-modal {
+    background: var(--news-bg-white);
+    color: var(--news-text-gray);
+}
+
+.mobile-filters-modal .btn-reset-modal:hover {
+    border-color: var(--news-primary);
+    color: var(--news-primary);
+    background: var(--news-primary-light);
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 480px) {
+    .mobile-filters-modal .modal-content {
+        width: 100vw;
+        max-width: 100vw;
+    }
+
+    .mobile-filters-modal .modal-header {
+        padding: 16px 20px;
+    }
+
+    .mobile-filters-modal .modal-filters {
+        padding: 20px;
+    }
+
+    .mobile-filters-modal .modal-actions {
+        padding: 16px 20px;
+    }
 }
