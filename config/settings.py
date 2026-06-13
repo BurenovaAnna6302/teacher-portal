@@ -14,18 +14,14 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 # Режим отладки – на сервере всегда False
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-# Разрешённые хосты (включая все домены и их Punycode)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,burenkovaanna6302-teacher-portal-a1f8.twc1.net,ja-v-tempe.ru,www.ja-v-tempe.ru,я-в-темпе.рф,www.я-в-темпе.рф,xn----7sbbfj2a2ag2cbb6r.xn--p1ai,www.xn----7sbbfj2a2ag2cbb6r.xn--p1ai').split(',')
+# Разрешённые хосты (из переменной окружения, без пробелов)
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')]
 
 # Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
-    'https://burenkovaanna6302-teacher-portal-a1f8.twc1.net',
     'https://ja-v-tempe.ru',
-    'https://www.ja-v-tempe.ru',
-    'https://я-в-темпе.рф',
-    'https://www.я-в-темпе.рф',
-    'https://xn----7sbbfj2a2ag2cbb6r.xn--p1ai',
-    'https://www.xn----7sbbfj2a2ag2cbb6r.xn--p1ai',
+    'https://явтемпе.рф',
+    'https://burenovaanna6302-teacher-portal-a1f8.twc1.net',
 ]
 
 # КЛЮЧЕВЫЕ НАСТРОЙКИ ДЛЯ ПРОКСИ (Timeweb Cloud)
