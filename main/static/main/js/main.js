@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 4. Telegram contact form submission
     setupTelegramForm();
+
+    // 5. Colorize badges
+    colorizeAllBadges();
 });
 
 /**
@@ -125,7 +128,110 @@ function updateActiveNavigation(targetId) {
 }
 
 /**
- * 4. Setup Telegram contact form submission
+ * Получение CSRF токена из cookie
+ */
+function getCSRFToken() {
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='));
+
+    if (cookieValue) {
+        return cookieValue.split('=')[1];
+    }
+
+    // Если нет в cookie, пробуем из мета-тега
+    const metaToken = document.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        return metaToken.getAttribute('content');
+    }
+
+    console.warn('CSRF токен не найден!');
+    return '';
+}
+
+/**
+ * Валидация email
+ */
+function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+/**
+ * Сброс ошибок формы
+ */
+function resetErrors() {
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+    });
+    document.querySelectorAll('.form-input, .form-textarea').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
+}
+
+/**
+ * Показать ошибку у конкретного поля
+ */
+function showFieldError(fieldName, message) {
+    const field = document.querySelector(`[name="${fieldName}"]`);
+    const errorEl = document.getElementById(`${fieldName}-error`);
+
+    if (field && errorEl) {
+        field.classList.add('is-invalid');
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+
+        // Прокрутка к полю с ошибкой
+        field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+/**
+ * Показать модальное окно успеха
+ */
+function showSuccessModal(message) {
+    const modal = document.getElementById('successModal');
+    const messageElement = document.getElementById('successMessage');
+
+    if (messageElement) {
+        messageElement.textContent = message;
+    }
+
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+/**
+ * Показать модальное окно ошибки
+ */
+function showErrorModal(message) {
+    const modal = document.getElementById('errorModal');
+    const messageElement = document.getElementById('errorMessage');
+
+    if (messageElement) {
+        messageElement.textContent = message;
+    }
+
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+/**
+ * Закрыть все модальные окна
+ */
+window.closeModal = function() {
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.style.display = 'none';
+    });
+    document.body.style.overflow = 'auto';
+};
+
+/**
+ * 4. Setup Telegram contact form submission (ИСПРАВЛЕННАЯ ВЕРСИЯ)
  */
 function setupTelegramForm() {
     const form = document.getElementById('contactForm');
@@ -136,6 +242,22 @@ function setupTelegramForm() {
     }
 
     console.log('✅ Настраиваю форму Telegram');
+
+    // Добавляем обработчик закрытия модальных окон по ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.closeModal();
+        }
+    });
+
+    // Добавляем обработчик закрытия модальных окон по клику на overlay
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                window.closeModal();
+            }
+        });
+    });
 
     // Удаляем все старые обработчики событий
     const newForm = form.cloneNode(true);
@@ -152,110 +274,13 @@ function setupTelegramForm() {
         const spinnerSpan = document.createElement('span');
         spinnerSpan.id = 'btn-spinner';
         spinnerSpan.style.display = 'none';
-        spinnerSpan.innerHTML = '<div class="spinner"></div>';
+        spinnerSpan.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
         submitBtn.appendChild(spinnerSpan);
         btnSpinner = spinnerSpan;
     }
 
-    // Добавляем обработчик закрытия модальных окон по ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
-    });
-
-    // Добавляем обработчик закрытия модальных окон по клику на overlay
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-    });
-
     // Флаг для предотвращения двойной отправки
     let isSubmitting = false;
-
-    /**
-     * Показать модальное окно успеха
-     */
-    function showSuccessModal(message) {
-        const modal = document.getElementById('successModal');
-        const messageElement = document.getElementById('successMessage');
-
-        if (messageElement) {
-            messageElement.textContent = message;
-        }
-
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Блокируем скролл
-        }
-    }
-
-    /**
-     * Показать модальное окно ошибки
-     */
-    function showErrorModal(message) {
-        const modal = document.getElementById('errorModal');
-        const messageElement = document.getElementById('errorMessage');
-
-        if (messageElement) {
-            messageElement.textContent = message;
-        }
-
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Блокируем скролл
-        }
-    }
-
-    /**
-     * Закрыть все модальные окна
-     */
-    window.closeModal = function() {
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.style.display = 'none';
-        });
-        document.body.style.overflow = 'auto'; // Восстанавливаем скролл
-    };
-
-    /**
-     * Валидация email
-     */
-    function isValidEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-
-    /**
-     * Сброс ошибок
-     */
-    function resetErrors() {
-        document.querySelectorAll('.error-message').forEach(el => {
-            el.style.display = 'none';
-        });
-        document.querySelectorAll('.form-input, .form-textarea').forEach(el => {
-            el.classList.remove('is-invalid');
-        });
-    }
-
-    /**
-     * Показать ошибку у конкретного поля
-     */
-    function showFieldError(fieldName, message) {
-        const field = document.querySelector(`[name="${fieldName}"]`);
-        const errorEl = document.getElementById(`${fieldName}-error`);
-
-        if (field && errorEl) {
-            field.classList.add('is-invalid');
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-
-            // Прокрутка к полю с ошибкой
-            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
 
     /**
      * Обработка отправки формы
@@ -319,18 +344,19 @@ function setupTelegramForm() {
 
         if (!isValid) {
             console.log('❌ Валидация не пройдена');
-
-            // Прокрутка к первому полю с ошибкой
             if (firstErrorField) {
                 const field = document.querySelector(`[name="${firstErrorField}"]`);
                 if (field) {
                     field.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
-
             isSubmitting = false;
             return;
         }
+
+        // Получаем CSRF токен
+        const csrfToken = getCSRFToken();
+        console.log('🔑 CSRF токен:', csrfToken ? 'найден' : 'НЕ НАЙДЕН!');
 
         // Показываем загрузку
         if (submitBtn) {
@@ -346,20 +372,27 @@ function setupTelegramForm() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify(data)
             });
 
             console.log('📥 Ответ сервера. Статус:', response.status);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Пробуем распарсить ответ
+            let result;
+            try {
+                result = await response.json();
+            } catch (e) {
+                console.error('Не удалось распарсить JSON:', e);
+                throw new Error('Сервер вернул некорректный ответ');
             }
 
-            const result = await response.json();
             console.log('📊 Результат от сервера:', result);
 
-            if (result.success) {
+            if (response.ok && result.success) {
                 console.log('✅ Сообщение успешно отправлено');
                 showSuccessModal(result.message || 'Ваше сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.');
                 updatedForm.reset(); // Очищаем форму
@@ -383,62 +416,7 @@ function setupTelegramForm() {
 }
 
 /**
- * Utility: Add CSS for spinner (if not in Bootstrap)
- */
-function addSpinnerStyles() {
-    if (!document.querySelector('#spinner-styles')) {
-        const style = document.createElement('style');
-        style.id = 'spinner-styles';
-        style.textContent = `
-            .spinner-border {
-                display: inline-block;
-                width: 1rem;
-                height: 1rem;
-                vertical-align: text-bottom;
-                border: 0.2em solid currentColor;
-                border-right-color: transparent;
-                border-radius: 50%;
-                animation: spinner-border 0.75s linear infinite;
-            }
-
-            @keyframes spinner-border {
-                to { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-// Add spinner styles on load
-addSpinnerStyles();
-
-/**
- * Utility: Detect mobile/desktop
- */
-function isMobileDevice() {
-    return window.innerWidth <= 768;
-}
-
-/**
- * Utility: Log gallery interactions
- */
-function logGalleryInteraction(itemId, action) {
-    console.log(`Gallery item ${itemId}: ${action}`);
-}
-
-// Add responsive behavior
-window.addEventListener('resize', function() {
-    console.log('Window resized to:', window.innerWidth, 'x', window.innerHeight);
-});
-
-// Initialize on load
-console.log('Teacher Portal: Display functionality ready');
-
-
-
-/**
  * Цветные бейджи для мероприятий и новостей
- * ТОЧНЫЕ ЦВЕТА ИЗ КАТАЛОГА
  */
 
 // Цвета для мероприятий (из views.py events)
@@ -523,13 +501,46 @@ function colorizeAllBadges() {
     colorizeNewsBadges();
 }
 
-// Запускаем при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    colorizeAllBadges();
-});
-
 // Наблюдатель за изменениями в DOM (для динамической подгрузки)
-const observer = new MutationObserver(function() {
+const badgeObserver = new MutationObserver(function() {
     colorizeAllBadges();
 });
-observer.observe(document.body, { childList: true, subtree: true });
+badgeObserver.observe(document.body, { childList: true, subtree: true });
+
+// Добавляем стили для спиннера, если их нет
+if (!document.querySelector('#spinner-styles')) {
+    const style = document.createElement('style');
+    style.id = 'spinner-styles';
+    style.textContent = `
+        .spinner-border {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            vertical-align: text-bottom;
+            border: 0.2em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border 0.75s linear infinite;
+        }
+
+        @keyframes spinner-border {
+            to { transform: rotate(360deg); }
+        }
+
+        .form-input.is-invalid,
+        .form-textarea.is-invalid {
+            border-color: #dc3545;
+            background-color: #fff8f8;
+        }
+
+        .error-message {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+console.log('Teacher Portal: Полная версия JS загружена');
