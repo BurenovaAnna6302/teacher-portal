@@ -15,11 +15,14 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me-in-produc
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 # Разрешённые хосты (все домены приложения, без пробелов)
+# Обязательно добавлены Punycode-версии кириллических доменов
 ALLOWED_HOSTS = [
     'я-в-темпе.рф',
+    'xn-----elcna5bvv7i.xn--p1ai',  # Punycode для я-в-темпе.рф
     'ja-v-tempe.ru',
     'ya-v-tempe.ru',
     'явтемпе.рф',
+    'xn--b1aga1app3g.xn--p1ai',     # Punycode для явтемпе.рф
     'burenovaanna6302-teacher-portal-a1f8.twc1.net',
     'localhost',
     '127.0.0.1',
@@ -28,9 +31,11 @@ ALLOWED_HOSTS = [
 # Доверенные источники для CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://я-в-темпе.рф',
+    'https://xn-----elcna5bvv7i.xn--p1ai',
     'https://ja-v-tempe.ru',
     'https://ya-v-tempe.ru',
     'https://явтемпе.рф',
+    'https://xn--b1aga1app3g.xn--p1ai',
     'https://burenovaanna6302-teacher-portal-a1f8.twc1.net',
 ]
 
@@ -137,21 +142,13 @@ USE_I18N = True
 USE_TZ = True
 
 # ===== Статика =====
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Папки статики внутри приложений (main/static, news/static и т.д.)
+# Django находит автоматически благодаря django.contrib.staticfiles.
+# Здесь оставляем только глобальную папку проекта.
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-    BASE_DIR / 'main/static',
-    BASE_DIR / 'teachers/static',
-    BASE_DIR / 'account/static',
-    BASE_DIR / 'admin_panel/static',
-    BASE_DIR / 'news/static',
-    BASE_DIR / 'events/static',
-    BASE_DIR / 'materials/static',
-    BASE_DIR / 'documents/static',
-    BASE_DIR / 'surveys/static',
-    BASE_DIR / 'members/static',
-    BASE_DIR / 'success_practices/static',
 ]
 
 # ===== Медиа (S3 Timeweb Cloud) =====
@@ -203,6 +200,3 @@ LOGIN_REDIRECT_URL = '/account/profile/'
 LOGOUT_REDIRECT_URL = '/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# ===== ИСПРАВЕНИЕ: default_acl для всех загрузок =====
-S3Boto3Storage.default_acl = 'public-read'
