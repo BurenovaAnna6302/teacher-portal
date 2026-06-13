@@ -1,42 +1,34 @@
 # config/middleware.py
-class AdminSessionCleanupMiddleware:
+class UserTypeMiddleware:
     """
-    Скрывает админ-интерфейс на публичных страницах
-    И очищает сообщения админки
+    Синхронизирует тип пользователя и гарантирует,
+    что админ имеет приоритет над педагогом
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        # Получаем ответ
         response = self.get_response(request)
 
-        # Публичные страницы
-        public_paths = [
-            '/practices/', '/news/', '/events/', '/about/',
-            '/materials/', '/documents/', '/surveys/', '/'
-        ]
+        # Если админ авторизован, но есть остатки данных педагога - чистим
+        if request.session.get('admin_authenticated') and request.session.get('is_admin'):
+            # Удаляем любые остатки данных педагога
+            teacher_keys = ['user_id', 'user_authenticated', 'user_email',
+                            'user_data', 'profile_data', 'teacher_id']
+            for key in teacher_keys:
+                if key in request.session:
+                    del request.session[key]
 
-        is_public = any(request.path.startswith(path) for path in public_paths)
-        is_admin_auth = request.session.get('admin_authenticated')
+            # Гарантируем, что is_admin = True
+            if not request.session.get('is_admin'):
+                request.session['is_admin'] = True
 
-        if is_public and is_admin_auth:
-            # Скрываем админ-интерфейс
-            request.session['is_admin'] = False
+            request.session['user_type'] = 'admin'
 
-            # ОЧИЩАЕМ СООБЩЕНИЯ на публичных страницах
-            if '_messages' in request.session:
-                # Сохраняем копию сообщений для админки
-                if not hasattr(request, '_admin_messages_backup'):
-                    request._admin_messages_backup = request.session.get('_messages', [])
-                # Очищаем сообщения для публичной страницы
-                del request.session['_messages']
-
-        # Если вернулись в админку - восстанавливаем сообщения?
-        elif request.path.startswith('/dashboard/') and is_admin_auth:
-            request.session['is_admin'] = True
-            # Восстанавливаем сообщения (опционально)
-            if hasattr(request, '_admin_messages_backup'):
-                request.session['_messages'] = request._admin_messages_backup
+        # Если нет админа, но есть педагог
+        elif request.session.get('user_id') and not request.session.get('admin_authenticated'):
+            request.session['user_type'] = 'teacher'
 
         return response

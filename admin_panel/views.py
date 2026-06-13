@@ -122,26 +122,20 @@ def admin_login(request):
             admin_user = AdminUser.objects.get(email=email, is_active=True)
 
             if admin_user.check_password(password):
-                # Устанавливаем все необходимые флаги в сессии
+                # ===== ВАЖНО: СНАЧАЛА ОЧИЩАЕМ ВСЕ КЛЮЧИ ПЕДАГОГА =====
+                keys_to_remove = ['user_id', 'user_authenticated', 'user_email',
+                                  'user_data', 'profile_data', 'teacher_id']
+                for key in keys_to_remove:
+                    request.session.pop(key, None)
+
+                # ===== ПОТОМ УСТАНАВЛИВАЕМ КЛЮЧИ АДМИНА =====
                 request.session['admin_authenticated'] = True
-                request.session['is_admin'] = True  # ← КРИТИЧЕСКИ ВАЖНО!
+                request.session['is_admin'] = True
                 request.session['admin_id'] = admin_user.id
                 request.session['admin_name'] = admin_user.name
                 request.session['admin_email'] = admin_user.email
+                request.session['user_type'] = 'admin'  # Явно указываем тип
 
-                # Очищаем данные педагога, если он был авторизован ранее
-                if 'user_id' in request.session:
-                    del request.session['user_id']
-                if 'user_authenticated' in request.session:
-                    del request.session['user_authenticated']
-                if 'user_email' in request.session:
-                    del request.session['user_email']
-                if 'user_data' in request.session:
-                    del request.session['user_data']
-                if 'profile_data' in request.session:
-                    del request.session['profile_data']
-
-                # Принудительно сохраняем сессию
                 request.session.save()
 
                 return redirect('admin_panel:dashboard')
@@ -152,7 +146,6 @@ def admin_login(request):
                           {'error': 'Администратор с таким email не найден', 'email': email})
 
     return render(request, 'admin_panel/login.html')
-
 
 def admin_logout(request):
     """Выход из админки"""
@@ -173,7 +166,7 @@ def admin_logout(request):
     if '_messages' in request.session:
         del request.session['_messages']
 
-    messages.success(request, 'Вы вышли из системы')
+    #messages.success(request, 'Вы вышли из системы')
     return redirect('admin_panel:admin_login')
 
 def check_admin_access(request):
