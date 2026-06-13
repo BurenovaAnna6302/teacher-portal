@@ -1,5 +1,5 @@
 /* base_profile.css - ИСПРАВЛЕННАЯ ВЕРСИЯ */
-/* Версия: 1.4 - Убраны блокирующие стили */
+/* Версия: 1.5 - Убраны блокирующие стили, исправлен мобильный футер */
 
 /* ===== Variables ===== */
 :root {
@@ -27,8 +27,6 @@
 }
 
 /* ===== Base Styles ===== */
-/* УДАЛЕНО: * { margin: 0; padding: 0; } — уже есть в основном шаблоне */
-
 body {
     font-family: 'Manrope', sans-serif;
     color: var(--header-text);
@@ -54,12 +52,6 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 20px;
-}
-
-@media (max-width: 768px) {
-    .profile-header .container {
-        padding: 0 16px;
-    }
 }
 
 .header-content {
@@ -117,28 +109,12 @@ body {
     margin-top: 2px;
 }
 
-@media (max-width: 768px) {
-    .logo-title {
-        font-size: 16px;
-    }
-
-    .logo-subtitle {
-        font-size: 11px;
-    }
-}
-
 /* Navigation */
 .header-nav {
     display: flex;
     gap: 8px;
     flex: 1;
     justify-content: center;
-}
-
-@media (max-width: 1100px) {
-    .header-nav {
-        display: none;
-    }
 }
 
 .nav-link {
@@ -337,12 +313,6 @@ body {
     transform: scale(1.05);
 }
 
-@media (max-width: 1100px) {
-    .mobile-menu-toggle {
-        display: flex;
-    }
-}
-
 /* ===== Mobile Navigation ===== */
 .mobile-nav {
     position: fixed;
@@ -517,104 +487,150 @@ body {
     z-index: 1;
 }
 
+.profile-main > * {
+    position: relative;
+    z-index: 2;
+}
+
 /* ===== Footer Styles ===== */
-.profile-footer {
-    background-color: var(--footer-bg);
+.site-footer {
+    background-color: #FFFFFF;
     border-top: 1px solid var(--header-border);
-    padding: 32px 0;
-    margin-top: auto;
+    padding: 40px 0 20px;
+    margin-top: 60px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.profile-footer .container {
-    max-width: 1400px;
+.footer-container {
+    width: 100%;
+    max-width: 1650px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 120px;
+    box-sizing: border-box;
 }
 
-.footer-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 35px;
 }
 
-@media (max-width: 768px) {
-    .footer-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 20px;
-    }
+.footer-title {
+    color: var(--header-primary);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    position: relative;
+    padding-bottom: 12px;
 }
 
-.footer-copyright {
-    flex: 1;
+.footer-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 45px;
+    height: 2px;
+    background: var(--header-primary);
+    opacity: 0.4;
 }
 
-.footer-copyright p {
-    color: var(--footer-text);
+.footer-text {
+    color: var(--header-text-light);
     font-size: 14px;
-    margin-bottom: 8px;
+    line-height: 1.6;
+    margin: 0;
 }
 
-.footer-links {
+.footer-contacts,
+.footer-social {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-contacts li,
+.footer-social li {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    margin-bottom: 14px;
 }
 
-.footer-link {
-    color: var(--footer-text);
+.footer-contacts li i,
+.footer-social li i {
+    width: 18px;
+    color: var(--header-primary);
+    font-size: 15px;
+}
+
+.footer-contacts li a,
+.footer-social li a {
+    color: var(--header-text-light);
     text-decoration: none;
     font-size: 14px;
-    transition: var(--transition);
+    transition: color 0.3s ease;
 }
 
-.footer-link:hover {
+.footer-contacts li a:hover,
+.footer-social li a:hover {
     color: var(--header-primary);
-    text-decoration: underline;
 }
 
-.footer-separator {
-    color: var(--header-border);
+.footer-divider {
+    height: 1px;
+    background: var(--header-border);
+    margin: 25px 0 20px;
 }
 
-.footer-social {
-    display: flex;
-    gap: 16px;
-    flex-shrink: 0;
+.footer-copyright {
+    text-align: center;
+    color: var(--header-text-lighter);
+    font-size: 12px;
 }
 
+/* ===== Clickable Elements ===== */
+button,
+.btn,
+a,
+.nav-link,
+.dropdown-item,
+.mobile-nav-link,
+.mobile-logout-btn,
 .social-link {
-    width: 40px;
-    height: 40px;
-    background-color: white;
-    border: 1px solid var(--header-border);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--header-text-light);
-    font-size: 18px;
-    text-decoration: none;
-    transition: var(--transition);
+    cursor: pointer;
 }
 
-.social-link:hover {
-    background-color: var(--header-primary);
-    color: white;
-    border-color: var(--header-primary);
-    transform: translateY(-2px);
+/* ===== Responsive: Планшеты ===== */
+@media (max-width: 992px) {
+    .footer-container {
+        padding: 0 40px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
 }
 
-/* ===== Responsive Adjustments ===== */
+/* ===== Responsive: Мобильные ===== */
 @media (max-width: 768px) {
     .profile-header {
         padding: 12px 0;
     }
 
+    .profile-header .container {
+        padding: 0 16px;
+    }
+
     .header-content {
         gap: 16px;
+    }
+
+    .header-nav {
+        display: none;
     }
 
     .logo-icon {
@@ -641,6 +657,10 @@ body {
 
     .dropdown-menu {
         width: 200px;
+    }
+
+    .mobile-menu-toggle {
+        display: flex;
     }
 
     .mobile-nav {
@@ -682,24 +702,61 @@ body {
         font-size: 15px;
     }
 
-    .profile-footer {
-        padding: 24px 0;
+    /* ===== МОБИЛЬНЫЙ ФУТЕР ===== */
+    .site-footer {
+        padding: 30px 0 16px;
+        margin-top: 40px;
     }
 
-    .footer-social {
-        gap: 12px;
+    .footer-container {
+        padding: 0 24px;
     }
 
-    .social-link {
-        width: 36px;
-        height: 36px;
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .footer-title {
         font-size: 16px;
+        margin-bottom: 14px;
+    }
+
+    .footer-title::after {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .footer-text {
+        font-size: 13px;
+    }
+
+    .footer-contacts li,
+    .footer-social li {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .footer-contacts li a,
+    .footer-social li a {
+        font-size: 13px;
+    }
+
+    .footer-divider {
+        margin: 20px 0 16px;
+    }
+
+    .footer-copyright {
+        font-size: 11px;
+        line-height: 1.5;
     }
 }
 
+/* ===== Responsive: Очень маленькие экраны ===== */
 @media (max-width: 480px) {
-    .profile-header .container,
-    .profile-footer .container {
+    .footer-container {
         padding: 0 16px;
     }
 
@@ -729,141 +786,15 @@ body {
         font-size: 18px;
     }
 
-    .footer-links {
-        flex-direction: column;
-        gap: 8px;
+    .footer-grid {
+        gap: 24px;
     }
 
-    .footer-separator {
-        display: none;
-    }
-}
-
-/* ===== БЕЗОПАСНЫЕ ИСПРАВЛЕНИЯ (без блокировок) ===== */
-
-/* Обеспечиваем, чтобы контент был поверх шапки */
-.profile-main > * {
-    position: relative;
-    z-index: 2;
-}
-
-/* Убеждаемся, что все кликабельные элементы работают */
-button,
-.btn,
-a,
-.nav-link,
-.dropdown-item,
-.mobile-nav-link,
-.mobile-logout-btn,
-.social-link {
-    cursor: pointer;
-}
-/* ===== МОБИЛЬНЫЙ ФУТЕР - ИСПРАВЛЕНИЕ ===== */
-
-/* Базовое ограничение ширины футера */
-.profile-footer {
-    width: 100%;
-    box-sizing: border-box;
-    overflow-x: hidden;
-}
-
-.profile-footer .container {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-    box-sizing: border-box;
-}
-
-/* Планшеты */
-@media (max-width: 992px) {
-    .profile-footer .container {
-        padding: 0 40px;
-    }
-}
-
-/* Мобильные устройства */
-@media (max-width: 768px) {
-    .profile-footer {
-        padding: 24px 0;
-    }
-
-    .profile-footer .container {
-        padding: 0 24px;
-    }
-
-    .footer-content {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 20px;
-    }
-
-    .footer-copyright {
-        width: 100%;
-        text-align: center;
-    }
-
-    .footer-copyright p {
-        font-size: 13px;
-        line-height: 1.5;
-        margin-bottom: 8px;
-    }
-
-    .footer-links {
-        flex-direction: column;
-        gap: 8px;
-        align-items: center;
-        width: 100%;
-    }
-
-    .footer-link {
-        font-size: 13px;
-    }
-
-    .footer-separator {
-        display: none;
-    }
-
-    .footer-social {
-        gap: 12px;
-        justify-content: center;
-    }
-
-    .social-link {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
-}
-
-/* Очень маленькие экраны */
-@media (max-width: 480px) {
-    .profile-footer {
-        padding: 20px 0;
-    }
-
-    .profile-footer .container {
-        padding: 0 16px;
-    }
-
-    .footer-copyright p {
-        font-size: 12px;
-    }
-
-    .footer-link {
-        font-size: 12px;
-    }
-
-    .footer-social {
-        gap: 10px;
-    }
-
-    .social-link {
-        width: 34px;
-        height: 34px;
+    .footer-title {
         font-size: 15px;
     }
+
+    .footer-text {
+        font-size: 12px;
+    }
 }
-/* УДАЛЕНО: ::before, ::after { pointer-events: none !important; } — ЭТО ЛОМАЛО ВСЁ! */
-/* УДАЛЕНО: .overlay, .backdrop, .modal-backdrop { display: none !important; } — ЭТО ЛОМАЛО МОДАЛКИ! */
