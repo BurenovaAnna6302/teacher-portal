@@ -29,11 +29,12 @@ def materials_list(request):
     )
 
     # ИЗМЕНЕНО: 8 материалов на странице
-    paginator = Paginator(materials_queryset, 12)  # ← было 16, стало 8
+    paginator = Paginator(materials_queryset, 12)
     first_page = paginator.get_page(1)
 
     first_page_data = []
     for material in first_page:
+        # ИСПРАВЛЕНО: Безопасные проверки для всех связанных полей
         first_page_data.append({
             'id': material.id,
             'title': material.title,
@@ -42,36 +43,36 @@ def materials_list(request):
             'date_added': material.date_added,
             'duration': material.duration,
             'subject': {
-                'id': material.subject.id,
-                'name': material.subject.name,
-                'bg_color': material.subject.bg_color,
-                'text_color': material.subject.text_color,
+                'id': material.subject.id if material.subject else None,
+                'name': material.subject.name if material.subject else 'Не указана',
+                'bg_color': material.subject.bg_color if material.subject and hasattr(material.subject, 'bg_color') else 'rgba(184, 212, 232, 0.85)',
+                'text_color': material.subject.text_color if material.subject and hasattr(material.subject, 'text_color') else '#0c4a6e',
             },
             'type': {
-                'id': material.material_type.id,
-                'name': material.material_type.name,
-                'bg_color': material.material_type.bg_color,
-                'text_color': material.material_type.text_color,
+                'id': material.material_type.id if material.material_type else None,
+                'name': material.material_type.name if material.material_type else 'Не указан',
+                'bg_color': material.material_type.bg_color if material.material_type and hasattr(material.material_type, 'bg_color') else 'rgba(201, 228, 202, 0.85)',
+                'text_color': material.material_type.text_color if material.material_type and hasattr(material.material_type, 'text_color') else '#1e5128',
             },
             'difficulty': {
-                'id': material.difficulty.id,
-                'name': material.difficulty.name,
+                'id': material.difficulty.id if material.difficulty else None,
+                'name': material.difficulty.name if material.difficulty else 'Не указан',
             },
             'grade': {
-                'id': material.grade.id,
-                'name': material.grade.name,
+                'id': material.grade.id if material.grade else None,
+                'name': material.grade.name if material.grade else 'Не указан',
             },
             'format': {
-                'id': material.format.id,
-                'name': material.format.name,
+                'id': material.format.id if material.format else None,
+                'name': material.format.name if material.format else 'Не указан',
             },
             'assessment': {
-                'id': material.assessment.id,
-                'name': material.assessment.name,
+                'id': material.assessment.id if material.assessment else None,
+                'name': material.assessment.name if material.assessment else 'Не указана',
             },
             'additional': {
-                'id': material.additional.id,
-                'name': material.additional.name,
+                'id': material.additional.id if material.additional else None,
+                'name': material.additional.name if material.additional else 'Не указана',
             },
         })
 
@@ -220,15 +221,14 @@ def materials_list_api(request):
         materials_queryset = materials_queryset.order_by('title')
     elif sort == 'title-desc':
         materials_queryset = materials_queryset.order_by('-title')
-    # else: sort == 'none' - без сортировки
 
-    # ИЗМЕНЕНО: 8 материалов на странице
-    paginator = Paginator(materials_queryset, 12)  # ← было 16, стало 8
+    paginator = Paginator(materials_queryset, 12)
     current_page = paginator.get_page(page)
 
     # Формируем данные для JSON
     materials_data = []
     for material in current_page:
+        # ИСПРАВЛЕНО: Безопасные проверки для всех связанных полей
         materials_data.append({
             'id': material.id,
             'title': material.title,
@@ -237,36 +237,36 @@ def materials_list_api(request):
             'date_added': material.date_added,
             'duration': material.duration,
             'subject': {
-                'id': material.subject.id,
-                'name': material.subject.name,
-                'bg_color': material.subject.bg_color,
-                'text_color': material.subject.text_color,
+                'id': material.subject.id if material.subject else None,
+                'name': material.subject.name if material.subject else 'Не указана',
+                'bg_color': material.subject.bg_color if material.subject and hasattr(material.subject, 'bg_color') else 'rgba(184, 212, 232, 0.85)',
+                'text_color': material.subject.text_color if material.subject and hasattr(material.subject, 'text_color') else '#0c4a6e',
             },
             'type': {
-                'id': material.material_type.id,
-                'name': material.material_type.name,
-                'bg_color': material.material_type.bg_color,
-                'text_color': material.material_type.text_color,
+                'id': material.material_type.id if material.material_type else None,
+                'name': material.material_type.name if material.material_type else 'Не указан',
+                'bg_color': material.material_type.bg_color if material.material_type and hasattr(material.material_type, 'bg_color') else 'rgba(201, 228, 202, 0.85)',
+                'text_color': material.material_type.text_color if material.material_type and hasattr(material.material_type, 'text_color') else '#1e5128',
             },
             'difficulty': {
-                'id': material.difficulty.id,
-                'name': material.difficulty.name,
+                'id': material.difficulty.id if material.difficulty else None,
+                'name': material.difficulty.name if material.difficulty else 'Не указан',
             },
             'grade': {
-                'id': material.grade.id,
-                'name': material.grade.name,
+                'id': material.grade.id if material.grade else None,
+                'name': material.grade.name if material.grade else 'Не указан',
             },
             'format': {
-                'id': material.format.id,
-                'name': material.format.name,
+                'id': material.format.id if material.format else None,
+                'name': material.format.name if material.format else 'Не указан',
             },
             'assessment': {
-                'id': material.assessment.id,
-                'name': material.assessment.name,
+                'id': material.assessment.id if material.assessment else None,
+                'name': material.assessment.name if material.assessment else 'Не указана',
             },
             'additional': {
-                'id': material.additional.id,
-                'name': material.additional.name,
+                'id': material.additional.id if material.additional else None,
+                'name': material.additional.name if material.additional else 'Не указана',
             },
         })
 
