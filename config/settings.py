@@ -155,7 +155,16 @@ STATICFILES_DIRS = [
 ]
 
 # ===== Медиа (S3 Timeweb Cloud) =====
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+from storages.backends.s3boto3 import S3Boto3Storage
+
+# Создаём свой storage с ACL public-read для всех загруженных файлов
+class PublicS3Storage(S3Boto3Storage):
+    bucket_name = 'teacher-portal-media'
+    default_acl = 'public-read'
+    object_parameters = {
+        'CacheControl': 'max-age=86400',
+        'ACL': 'public-read',
+    }
 
 # Данные для подключения к S3 (из переменных окружения)
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
@@ -194,3 +203,6 @@ LOGIN_REDIRECT_URL = '/account/profile/'
 LOGOUT_REDIRECT_URL = '/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ===== ИСПРАВЕНИЕ: default_acl для всех загрузок =====
+S3Boto3Storage.default_acl = 'public-read'
