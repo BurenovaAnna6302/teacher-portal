@@ -4,65 +4,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ассоциация молодых педагогов{% endblock %}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <!-- Google Fonts как в Figma -->
+    <!-- ===== SEO META TAGS ===== -->
+    <title>{% block title %}Ассоциация молодых педагогов Поволжского образовательного округа{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Ассоциация молодых педагогов Поволжского образовательного округа — объединение педагогов до 35 лет. Методические материалы, мероприятия, опросы и успешные практики.{% endblock %}">
+    <meta name="keywords" content="ассоциация педагогов, молодые педагоги, методические материалы, образование, Поволжский образовательный округ">
+    <meta name="author" content="Ассоциация молодых педагогов">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Russian">
+
+    <!-- ===== ЯНДЕКС.ВЕБМАСТЕР ===== -->
+    <meta name="yandex-verification" content="cb2afd2e28a99dbc" />
+
+    <!-- ===== CANONICAL URL (основной домен) ===== -->
+    <link rel="canonical" href="https://ya-v-tempe.ru{{ request.path }}">
+
+    <!-- ===== HREFLANG (указываем основной домен для разных зеркал) ===== -->
+    <link rel="alternate" hreflang="ru" href="https://ya-v-tempe.ru{{ request.path }}">
+    <link rel="alternate" hreflang="x-default" href="https://ya-v-tempe.ru{{ request.path }}">
+
+    <!-- ===== OPEN GRAPH (для соцсетей и мессенджеров) ===== -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Ассоциация молодых педагогов">
+    <meta property="og:title" content="{% block og_title %}Ассоциация молодых педагогов Поволжского образовательного округа{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Объединение молодых педагогов до 35 лет. Методические материалы, мероприятия, опросы и успешные практики.{% endblock %}">
+    <meta property="og:url" content="https://ya-v-tempe.ru{{ request.path }}">
+    <meta property="og:image" content="https://ya-v-tempe.ru{% static 'main/images/og-image.jpg' %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="ru_RU">
+
+    <!-- ===== TWITTER CARD ===== -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}Ассоциация молодых педагогов{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Объединение молодых педагогов до 35 лет{% endblock %}">
+    <meta name="twitter:image" content="https://ya-v-tempe.ru{% static 'main/images/og-image.jpg' %}">
+
+    <!-- ===== PRECONNECT (ускорение загрузки) ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+    <!-- ===== GOOGLE FONTS ===== -->
     <link href="https://fonts.googleapis.com/css2?family=Akatab:wght@400;500;600;700;800;900&family=Manrope:wght@200;300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap 5 -->
+    <!-- ===== BOOTSTRAP 5 ===== -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Font Awesome -->
+    <!-- ===== FONT AWESOME ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
-    <link rel="canonical" href="https://ya-v-tempe.ru{{ request.path }}">
+    <!-- ===== CUSTOM CSS ===== -->
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}?v=2.0">
+
+    {% block extra_css %}{% endblock %}
+
+    <!-- ===== SCHEMA.ORG (структурированные данные для поисковиков) ===== -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Ассоциация молодых педагогов Поволжского образовательного округа",
+        "alternateName": ["АМПО", "ya-v-tempe.ru"],
+        "url": "https://ya-v-tempe.ru",
+        "logo": "https://ya-v-tempe.ru{% static 'main/images/logo.png' %}",
+        "description": "Объединение молодых педагогов до 35 лет Поволжского образовательного округа",
+        "email": "APOO.POO@yandex.ru",
+        "telephone": "+7-846-356-20-86",
+        "sameAs": [
+            "https://vk.com/club101931084"
+        ],
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "RU"
+        }
+    }
+    </script>
 </head>
 <body>
-    <!-- Header как в Figma -->
+    <!-- Header -->
     <header class="site-header">
         <div class="header-container">
             <!-- Logo -->
-            <a href="{% url 'main:index' %}" class="header-logo">
-                <img src="{% static 'main/images/logo.png' %}" alt="Ассоциация молодых педагогов" class="logo-image">
+            <a href="{% url 'main:index' %}" class="header-logo" aria-label="Главная страница">
+                <img src="{% static 'main/images/logo.png' %}" alt="Ассоциация молодых педагогов" class="logo-image" loading="eager">
             </a>
 
             <!-- Desktop Navigation -->
-            <nav class="desktop-nav">
+            <nav class="desktop-nav" aria-label="Основная навигация">
                 <a href="{% url 'main:index' %}" class="nav-link">Главная</a>
 
                 <!-- Ассоциация Dropdown -->
                 <div class="nav-dropdown">
-                    <button class="nav-dropdown-toggle">
+                    <button class="nav-dropdown-toggle" aria-expanded="false" aria-haspopup="true">
                         Ассоциация <i class="fas fa-chevron-down"></i>
                     </button>
-                    <div class="dropdown-menu">
-                        <a href="{% url 'about:about' %}" class="dropdown-item">О нас</a>
-                        <a href="{% url 'news:news' %}" class="dropdown-item">Новости</a>
-                        <a href="{% url 'events:events' %}" class="dropdown-item">Мероприятия</a>
+                    <div class="dropdown-menu" role="menu">
+                        <a href="{% url 'about:about' %}" class="dropdown-item" role="menuitem">О нас</a>
+                        <a href="{% url 'news:news' %}" class="dropdown-item" role="menuitem">Новости</a>
+                        <a href="{% url 'events:events' %}" class="dropdown-item" role="menuitem">Мероприятия</a>
                     </div>
                 </div>
 
                 <!-- База знаний Dropdown -->
                 <div class="nav-dropdown">
-                    <button class="nav-dropdown-toggle">
+                    <button class="nav-dropdown-toggle" aria-expanded="false" aria-haspopup="true">
                         База знаний <i class="fas fa-chevron-down"></i>
                     </button>
-                    <div class="dropdown-menu">
-                        <a href="{% url 'materials:materials' %}" class="dropdown-item">Методические материалы</a>
-                        <a href="{% url 'documents:documents' %}" class="dropdown-item">Нормативные документы</a>
-                        <a href="{% url 'success_practices:practices_list' %}" class="dropdown-item">Успешные практики</a>
+                    <div class="dropdown-menu" role="menu">
+                        <a href="{% url 'materials:materials' %}" class="dropdown-item" role="menuitem">Методические материалы</a>
+                        <a href="{% url 'documents:documents' %}" class="dropdown-item" role="menuitem">Нормативные документы</a>
+                        <a href="{% url 'success_practices:practices_list' %}" class="dropdown-item" role="menuitem">Успешные практики</a>
                     </div>
                 </div>
 
                 <a href="{% url 'surveys:surveys' %}" class="nav-link">Опросы</a>
             </nav>
 
-            <!-- Правая часть - используем данные из сессии -->
+            <!-- Правая часть - авторизация -->
             <div class="header-auth">
                 {% if request.session.is_admin %}
-                    <!-- Админские элементы -->
                     <a href="{% url 'admin_panel:dashboard' %}" class="admin-user-info-link">
                         <div class="admin-user-info">
                             <div class="admin-avatar">
@@ -80,13 +143,12 @@
                         <span>Выйти</span>
                     </a>
                 {% elif request.session.user_id %}
-                    <!-- Преподаватель авторизован - берем данные из сессии -->
                     {% with user_data=request.session.user_data %}
                     <a href="{% url 'account:profile' %}" class="teacher-info-link">
                         <div class="teacher-info">
                             <div class="teacher-avatar" id="headerAvatar">
                                 {% if request.session.profile_data.photo_url %}
-                                    <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }} {{ user_data.last_name }}">
+                                    <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }} {{ user_data.last_name }}" loading="lazy">
                                 {% else %}
                                     <span id="headerInitials">{{ user_data.first_name|first|default:'' }}{{ user_data.last_name|first|default:'' }}</span>
                                 {% endif %}
@@ -102,27 +164,22 @@
                     </a>
                     {% endwith %}
                 {% else %}
-                    <!-- Неавторизованный пользователь -->
-                    <a href="{% url 'teachers:login' %}" class="btn-login">
-                        Вход
-                    </a>
-                    <a href="{% url 'teachers:register' %}" class="btn-register">
-                        Регистрация
-                    </a>
+                    <a href="{% url 'teachers:login' %}" class="btn-login">Вход</a>
+                    <a href="{% url 'teachers:register' %}" class="btn-register">Регистрация</a>
                 {% endif %}
             </div>
 
             <!-- Mobile Menu Button -->
-            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Открыть меню" aria-expanded="false">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
 
         <!-- Mobile Navigation -->
-        <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav" id="mobileNav" aria-hidden="true">
             <div class="mobile-nav-header">
                 <span>Меню</span>
-                <button class="mobile-nav-close" id="mobileNavClose">
+                <button class="mobile-nav-close" id="mobileNavClose" aria-label="Закрыть меню">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -145,7 +202,6 @@
 
                 <a href="{% url 'surveys:surveys' %}" class="mobile-nav-link">Опросы</a>
 
-                <!-- Мобильная версия в зависимости от статуса -->
                 {% if request.session.is_admin %}
                 <div class="mobile-admin-info">
                     <a href="{% url 'admin_panel:dashboard' %}" class="mobile-admin-user-link">
@@ -161,8 +217,7 @@
                         </div>
                     </a>
                     <a href="{% url 'admin_panel:admin_logout' %}" class="mobile-admin-logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Выйти
+                        <i class="fas fa-sign-out-alt"></i> Выйти
                     </a>
                 </div>
                 {% elif request.session.user_id %}
@@ -172,7 +227,7 @@
                             <div class="mobile-teacher-user">
                                 <div class="mobile-teacher-avatar" id="mobileAvatar">
                                     {% if request.session.profile_data.photo_url %}
-                                        <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }} {{ user_data.last_name }}">
+                                        <img src="{{ request.session.profile_data.photo_url }}" alt="{{ user_data.first_name }} {{ user_data.last_name }}" loading="lazy">
                                     {% else %}
                                         <span id="mobileInitials">{{ user_data.first_name|first|default:'' }}{{ user_data.last_name|first|default:'' }}</span>
                                     {% endif %}
@@ -183,8 +238,7 @@
                             </div>
                         </a>
                         <a href="{% url 'teachers:logout' %}" class="mobile-teacher-logout">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Выйти
+                            <i class="fas fa-sign-out-alt"></i> Выйти
                         </a>
                     </div>
                     {% endwith %}
@@ -206,7 +260,6 @@
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-grid">
-                <!-- Колонка 1: О нас -->
                 <div class="footer-col">
                     <h4 class="footer-title">О нас</h4>
                     <p class="footer-text">
@@ -214,7 +267,6 @@
                     </p>
                 </div>
 
-                <!-- Колонка 2: Контакты -->
                 <div class="footer-col">
                     <h4 class="footer-title">Контакты</h4>
                     <ul class="footer-contacts">
@@ -229,7 +281,6 @@
                     </ul>
                 </div>
 
-                <!-- Колонка 3: Мы в соцсетях -->
                 <div class="footer-col">
                     <h4 class="footer-title">Мы в соцсетях</h4>
                     <ul class="footer-social">
@@ -244,18 +295,18 @@
             <div class="footer-divider"></div>
 
             <div class="footer-copyright">
-                © 2026 Ассоциация молодых педагогов
+                © 2026 Ассоциация молодых педагогов Поволжского образовательного округа
             </div>
         </div>
     </footer>
 
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 
     <!-- Custom JavaScript -->
-    <script src="{% static 'main/js/main.js' %}"></script>
-    <script src="{% static 'main/js/header-footer.js' %}"></script>
+    <script src="{% static 'main/js/main.js' %}?v=2.0" defer></script>
+    <script src="{% static 'main/js/header-footer.js' %}?v=2.0" defer></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -267,6 +318,8 @@
             if (mobileToggle && mobileNav) {
                 mobileToggle.addEventListener('click', function() {
                     mobileNav.classList.add('active');
+                    mobileNav.setAttribute('aria-hidden', 'false');
+                    mobileToggle.setAttribute('aria-expanded', 'true');
                     document.body.style.overflow = 'hidden';
                 });
             }
@@ -274,6 +327,8 @@
             if (mobileClose && mobileNav) {
                 mobileClose.addEventListener('click', function() {
                     mobileNav.classList.remove('active');
+                    mobileNav.setAttribute('aria-hidden', 'true');
+                    mobileToggle.setAttribute('aria-expanded', 'false');
                     document.body.style.overflow = '';
                 });
             }
@@ -287,10 +342,12 @@
 
                     document.querySelectorAll('.nav-dropdown.active').forEach(d => {
                         d.classList.remove('active');
+                        d.querySelector('.nav-dropdown-toggle').setAttribute('aria-expanded', 'false');
                     });
 
                     if (!wasActive) {
                         dropdown.classList.add('active');
+                        this.setAttribute('aria-expanded', 'true');
                     }
                 });
             });
@@ -299,7 +356,18 @@
                 if (!e.target.closest('.nav-dropdown')) {
                     document.querySelectorAll('.nav-dropdown.active').forEach(d => {
                         d.classList.remove('active');
+                        d.querySelector('.nav-dropdown-toggle').setAttribute('aria-expanded', 'false');
                     });
+                }
+            });
+
+            // Закрытие мобильного меню по Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && mobileNav && mobileNav.classList.contains('active')) {
+                    mobileNav.classList.remove('active');
+                    mobileNav.setAttribute('aria-hidden', 'true');
+                    mobileToggle.setAttribute('aria-expanded', 'false');
+                    document.body.style.overflow = '';
                 }
             });
         });
