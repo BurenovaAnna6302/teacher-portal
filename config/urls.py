@@ -4,7 +4,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
 
-
 # Простая функция для верификации Яндекса (отдаём просто текст)
 from django.http import HttpResponse
 
@@ -16,7 +15,7 @@ def yandex_verification(request):
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
      <body>Verification: cb2afd2e28a99dbc</body>
-    
+
 </html>"""
     return HttpResponse(html_content, content_type='text/html; charset=utf-8')
 
