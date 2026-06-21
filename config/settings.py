@@ -220,3 +220,14 @@ STORAGES = {
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Запрещаем браузеру отправлять заголовок Referer при загрузке внешних ресурсов (включая S3)
 SECURE_REFERRER_POLICY = 'same-origin'
+
+
+# Email настройки для отправки писем
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'question-ya-v-tempe@mail.ru'      # От чьего имени отправляем
+EMAIL_HOST_PASSWORD = 'rkfccyzctvmz170A@'             # Пароль приложения от question-ya-v-tempe
+EMAIL_RECEIVER = 'info-ya-v-tempe@mail.ru'            # Куда приходят заявки
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

@@ -1,15 +1,13 @@
 import json
-import requests
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
+from django.conf import settings
 from django.utils import timezone
 from news.models import News
 from events.models import Event
-
-TELEGRAM_BOT_TOKEN = '8449676799:AAHa56OrRCJHVNg45zkD1omg_pTmtJzWNXA'
-TELEGRAM_CHAT_ID = '-1003712543639'
 
 
 def index_view(request):
@@ -62,8 +60,8 @@ def contact_view(request):
                 'message': 'Пожалуйста, введите корректный email адрес'
             }, status=400)
 
-        # Отправляем в Telegram
-        success = send_to_telegram(data)
+        # Отправляем на EMAIL
+        success = send_to_email(data)
 
         if success:
             return JsonResponse({
@@ -74,7 +72,7 @@ def contact_view(request):
             return JsonResponse({
                 'success': False,
                 'message': '❌ Ошибка при отправке сообщения. Пожалуйста, попробуйте позже или свяжитесь с нами другим способом.'
-            })
+            }, status=500)
 
     except json.JSONDecodeError:
         return JsonResponse({
@@ -91,49 +89,53 @@ def contact_view(request):
         }, status=500)
 
 
-def send_to_telegram(data):
-    """Отправка сообщения в Telegram с красивым форматированием"""
+def send_to_email(data):
+    """Отправка сообщения на email с красивым форматированием"""
     try:
         name = data.get('name', '').strip()
         email = data.get('email', '').strip()
         subject = data.get('subject', '').strip()
         message = data.get('message', '').strip()
 
-        text = "\n\n\n*НОВАЯ ЗАЯВКА С САЙТА*\n"
-        text += "=" * 28 + "\n\n"
+        # Формируем тему письма
+        email_subject = f'Новая заявка с сайта: {subject}'
 
-        text += f"*ИМЯ ОТПРАВИТЕЛЯ:* \n{name}\n\n"
-        text += f"*ПОЧТА ДЛЯ ОБРАТНОЙ СВЯЗИ:* `{email}`\n\n"
-        text += f"*ТЕМА ОБРАЩЕНИЯ:* \n{subject}\n"
-        text += "\n*СООБЩЕНИЕ:*\n"
-        text += f"{message}\n"
-        text += "\n**Время отправки:**\n"
-        text += f"{timezone.now().strftime('%d.%m.%Y %H:%M:%S')}\n"
-        text += "\n" + "=" * 28
+        # Формируем текст письма
+        email_message = f"""НОВАЯ ЗАЯВКА С САЙТА
+{'=' * 50}
 
-        url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
-        payload = {
-            'chat_id': TELEGRAM_CHAT_ID,
-            'text': text,
-            'parse_mode': 'Markdown',
-            'disable_web_page_preview': True
-        }
+ИМЯ ОТПРАВИТЕЛЯ:
+{name}
 
-        print(f"📤 Отправляю в Telegram...")
-        response = requests.post(url, data=payload, timeout=10)
+ПОЧТА ДЛЯ ОБРАТНОЙ СВЯЗИ:
+{email}
 
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('ok'):
-                print("✅ Сообщение отправлено в Telegram!")
-                return True
-            else:
-                print(f"❌ Telegram API error: {result}")
-                return False
-        else:
-            print(f"❌ HTTP error: {response.status_code}")
-            return False
+ТЕМА ОБРАЩЕНИЯ:
+{subject}
+
+СООБЩЕНИЕ:
+{message}
+
+{'=' * 50}
+Время отправки: {timezone.now().strftime('%d.%m.%Y %H:%M:%S')}
+"""
+
+        print(f"📤 Отправляю email на {settings.EMAIL_RECEIVER}...")
+
+        # Отправляем письмо
+        send_mail(
+            subject=email_subject,
+            message=email_message,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[settings.EMAIL_RECEIVER],
+            fail_silently=False,
+        )
+
+        print("✅ Сообщение отправлено на email!")
+        return True
 
     except Exception as e:
-        print(f"❌ Ошибка: {e}")
+        print(f"❌ Ошибка при отправке email: {e}")
+        import traceback
+        traceback.print_exc()
         return False
