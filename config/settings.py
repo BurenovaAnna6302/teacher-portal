@@ -223,11 +223,13 @@ SECURE_REFERRER_POLICY = 'same-origin'
 
 
 # Email настройки для отправки писем (Яндекс)
+# Email настройки через переменные окружения
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.yandex.ru'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'question-ya-v-tempe@yandex.ru'   # От чьего имени отправляем
-EMAIL_HOST_PASSWORD = 'fjdvaipfftsutuam'  # Пароль приложения от question-ya-v-tempe
-EMAIL_RECEIVER = 'ya-v-tempe@yandex.ru'             # Куда приходят заявки
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.yandex.ru')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '465'))
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_RECEIVER = os.getenv('EMAIL_RECEIVER')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
