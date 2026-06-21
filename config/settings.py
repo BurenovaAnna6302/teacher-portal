@@ -222,12 +222,12 @@ STORAGES = {
 SECURE_REFERRER_POLICY = 'same-origin'
 
 
-# Email настройки для отправки писем
+# Email настройки для отправки писем (Яндекс)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'question-ya-v-tempe@mail.ru'      # От чьего имени отправляем
-EMAIL_HOST_PASSWORD = 'rkfccyzctvmz170A@'             # Пароль приложения от question-ya-v-tempe
-EMAIL_RECEIVER = 'info-ya-v-tempe@mail.ru'            # Куда приходят заявки
+EMAIL_HOST_USER = 'question-ya-v-tempe@yandex.ru'   # От чьего имени отправляем
+EMAIL_HOST_PASSWORD = 'fjdvaipfftsutuam'  # Пароль приложения от question-ya-v-tempe
+EMAIL_RECEIVER = 'ya-v-tempe@yandex.ru'             # Куда приходят заявки
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
