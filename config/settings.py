@@ -225,13 +225,13 @@ SECURE_REFERRER_POLICY = 'same-origin'
 # Email настройки для отправки писем (Яндекс)
 # Email настройки через переменные окружения
 # Email настройки через SMTP2GO (HTTP-based, не блокируется облаком)
-# Email настройки через SMTP Timeweb
+# Email настройки через SMTP Timeweb (порт 2525)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.timeweb.ru'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_USE_TLS = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_RECEIVER = os.getenv('EMAIL_RECEIVER')
+EMAIL_PORT = 2525
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = False  # Если не сработает, ниже есть инструкция
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'question@ya-v-tempe.ru')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'rkfccyzctvmz170')
+EMAIL_RECEIVER = os.getenv('EMAIL_RECEIVER', 'ya-v-tempe@yandex.ru')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
