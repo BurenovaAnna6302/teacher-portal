@@ -50,7 +50,6 @@ def _get_practice_data(practice):
     }
 
 
-@cache_page(60 * 15)  # Кэш на 15 минут
 def practices_list(request):
     """Страница списка успешных практик (с кэшем)"""
     categories = PracticeCategory.objects.all().order_by('sort_order', 'name')
