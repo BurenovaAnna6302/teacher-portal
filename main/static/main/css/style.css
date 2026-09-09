@@ -2231,3 +2231,115 @@ p {
         justify-content: center;
     }
 }
+/* ===== СЕКЦИЯ КОНТАКТОВ (ГОРИЗОНТАЛЬНАЯ) ===== */
+.section-contact {
+    padding: 60px 0;
+}
+
+.contact-grid-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Заголовок */
+.contact-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.contact-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #032D43;
+    margin-bottom: 12px;
+}
+
+.contact-description {
+    font-size: 16px;
+    color: #6B7280;
+    line-height: 1.6;
+}
+
+/* Горизонтальные контакты */
+.contact-items-horizontal {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.contact-item-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 20px;
+    background: #F9FAFB;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.contact-item-horizontal:hover {
+    background: #F3F4F6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.contact-icon-box {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #E8F0FE;
+    border-radius: 50%;
+    color: #032D43;
+}
+
+.contact-icon {
+    font-size: 20px;
+    color: #032D43;
+}
+
+.contact-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.contact-item-text {
+    font-size: 15px;
+    color: #1F2937;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 992px) {
+    .contact-items-horizontal {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .section-contact {
+        padding: 40px 0;
+    }
+
+    .contact-title {
+        font-size: 24px;
+    }
+
+    .contact-items-horizontal {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .contact-item-horizontal {
+        padding: 18px 16px;
+    }
+}
