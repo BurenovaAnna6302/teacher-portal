@@ -1,5 +1,5 @@
 // practices.js - Функциональность страницы успешных практик
-// Версия: 1.2 - Добавлена кнопка "Открыть онлайн"
+// Версия: 2.0 - Отдельный запрос для модального окна
 
 class PracticesApp {
     constructor(config) {
@@ -194,17 +194,54 @@ class PracticesApp {
         });
     }
 
-    async openPracticeModal(practiceId) {
-        const practice = this.practices.find(p => p.id == practiceId);
-        if (!practice) return;
+    // ===== НОВЫЙ МЕТОД: загружает детали практики по ID =====
+    async loadPracticeDetail(practiceId) {
+        try {
+            const response = await fetch(`/practices/api/${practiceId}/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('❌ Ошибка загрузки деталей практики:', error);
+            return null;
+        }
+    }
 
-        this.currentModalPractice = practice;
+    // ===== ИЗМЕНЁННЫЙ МЕТОД: открывает модалку с загрузкой данных через API =====
+    async openPracticeModal(practiceId) {
         const modal = document.getElementById('practiceModal');
         const modalBody = document.getElementById('modalBody');
 
+        // Показываем загрузку
+        modalBody.innerHTML = `
+            <div class="modal-loading">
+                <div class="spinner"></div>
+                <p>Загрузка информации...</p>
+            </div>
+        `;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Загружаем детальные данные через API
+        const practice = await this.loadPracticeDetail(practiceId);
+
+        if (!practice) {
+            modalBody.innerHTML = `
+                <div class="modal-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Не удалось загрузить информацию о практике</p>
+                    <button class="modal-btn-retry" onclick="window.practicesApp.openPracticeModal(${practiceId})">
+                        Попробовать снова
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
         const hasFile = practice.has_file || false;
         const fileUrl = practice.file_url || '#';
-        const fileName = fileUrl.split('/').pop();
+        const fileName = practice.file_name || '';
 
         const modalHTML = `
             <div class="modal-practice-content">
@@ -291,8 +328,7 @@ class PracticesApp {
         `;
 
         modalBody.innerHTML = modalHTML;
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        this.currentModalPractice = practice;
     }
 
     closePracticeModal() {
@@ -471,18 +507,16 @@ class PracticesApp {
         this.scrollToTop();
     }
 
-        populateMobileFilters() {
+    populateMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
-        // Собираем категории из практик
         const categories = [...new Set(this.practices.map(p => p.category?.id).filter(Boolean))];
         const categoriesData = categories.map(id => {
             const practice = this.practices.find(p => p.category?.id === id);
             return practice ? practice.category : null;
         }).filter(Boolean);
 
-        // Захардкоженные значения с метками, иконками и цветами
         const audiences = [
             { value: 'young', label: 'Молодые педагоги (до 3 лет)' },
             { value: 'experienced', label: 'Опытные педагоги' },
@@ -501,7 +535,6 @@ class PracticesApp {
             { value: 'hard', label: 'Сложный', icon: 'fas fa-mountain', color: '#ef4444' }
         ];
 
-        // Универсальная функция генерации группы аккордеона
         const generateFilterGroup = (title, category, items, icon, renderItem) => {
             const selectedCount = this.filters[category].length;
             const countBadge = selectedCount > 0
@@ -565,7 +598,6 @@ class PracticesApp {
 
         modalFilters.innerHTML = filtersHTML;
 
-        // Привязываем обработчики к чекбоксам
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 const category = e.target.dataset.category;
@@ -579,24 +611,20 @@ class PracticesApp {
                     this.filters[category] = this.filters[category].filter(v => v !== value);
                 }
 
-                // Обновляем счётчик в заголовке группы
                 this.updateFilterGroupCount(category);
             });
         });
 
-        // Раскрываем первую группу по умолчанию
         const firstGroup = modalFilters.querySelector('.mobile-filter-group');
         if (firstGroup) {
             firstGroup.classList.add('expanded');
         }
     }
 
-    // Новый метод: раскрытие/сворачивание группы фильтров
     toggleFilterGroup(headerElement) {
         const group = headerElement.closest('.mobile-filter-group');
         if (!group) return;
 
-        // Закрываем все другие группы (аккордеон)
         const allGroups = group.parentElement.querySelectorAll('.mobile-filter-group');
         allGroups.forEach(g => {
             if (g !== group) {
@@ -604,11 +632,9 @@ class PracticesApp {
             }
         });
 
-        // Переключаем текущую группу
         group.classList.toggle('expanded');
     }
 
-    // Новый метод: обновление счётчика выбранных значений
     updateFilterGroupCount(category) {
         const group = document.querySelector(`.mobile-filter-group[data-category="${category}"]`);
         if (!group) return;
@@ -616,11 +642,9 @@ class PracticesApp {
         const count = this.filters[category].length;
         const titleElement = group.querySelector('.mobile-filter-group-title');
 
-        // Удаляем старый бейдж, если есть
         const oldBadge = titleElement.querySelector('.filter-count-badge');
         if (oldBadge) oldBadge.remove();
 
-        // Добавляем новый бейдж, если есть выбранные значения
         if (count > 0) {
             const badge = document.createElement('span');
             badge.className = 'filter-count-badge';
@@ -629,7 +653,6 @@ class PracticesApp {
         }
     }
 
-    // Новый метод: обновление всех счётчиков
     updateAllFilterGroupCounts() {
         Object.keys(this.filters).forEach(category => {
             this.updateFilterGroupCount(category);
@@ -656,18 +679,13 @@ class PracticesApp {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
 
-        // Снимаем все галочки
         modalFilters.querySelectorAll('.filter-checkbox').forEach(checkbox => {
             checkbox.checked = false;
         });
 
-        // Сбрасываем фильтры
         this.filters = { category: [], audience: [], format: [], difficulty: [] };
-
-        // Обновляем все счётчики (удаляем бейджи)
         this.updateAllFilterGroupCounts();
 
-        // Сворачиваем все группы, кроме первой
         const allGroups = modalFilters.querySelectorAll('.mobile-filter-group');
         allGroups.forEach((group, index) => {
             if (index === 0) {
