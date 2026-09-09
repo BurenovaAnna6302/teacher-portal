@@ -149,25 +149,26 @@ def admin_login(request):
     return render(request, 'admin_panel/login.html')
 
 def admin_logout(request):
-    """Выход из админки"""
-    # Удаляем ключи администратора
-    request.session.pop('admin_authenticated', None)
-    request.session.pop('is_admin', None)
-    request.session.pop('admin_id', None)
-    request.session.pop('admin_name', None)
-    request.session.pop('admin_email', None)
-    request.session.pop('admin_code_verified', None)
+    """Выход из админки — ПОЛНАЯ ОЧИСТКА СЕССИИ"""
+    # Удаляем все ключи администратора
+    keys_to_remove = [
+        'admin_authenticated', 'is_admin', 'admin_id',
+        'admin_name', 'admin_email', 'admin_code_verified'
+    ]
+    for key in keys_to_remove:
+        request.session.pop(key, None)
 
-    # ОЧИЩАЕМ ВСЕ СООБЩЕНИЯ из сессии
-    from django.contrib.messages import get_messages
-    storage = get_messages(request)
-    storage.used = True  # Отмечаем все сообщения как прочитанные
+    # Дополнительная страховка — удаляем сам флаг is_admin
+    if 'is_admin' in request.session:
+        del request.session['is_admin']
 
-    # ИЛИ более простой способ - очистить storage напрямую
+    # Очищаем сообщения
     if '_messages' in request.session:
         del request.session['_messages']
 
-    #messages.success(request, 'Вы вышли из системы')
+    # Сохраняем сессию, чтобы изменения точно применились
+    request.session.save()
+
     return redirect('admin_panel:admin_login')
 
 def check_admin_access(request):
@@ -2176,12 +2177,10 @@ def create_demo_data(request):
     messages.success(request, 'Демо данные уже существуют в БД')
     return redirect('admin_panel:dashboard')
 
-
+"""
 @csrf_exempt
 def check_admin_code(request):
-    """
-    Проверка секретного кода для двухфакторной аутентификации
-    """
+    
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -2207,7 +2206,7 @@ def check_admin_code(request):
             })
 
     return JsonResponse({'success': False, 'error': 'Метод не поддерживается'})
-
+"""
 
 def help(request):
     if not check_admin_access(request):
