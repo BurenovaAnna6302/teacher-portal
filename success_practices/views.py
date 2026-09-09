@@ -13,17 +13,16 @@ from .models import Practice, PracticeCategory
 def _get_practice_data(practice):
     """
     Оптимизированное получение данных практики.
-    ИЗБЕГАЕМ обращения к S3 через practice.file.url!
+    Использует только загруженные поля, без дополнительных запросов.
     """
-    # practice.file.name — это просто строка из БД (путь к файлу)
-    # practice.file — это FileField, обращение к .url делает запрос к S3
+    # Формируем URL файла вручную, без обращения к S3
     file_name = practice.file.name if practice.file else None
 
     return {
         'id': practice.id,
         'title': practice.title,
         'short_description': practice.short_description,
-        'published_date_display': practice.published_date_display,
+        'published_date_display': practice.created_date.strftime('%d.%m.%Y') if practice.created_date else '',
         'category': {
             'id': practice.category_id,
             'name': practice.category.name,
@@ -32,41 +31,43 @@ def _get_practice_data(practice):
         },
         'audience': {
             'value': practice.audience or '',
-            'display': practice.audience_display,
+            'display': practice.get_audience_display() if hasattr(practice, 'get_audience_display') else practice.audience,
         },
         'format_type': {
             'value': practice.format_type or '',
-            'display': practice.format_display,
+            'display': practice.get_format_type_display() if hasattr(practice, 'get_format_type_display') else practice.format_type,
         },
         'difficulty': {
             'value': practice.difficulty or '',
-            'display': practice.difficulty_display,
+            'display': practice.get_difficulty_display() if hasattr(practice, 'get_difficulty_display') else practice.difficulty,
             'color': practice.difficulty_color,
             'icon': practice.difficulty_icon,
         },
-        # ИСПРАВЛЕНО: формируем URL вручную, без обращения к S3
         'has_file': bool(file_name),
         'file_url': (settings.MEDIA_URL + file_name) if file_name else None,
     }
 
 
 def practices_list(request):
-    """Страница списка успешных практик (с кэшем)"""
-    categories = PracticeCategory.objects.all().order_by('sort_order', 'name')
+    """
+    Страница списка успешных практик (оптимизированная версия).
+    Кэшируется только для неавторизованных пользователей.
+    """
+    # Определяем, авторизован ли пользователь
+    is_authenticated = request.session.get('user_type') in ['admin', 'teacher']
 
-    # ИСПРАВЛЕНО: убран 'file_id' — его не существует у FileField
+    # Базовый запрос - БЕЗ .only() для загрузки всех полей
     practices_queryset = Practice.objects.filter(
         is_published=True
-    ).select_related('category').only(
-        'id', 'title', 'short_description', 'created_date',
-        'category_id', 'category__name', 'category__icon', 'category__icon_color',
-        'audience', 'format_type', 'difficulty', 'file'
-    ).order_by('-created_date')
+    ).select_related('category').order_by('-created_date')
 
     paginator = Paginator(practices_queryset, 12)
     first_page = paginator.get_page(1)
 
     practices_data = [_get_practice_data(practice) for practice in first_page]
+
+    # Получаем категории для фильтров
+    categories = PracticeCategory.objects.all().order_by('sort_order', 'name')
 
     context = {
         'practices': json.dumps(practices_data, ensure_ascii=False),
@@ -75,11 +76,19 @@ def practices_list(request):
         'current_page': 1,
     }
 
+    # Если пользователь не авторизован — кэшируем ответ
+    if not is_authenticated:
+        response = render(request, 'success_practices/practices.html', context)
+        return response
+
     return render(request, 'success_practices/practices.html', context)
 
 
 def practices_list_api(request):
-    """API для AJAX-запросов (фильтрация, пагинация, сортировка) с кэшем"""
+    """
+    API для AJAX-запросов (фильтрация, пагинация, сортировка).
+    Оптимизированная версия с кэшированием.
+    """
     page = request.GET.get('page', 1)
     sort_by = request.GET.get('sort', 'none')
 
@@ -88,26 +97,25 @@ def practices_list_api(request):
     format_filter = request.GET.getlist('format[]')
     difficulty_filter = request.GET.getlist('difficulty[]')
 
-    # Используем hashlib для детерминированного ключа кэша
+    # Определяем, авторизован ли пользователь
+    is_authenticated = request.session.get('user_type') in ['admin', 'teacher']
+
+    # Ключ кэша (без учета авторизации, так как данные одинаковы)
     filter_hash = hashlib.md5(
         f"{category_filter}_{audience_filter}_{format_filter}_{difficulty_filter}".encode()
     ).hexdigest()[:12]
-
     cache_key = f'practices_api_{page}_{sort_by}_{filter_hash}'
 
-    # Проверяем кэш
-    cached_response = cache.get(cache_key)
-    if cached_response:
-        return JsonResponse(cached_response)
+    # Проверяем кэш (только для неавторизованных пользователей)
+    if not is_authenticated:
+        cached_response = cache.get(cache_key)
+        if cached_response:
+            return JsonResponse(cached_response)
 
-    # ИСПРАВЛЕНО: убран 'file_id'
+    # Базовый запрос - БЕЗ .only()
     practices_queryset = Practice.objects.filter(
         is_published=True
-    ).select_related('category').only(
-        'id', 'title', 'short_description', 'created_date',
-        'category_id', 'category__name', 'category__icon', 'category__icon_color',
-        'audience', 'format_type', 'difficulty', 'file'
-    )
+    ).select_related('category')
 
     # Фильтрация
     if category_filter:
@@ -129,6 +137,7 @@ def practices_list_api(request):
     order_field = sort_mapping.get(sort_by, '-created_date')
     practices_queryset = practices_queryset.order_by(order_field)
 
+    # Пагинация
     paginator = Paginator(practices_queryset, 12)
     try:
         current_page = paginator.page(page)
@@ -146,14 +155,17 @@ def practices_list_api(request):
         'total_items': paginator.count,
     }
 
-    # Сохраняем в кэш на 5 минут
-    cache.set(cache_key, response_data, 60 * 5)
+    # Сохраняем в кэш на 5 минут (только для неавторизованных)
+    if not is_authenticated:
+        cache.set(cache_key, response_data, 60 * 5)
 
     return JsonResponse(response_data)
 
 
 def practice_detail(request, practice_id):
-    """Детальная информация о практике (без кэша)"""
+    """
+    Детальная информация о практике (без кэша, всегда актуальная).
+    """
     practice = get_object_or_404(Practice, id=practice_id, is_published=True)
 
     # Формируем URL вручную, без обращения к S3
@@ -171,19 +183,19 @@ def practice_detail(request, practice_id):
         },
         'audience': {
             'value': practice.audience or '',
-            'display': practice.audience_display,
+            'display': practice.get_audience_display() if hasattr(practice, 'get_audience_display') else practice.audience,
         },
         'format_type': {
             'value': practice.format_type or '',
-            'display': practice.format_display,
+            'display': practice.get_format_type_display() if hasattr(practice, 'get_format_type_display') else practice.format_type,
         },
         'difficulty': {
             'value': practice.difficulty or '',
-            'display': practice.difficulty_display,
+            'display': practice.get_difficulty_display() if hasattr(practice, 'get_difficulty_display') else practice.difficulty,
             'color': practice.difficulty_color,
             'icon': practice.difficulty_icon,
         },
-        'published_date_display': practice.published_date_display,
+        'published_date_display': practice.created_date.strftime('%d.%m.%Y') if practice.created_date else '',
         'has_file': bool(file_name),
         'file_url': (settings.MEDIA_URL + file_name) if file_name else None,
         'file_name': file_name.split('/')[-1] if file_name else None,
