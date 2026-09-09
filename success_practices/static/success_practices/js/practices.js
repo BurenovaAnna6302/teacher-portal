@@ -1,5 +1,5 @@
 // practices.js - Функциональность страницы успешных практик
-// Версия: 2.0 - Отдельный запрос для модального окна
+// Версия: 3.0 - Серверный рендеринг карточек
 
 class PracticesApp {
     constructor(config) {
@@ -31,7 +31,7 @@ class PracticesApp {
         this.initMobileFilters();
         this.initModal();
 
-        this.renderPractices(this.practices);
+        // Карточки уже отрендерены на сервере, просто обновляем пагинацию
         this.updatePagination();
 
         this.initialized = true;
@@ -161,6 +161,7 @@ class PracticesApp {
         const modal = document.getElementById('practiceModal');
         const closeBtn = document.getElementById('closePracticeModal');
 
+        // Делегирование события для кнопок "Подробнее"
         document.addEventListener('click', (e) => {
             const expandBtn = e.target.closest('.expand-btn');
             if (expandBtn) {
@@ -194,7 +195,53 @@ class PracticesApp {
         });
     }
 
-    // ===== НОВЫЙ МЕТОД: загружает детали практики по ID =====
+    // ===== ЗАГРУЗКА ПРАКТИК ЧЕРЕЗ API =====
+    async loadPractices() {
+        if (this.loading) return;
+
+        this.loading = true;
+        const practicesGrid = document.getElementById('practicesGrid');
+        practicesGrid.classList.add('loading');
+
+        try {
+            const params = new URLSearchParams({
+                page: this.currentPage,
+                sort: this.sortBy,
+            });
+
+            Object.keys(this.filters).forEach(category => {
+                this.filters[category].forEach(id => params.append(`${category}[]`, id));
+            });
+
+            const response = await fetch(`/practices/api/?${params}`);
+            const data = await response.json();
+
+            this.totalPages = data.total_pages;
+            this.practices = data.practices;
+
+            // ===== ГЛАВНОЕ: вставляем готовый HTML от сервера =====
+            practicesGrid.innerHTML = data.cards_html;
+
+            this.updatePagination();
+
+        } catch (error) {
+            console.error('❌ Ошибка загрузки практик:', error);
+            practicesGrid.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Ошибка загрузки практик</p>
+                    <button class="btn-retry" onclick="window.practicesApp.loadPractices()">
+                        Попробовать снова
+                    </button>
+                </div>
+            `;
+        } finally {
+            this.loading = false;
+            practicesGrid.classList.remove('loading');
+        }
+    }
+
+    // ===== ЗАГРУЗКА ДЕТАЛЕЙ ПРАКТИКИ ДЛЯ МОДАЛЬНОГО ОКНА =====
     async loadPracticeDetail(practiceId) {
         try {
             const response = await fetch(`/practices/api/${practiceId}/`);
@@ -208,7 +255,7 @@ class PracticesApp {
         }
     }
 
-    // ===== ИЗМЕНЁННЫЙ МЕТОД: открывает модалку с загрузкой данных через API =====
+    // ===== ОТКРЫТИЕ МОДАЛЬНОГО ОКНА =====
     async openPracticeModal(practiceId) {
         const modal = document.getElementById('practiceModal');
         const modalBody = document.getElementById('modalBody');
@@ -238,6 +285,8 @@ class PracticesApp {
             `;
             return;
         }
+
+        this.currentModalPractice = practice;
 
         const hasFile = practice.has_file || false;
         const fileUrl = practice.file_url || '#';
@@ -328,9 +377,9 @@ class PracticesApp {
         `;
 
         modalBody.innerHTML = modalHTML;
-        this.currentModalPractice = practice;
     }
 
+    // ===== ЗАКРЫТИЕ МОДАЛЬНОГО ОКНА =====
     closePracticeModal() {
         const modal = document.getElementById('practiceModal');
         modal.classList.remove('active');
@@ -338,111 +387,7 @@ class PracticesApp {
         this.currentModalPractice = null;
     }
 
-    async loadPractices() {
-        if (this.loading) return;
-
-        this.loading = true;
-        const practicesGrid = document.getElementById('practicesGrid');
-        practicesGrid.classList.add('loading');
-
-        try {
-            const params = new URLSearchParams({
-                page: this.currentPage,
-                sort: this.sortBy,
-            });
-
-            Object.keys(this.filters).forEach(category => {
-                this.filters[category].forEach(id => params.append(`${category}[]`, id));
-            });
-
-            const response = await fetch(`/practices/api/?${params}`);
-            const data = await response.json();
-
-            this.totalPages = data.total_pages;
-            this.practices = data.practices;
-            this.renderPractices(data.practices);
-            this.updatePagination();
-
-        } catch (error) {
-            console.error('❌ Ошибка загрузки практик:', error);
-            practicesGrid.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Ошибка загрузки практик</p>
-                </div>
-            `;
-        } finally {
-            this.loading = false;
-            practicesGrid.classList.remove('loading');
-        }
-    }
-
-    renderPractices(practices) {
-        const practicesGrid = document.getElementById('practicesGrid');
-        if (!practicesGrid) return;
-
-        if (practices.length === 0) {
-            practicesGrid.innerHTML = this.getEmptyStateHTML();
-            return;
-        }
-
-        practicesGrid.innerHTML = practices.map(practice => this.getPracticeCardHTML(practice)).join('');
-    }
-
-    getPracticeCardHTML(practice) {
-        return `
-            <article class="practice-card" data-id="${practice.id}">
-                <div class="practice-card-inner">
-                    <div class="practice-header">
-                        <span class="practice-category-badge" style="background-color: ${practice.category.icon_color}20; color: ${practice.category.icon_color};">
-                            <i class="${practice.category.icon}"></i>
-                            ${this.escapeHtml(practice.category.name)}
-                        </span>
-                    </div>
-
-                    <div class="practice-content">
-                        <h3 class="practice-title" title="${this.escapeHtml(practice.title)}">${this.escapeHtml(practice.title)}</h3>
-                        <p class="practice-description" title="${this.escapeHtml(practice.short_description)}">${this.escapeHtml(practice.short_description)}</p>
-
-                        <div class="practice-badges-vertical">
-                            ${practice.audience.value ? `
-                            <div class="badge-item">
-                                <i class="fas fa-users" style="color: #6B7280;"></i>
-                                <span>${this.escapeHtml(practice.audience.display)}</span>
-                            </div>
-                            ` : ''}
-
-                            ${practice.format_type.value ? `
-                            <div class="badge-item">
-                                <i class="fas fa-chalkboard-user" style="color: #6B7280;"></i>
-                                <span>${this.escapeHtml(practice.format_type.display)}</span>
-                            </div>
-                            ` : ''}
-
-                            ${practice.difficulty.value ? `
-                            <div class="badge-item">
-                                <i class="${practice.difficulty.icon}" style="color: ${practice.difficulty.color};"></i>
-                                <span>${this.escapeHtml(practice.difficulty.display)}</span>
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        <div class="practice-meta">
-                            <span class="date-added">
-                                <i class="far fa-calendar"></i>
-                                ${practice.published_date_display}
-                            </span>
-                            <button class="expand-btn" data-id="${practice.id}">
-                                <i class="fas fa-expand-alt"></i>
-                                Подробнее
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        `;
-    }
-
+    // ===== ПАГИНАЦИЯ =====
     updatePagination() {
         const prevBtn = document.getElementById('prevPage');
         const nextBtn = document.getElementById('nextPage');
@@ -479,6 +424,7 @@ class PracticesApp {
         pagesContainer.innerHTML = pagesHTML;
     }
 
+    // ===== ФИЛЬТРЫ =====
     updateFilterStyles() {
         document.querySelectorAll('.filter-option').forEach(option => {
             const checkbox = option.querySelector('.filter-checkbox');
@@ -507,6 +453,7 @@ class PracticesApp {
         this.scrollToTop();
     }
 
+    // ===== МОБИЛЬНЫЕ ФИЛЬТРЫ =====
     populateMobileFilters() {
         const modalFilters = document.querySelector('.modal-filters');
         if (!modalFilters) return;
@@ -705,25 +652,29 @@ class PracticesApp {
         this.updateFilterStyles();
     }
 
-    getEmptyStateHTML() {
-        return `
-            <div class="empty-state">
-                <div class="empty-state-icon"><i class="fas fa-star-of-life"></i></div>
-                <h3 class="empty-state-title">Практики не найдены</h3>
-                <p class="empty-state-description">Попробуйте изменить параметры фильтрации</p>
-                <button class="btn-reset-filters" onclick="window.practicesApp.clearAllFilters()"><i class="fas fa-redo"></i> Сбросить фильтры</button>
-            </div>
-        `;
-    }
-
+    // ===== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ =====
     escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
+
+    getEmptyStateHTML() {
+        return `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-star-of-life"></i></div>
+                <h3 class="empty-state-title">Практики не найдены</h3>
+                <p class="empty-state-description">Попробуйте изменить параметры фильтрации</p>
+                <button class="btn-reset-filters" onclick="window.practicesApp.clearAllFilters()">
+                    <i class="fas fa-redo"></i> Сбросить фильтры
+                </button>
+            </div>
+        `;
+    }
 }
 
+// ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof practicesAppConfig !== 'undefined') {
         window.practicesApp = new PracticesApp(practicesAppConfig);
@@ -731,6 +682,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// ===== ЗАКРЫТИЕ МОДАЛОК ПО ESC =====
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const modal = document.getElementById('mobileFiltersModal');
@@ -746,6 +698,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// ===== ОБРАБОТКА КНОПОК НАЗАД/ВПЕРЁД =====
 window.addEventListener('popstate', function() {
     const params = new URLSearchParams(window.location.search);
     const page = parseInt(params.get('page')) || 1;
@@ -756,6 +709,7 @@ window.addEventListener('popstate', function() {
     }
 });
 
+// ===== КНОПКА "НАВЕРХ" =====
 (function() {
     if (document.getElementById('scrollToTop')) return;
     const scrollButton = document.createElement('button');
@@ -763,10 +717,15 @@ window.addEventListener('popstate', function() {
     scrollButton.className = 'scroll-to-top';
     scrollButton.innerHTML = '<i class="fas fa-arrow-up"></i>';
     document.body.appendChild(scrollButton);
+
     window.addEventListener('scroll', function() {
-        if (window.scrollY > 300) scrollButton.classList.add('show');
-        else scrollButton.classList.remove('show');
+        if (window.scrollY > 300) {
+            scrollButton.classList.add('show');
+        } else {
+            scrollButton.classList.remove('show');
+        }
     });
+
     scrollButton.addEventListener('click', function() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });

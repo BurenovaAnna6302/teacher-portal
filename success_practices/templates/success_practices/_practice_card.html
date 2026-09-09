@@ -1,0 +1,54 @@
+{% load static %}
+<article class="practice-card" data-id="{{ practice.id }}">
+    <div class="practice-card-inner">
+        <div class="practice-header">
+            <span class="practice-category-badge"
+                  style="background-color: {{ practice.category.icon_color }}20;
+                         color: {{ practice.category.icon_color }};">
+                <i class="{{ practice.category.icon }}"></i>
+                {{ practice.category.name }}
+            </span>
+        </div>
+
+        <div class="practice-content">
+            <h3 class="practice-title" title="{{ practice.title }}">{{ practice.title }}</h3>
+            <p class="practice-description" title="{{ practice.short_description }}">
+                {{ practice.short_description|truncatechars:120 }}
+            </p>
+
+            <div class="practice-badges-vertical">
+                {% if practice.audience.value %}
+                <div class="badge-item">
+                    <i class="fas fa-users" style="color: #6B7280;"></i>
+                    <span>{{ practice.audience.display }}</span>
+                </div>
+                {% endif %}
+
+                {% if practice.format_type.value %}
+                <div class="badge-item">
+                    <i class="fas fa-chalkboard-user" style="color: #6B7280;"></i>
+                    <span>{{ practice.format_type.display }}</span>
+                </div>
+                {% endif %}
+
+                {% if practice.difficulty.value %}
+                <div class="badge-item">
+                    <i class="{{ practice.difficulty.icon }}" style="color: {{ practice.difficulty.color }};"></i>
+                    <span>{{ practice.difficulty.display }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="practice-meta">
+                <span class="date-added">
+                    <i class="far fa-calendar"></i>
+                    {{ practice.published_date_display }}
+                </span>
+                <button class="expand-btn" data-id="{{ practice.id }}">
+                    <i class="fas fa-expand-alt"></i>
+                    Подробнее
+                </button>
+            </div>
+        </div>
+    </div>
+</article>
