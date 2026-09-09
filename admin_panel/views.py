@@ -157,7 +157,8 @@ def admin_logout(request):
     ]
     for key in keys_to_remove:
         request.session.pop(key, None)
-
+    # ГЛАВНОЕ: полностью очищаем сессию
+    request.session.flush()  # ← ЭТО УДАЛЯЕТ ВСЕ ДАННЫЕ СЕССИИ
     # Дополнительная страховка — удаляем сам флаг is_admin
     if 'is_admin' in request.session:
         del request.session['is_admin']
