@@ -123,9 +123,12 @@ def admin_login(request):
             admin_user = AdminUser.objects.get(email=email, is_active=True)
 
             if admin_user.check_password(password):
-                # ===== ВАЖНО: СНАЧАЛА ОЧИЩАЕМ ВСЕ КЛЮЧИ ПЕДАГОГА =====
-                keys_to_remove = ['user_id', 'user_authenticated', 'user_email',
-                                  'user_data', 'profile_data', 'teacher_id']
+                # ===== ВАЖНО: СНАЧАЛА УДАЛЯЕМ ВСЕ СТАРЫЕ ФЛАГИ =====
+                keys_to_remove = [
+                    'user_id', 'user_authenticated', 'user_email',
+                    'user_data', 'profile_data', 'teacher_id',
+                    'user_type',  # ← удаляем старый user_type
+                ]
                 for key in keys_to_remove:
                     request.session.pop(key, None)
 
@@ -135,7 +138,7 @@ def admin_login(request):
                 request.session['admin_id'] = admin_user.id
                 request.session['admin_name'] = admin_user.name
                 request.session['admin_email'] = admin_user.email
-                request.session['user_type'] = 'admin'  # Явно указываем тип
+                request.session['user_type'] = 'admin'  # ← УСТАНАВЛИВАЕМ ТИП
 
                 request.session.save()
 
