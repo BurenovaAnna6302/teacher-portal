@@ -155,7 +155,7 @@ STATICFILES_DIRS = [
 # ===== Медиа (S3 Timeweb Cloud) =====
 # Простой и надежный класс для публичных файлов
 class PublicS3Storage(S3Boto3Storage):
-    bucket_name = 'teacher-portal-media'
+    bucket_name = 'd1226e6a-1639-4332-aaac-c301eeb1c4fb'
     default_acl = 'public-read'
     object_parameters = {
         'CacheControl': 'max-age=86400',
@@ -165,7 +165,7 @@ class PublicS3Storage(S3Boto3Storage):
 # Данные для подключения к S3 (из переменных окружения)
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = 'teacher-portal-media'
+AWS_STORAGE_BUCKET_NAME = 'd1226e6a-1639-4332-aaac-c301eeb1c4fb'
 AWS_S3_REGION_NAME = 'ru-1'
 
 # Endpoint Timeweb Cloud
